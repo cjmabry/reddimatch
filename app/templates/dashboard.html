@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  {% if current_user.is_authenticated() %}
+
+  <ul>
+    <li>username: {{current_user.username}}</li>
+    
+  </ul>
+
+  {% endif %}
+
+{% endblock %}

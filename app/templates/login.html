@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <h1>Success! Here's how your profile will look to matches.</h1>
+    <h3>Fill out as much or as little as you'd like, but keep in mind that matches are more likely to respond to more complete profiles.</h3>
+
+    {% if current_user.is_authenticated() %}
+      Hi {{ current_user.name }}!
+    {% endif %}
+
+{% endblock %}
