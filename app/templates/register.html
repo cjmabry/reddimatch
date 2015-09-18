@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  {% if current_user.is_authenticated() %}
+
+  <ul>
+    <li>username: {{current_user.username}}</li>
+
+  </ul>
+
+  {% endif %}
+
+  <h1>Success! Here's how your profile will look to matches.</h1>
+  <h3>Fill out as much or as little as you'd like, but keep in mind that matches are more likely to respond to more complete profiles.</h3>
+
+  {% from "_formhelpers.html" import render_field %}
+  <form method=post action="/register">
+    <dl>
+      {{ render_field(form.username) }}
+      {{ render_field(form.email) }}
+      {{ render_field(form.age) }}
+      {{ render_field(form.gender) }}
+      {{ render_field(form.location) }}
+      {{ render_field(form.bio) }}
+    </dl>
+    <p><input type=submit value=Next>
+  </form>
+
+{% endblock %}
