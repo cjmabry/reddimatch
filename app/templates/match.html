@@ -13,16 +13,11 @@
 
   {% if current_user.is_authenticated() %}
 
-  <ul>
-    <li>username: {{current_user.username}}</li>
-
-  </ul>
-
-  {% endif %}
-
-  <h1>So far, so good! Who would you like to meet?</h2>
+    <h1>So far, so good! Who would you like to meet?</h2>
 
     <a href="{{ url_for('friend') }}">Friend</a>
     <a href="{{ url_for('date') }}">Date</a>
+
+  {% endif %}
 
 {% endblock %}

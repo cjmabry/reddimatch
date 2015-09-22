@@ -1,18 +1,21 @@
 import praw, operator
+from praw.handlers import MultiprocessHandler
 from flask import url_for, g
 from app import db, models
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
 from config import REDDIT_USER_AGENT, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
 
+handler = MultiprocessHandler()
+
 def praw_instance():
-    r = praw.Reddit(REDDIT_USER_AGENT)
+    r = praw.Reddit(user_agent=REDDIT_USER_AGENT, handler=handler)
 
     r.set_oauth_app_info(client_id=REDDIT_CLIENT_ID, client_secret=REDDIT_CLIENT_SECRET, redirect_uri=REDDIT_REDIRECT_URI)
 
     return r
 
 def generate_url(state, scope, refreshable):
-    r = praw.Reddit(REDDIT_USER_AGENT)
+    r = praw_instance()
 
     r.set_oauth_app_info(client_id=REDDIT_CLIENT_ID, client_secret=REDDIT_CLIENT_SECRET, redirect_uri=REDDIT_REDIRECT_URI)
 
@@ -34,7 +37,7 @@ def login_reddit_user(code):
         login_user(user)
         user.refresh_token = refresh_token
         db.session.commit()
-        url = url_for('dashboard')
+        url = url_for('match')
         return url
     else:
         create_user(username, refresh_token)
@@ -63,37 +66,30 @@ def create_user(username, refresh_token):
 
     user = models.User(username=username, refresh_token = refresh_token)
     db.session.add(user)
+    user.get_reddit_favorite_subs()
     db.session.commit()
     login_user(user)
 
-@login_required
-def get_favorite_subs():
+#TODO validate security
+def get_favorite_subs(username):
     r = praw_instance()
-    username = g.user.username
     user = r.get_redditor(username)
     gen = user.get_submitted(limit=None)
 
-    karma_by_subreddit = {}
+    karma_by_subreddit = []
+
     for thing in gen:
-        subreddit = thing.subreddit.display_name
-        karma_by_subreddit[subreddit] = thing.score
+        lis = [thing.subreddit.display_name, thing.score]
+        karma_by_subreddit.append(lis)
 
-    sorted_tuple = sorted(karma_by_subreddit.items(), key=operator.itemgetter(1), reverse=True)
+    sorted_list = sorted(karma_by_subreddit, key=operator.itemgetter(1), reverse=True)
 
-    top_three = sorted_tuple[:3]
+    top_three = []
 
-    for tup in top_three:
-        subreddit_name = str(tup[0])
-        if models.Subreddit.query.filter_by(name=subreddit_name).first():
-            sub = models.Subreddit.query.filter_by(name=subreddit_name).first()
-        else:
-            sub = models.Subreddit(name=subreddit_name)
-            db.session.add(sub)
-            db.session.commit()
-
-        if not g.user.has_favorite(sub):
-            fav = g.user.favorite(sub)
-            db.session.add(fav)
-            db.session.commit
+    for lis in sorted_list[:3]:
+        subreddit_name = str(lis[0])
+        sub = r.get_subreddit(subreddit_name)
+        sub = models.Subreddit(name=subreddit_name)
+        top_three.append(sub)
 
     return top_three

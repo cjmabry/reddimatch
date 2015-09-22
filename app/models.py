@@ -1,8 +1,14 @@
+import app
 from app import db
 
 favorite_subs = db.Table('favorite_subs',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
     db.Column('subreddit_id', db.Integer, db.ForeignKey('subreddit.id'))
+)
+
+matches = db.Table('matches',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
 )
 
 class User(db.Model):
@@ -36,6 +42,24 @@ class User(db.Model):
     def favorited_subs(self):
         return Subreddit.query.join(favorite_subs, (favorite_subs.c.subreddit_id == Subreddit.id)).filter(favorite_subs.c.user_id == self.id)
 
+    def get_reddit_favorite_subs(self):
+        u = self
+        subs = app.reddit_api.get_favorite_subs(u.username)
+
+        for sub in subs:
+            if Subreddit.query.filter_by(name=sub.name).first():
+                print(sub.name + 'found')
+                subreddit = Subreddit.query.filter_by(name=sub.name).first()
+            else:
+                print(sub.name + ' not found')
+                subreddit = Subreddit(name=sub.name)
+                db.session.add(subreddit)
+            f = u.favorite(subreddit)
+            if f is not None:
+                db.session.add(f)
+
+        db.session.commit()
+
     def is_authenticated(self):
         return True
 
@@ -57,7 +81,7 @@ class User(db.Model):
 class Subreddit(db.Model):
     __tablename__ = 'subreddit'
     id = db.Column(db.Integer, primary_key=True)
-    reddit_id = db.Column(db.Integer)
+    reddit_id = db.Column(db.String(60))
     name = db.Column(db.String(60))
 
     def favorited_users(self):

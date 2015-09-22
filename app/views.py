@@ -75,8 +75,6 @@ def register():
         user.location = form.location.data
         user.bio = form.bio.data
         db.session.commit()
-        flash(reddit_api.get_favorite_subs())
-        flash('Thanks for registering')
         return redirect(url_for('match'))
     return render_template('register.html', form=form)
 
@@ -93,12 +91,33 @@ def match():
 @app.route('/friend')
 @login_required
 def friend():
-    return render_template('friend.html')
+    user = g.user
+
+    favs = user.favorited_subs().all()
+
+    matches = []
+
+    for sub in favs:
+        users = sub.favorited_users().all()
+
+        for u in users:
+            if u.username is not user.username:
+                matches.append(str(u.username))
+
+    flash(matches)
+    return render_template('matches.html', matches=matches)
 
 @app.route('/date')
 @login_required
 def date():
-    return render_template('date.html')
+    return redirect(url_for('friend'))
+
+@app.route('/matches')
+@login_required
+def matches():
+    matches = request.args.get('matches')
+    flash(matches)
+    return render_template('matches.html', matches=matches)
 
 @app.route('/logout')
 @login_required

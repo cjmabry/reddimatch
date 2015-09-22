@@ -11,6 +11,8 @@
 
     {% if current_user.is_authenticated() %}
       Hello, {{ current_user.username }} |
+      <a href="{{ url_for('dashboard')}}">Dashboard</a> |
+      <a href="{{ url_for('match')}}">Match</a> |
       <a href="{{ url_for('logout') }}">Logout</a>
     {% endif %}
 

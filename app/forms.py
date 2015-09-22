@@ -7,3 +7,6 @@ class RegistrationForm(Form):
     gender = SelectField(choices=[('male', 'Male'), ('female', 'Female')])
     location = StringField('Location', [validators.Length(min=6, max=35)])
     bio = StringField('Bio', [validators.Length(min=0, max=140)])
+    favorite_sub_1 = StringField('Favorite Sub 1', [validators.Length(min=1, max=30)])
+    favorite_sub_2 = StringField('Favorite Sub 2', [validators.Length(min=1, max=30)])
+    favorite_sub_3 = StringField('Favorite Sub 3', [validators.Length(min=1, max=30)])

@@ -12,28 +12,35 @@
   {% endwith %}
 
   {% if current_user.is_authenticated() %}
+  
+    <h1>Success! Here's how your profile will look to matches.</h1>
+    <h3>Fill out as much or as little as you'd like, but keep in mind that matches are more likely to respond to more complete profiles.</h3>
 
-  <ul>
-    <li>username: {{current_user.username}}</li>
+    {% from "_formhelpers.html" import render_field %}
+    <form method=post action="/register">
+      <dl>
+        {{ render_field(form.username,value=current_user.username)}}
+        {{ render_field(form.email) }}
+        {{ render_field(form.age) }}
+        {{ render_field(form.gender) }}
+        {{ render_field(form.location) }}
+        {{ render_field(form.bio) }}
+        {% with favs = current_user.favorited_subs() %}
+          {% if favs %}
+              {% for sub in favs %}
+                {% set name = "favorite_sub_" ~ loop.index %}
+                {{ render_field(form[name],value=sub.name) }}
+              {% endfor %}
+              {{ sub_names }}
+            </ul>
+          {% endif %}
+        {% endwith %}
+      </dl>
+      <p><input type=submit value=Next>
+    </form>
 
-  </ul>
+    <h2><strong>Don't worry</strong> - your profile is only shown when you match with someone.
 
   {% endif %}
-
-  <h1>Success! Here's how your profile will look to matches.</h1>
-  <h3>Fill out as much or as little as you'd like, but keep in mind that matches are more likely to respond to more complete profiles.</h3>
-
-  {% from "_formhelpers.html" import render_field %}
-  <form method=post action="/register">
-    <dl>
-      {{ render_field(form.username) }}
-      {{ render_field(form.email) }}
-      {{ render_field(form.age) }}
-      {{ render_field(form.gender) }}
-      {{ render_field(form.location) }}
-      {{ render_field(form.bio) }}
-    </dl>
-    <p><input type=submit value=Next>
-  </form>
 
 {% endblock %}

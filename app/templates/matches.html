@@ -13,16 +13,21 @@
 
   {% if current_user.is_authenticated() %}
 
-    {% with favs = current_user.favorited_subs() %}
-      {% if favs %}
-      <h2>Your favorites, pulled from reddit</h2>
-        <ul class="favs">
-          {% for sub in favs %}
-            <li>{{ sub.name }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+    {% if matches != None %}
+
+      <h2>Your matches</h2>
+
+      <ul class="matches">
+
+      {% for match in matches %}
+
+        <li><a href="http://www.reddit.com/user/{{ match }}">http://www.reddit.com/user/{{ match }}</a></li>
+
+      {% endfor %}
+
+      </ul>
+
+    {% endif %}
 
   {% endif %}
 
