@@ -10,7 +10,7 @@ DATABASE_CONNECT_OPTIONS = {}
 REDDIT_USER_AGENT = 'web:com.reddimatch:v0.1.0 (by /u/cjmabry)'
 REDDIT_CLIENT_ID = 'Q9TKty4V9mQQlA'
 REDDIT_CLIENT_SECRET = '1O14gtnAlNy_0X6j5F8E3HDSp9Q'
-REDDIT_REDIRECT_URI = 'https://still-ocean-5249.herokuapp.com/authorize_callback'
+REDDIT_REDIRECT_URI = 'http://http://cjmabry.pythonanywhere.com/authorize_callback'
 
 CSRF_ENABLED = True
 CSRF_SESSION_KEY = 'secret'
