@@ -2,7 +2,7 @@ from flask import render_template, redirect, request, flash, url_for, g
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
 from app import app, db, lm, reddit_api, models, forms
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
-import praw
+import praw, random
 
 @app.route('/')
 @app.route('/index')
@@ -16,7 +16,7 @@ def authorize():
     # TODO: verify state
     # TODO: error handling
 
-    url = reddit_api.generate_url('uniqueKey', 'identity', True)
+    url = reddit_api.generate_url('uniqueKey', ['identity', 'history'], True)
 
     return redirect(url)
 
@@ -24,11 +24,6 @@ def authorize():
 def authorize_callback():
     # TODO: check if state is same
     # TODO: complete error handling
-    # TODO: abstract for multiple praw instances
-    # TODO: praw-multiprocess
-
-    # if not current_user.is_anonymous():
-    #     return redirect()
 
     if request.args.get('error'):
         error = request.args.get('error')
@@ -91,6 +86,7 @@ def match():
 @app.route('/friend')
 @login_required
 def friend():
+    #TODO: use counter or similar to get people who are favorites of multiples of your favorites
     user = g.user
 
     favs = user.favorited_subs().all()
@@ -102,9 +98,25 @@ def friend():
 
         for u in users:
             if u.username is not user.username:
-                matches.append(str(u.username))
+                if models.User.query.filter_by(reddit_username=u.username).first():
+                    favs = models.User.query.filter_by(reddit_username=u.username).first().favorited_subs().all()
+                else:
+                    favs = reddit_api.get_favorite_subs(u)
 
-    flash(matches)
+                lis = ['onsite', u.username, sub.name]
+                for fav in favs:
+                    lis.append(fav.name)
+                matches.append(lis)
+
+    if len(matches) > 3:
+        matches = random.sample(matches, 3)
+
+    if len(matches) == 0:
+        matches = reddit_api.get_offsite_users(favs)
+
+        if len(matches) == 0:
+            matches = None
+
     return render_template('matches.html', matches=matches)
 
 @app.route('/date')
@@ -124,6 +136,18 @@ def matches():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+# @app.route('/accept', methods=['POST'])
+# @login_required
+# def accept():
+#     user = response.args.get('user')
+#
+#
+#     return jsonify({
+#         'text': microsoft_translate(
+#             request.form['text'],
+#             request.form['sourceLang'],
+#             request.form['destLang']) })
 
 @lm.user_loader
 def load_user(id):

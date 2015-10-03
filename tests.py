@@ -39,7 +39,7 @@ class TestCase(unittest.TestCase):
         assert user.favorited.count() == 0
         assert not user.has_favorite(subreddit)
 
-    def test_favorite_subreddits(self):
+    def test_favorite_subreddits_by_submission(self):
         u1 = User(username='john', email='john@example.com')
         u2 = User(username='bill', email='bill@example.com')
         u3 = User(username='susan', email='susan@example.com')
@@ -88,6 +88,30 @@ class TestCase(unittest.TestCase):
         assert f2 == [s1, s2, s3, s4]
         assert f3 == [s4]
         assert f4 == [s1, s4]
+
+    def test_match(self):
+        u1 = User(username='john', email='john@example.com')
+        u2 = User(username='susan', email='susan@example.com')
+        db.session.add(u1)
+        db.session.add(u2)
+        db.session.commit()
+        assert u1.unmatch(u2) is None
+        u = u1.match(u2)
+        db.session.add(u)
+        db.session.commit()
+        assert u1.match(u2) is None
+        assert u1.is_matched(u2)
+        assert u1.matched.count() == 1
+        assert u1.matched.first().username == 'susan'
+        assert u2.matches.count() == 1
+        assert u2.matches.first().username == 'john'
+        u = u1.unmatch(u2)
+        assert u is not None
+        db.session.add(u)
+        db.session.commit()
+        assert not u1.is_matched(u2)
+        assert u1.matched.count() == 0
+        assert u2.matches.count() == 0
 
     # def test_avatar(self):
     #     u = User(nickname='john', email='john@example.com')

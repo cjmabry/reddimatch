@@ -8,23 +8,31 @@ favorite_subs = db.Table('favorite_subs',
 
 matches = db.Table('matches',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
+    db.Column('matched_id', db.Integer, db.ForeignKey('user.id'))
 )
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
+    reddit_username = db.Column(db.String(80), unique=True)
     email = db.Column(db.String(120), unique=True)
     refresh_token = db.Column(db.String(60))
     age = db.Column(db.Integer)
     postal_code = db.Column(db.String(10))
-    lat = db.Column(db.Float)
-    long = db.Column(db.Float)
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
     bio = db.Column(db.String(140))
     profile_photo_url = db.Column(db.String(120))
     registered = db.Column(db.Boolean)
+    deleted = db.Column(db.Boolean)
     favorited = db.relationship('Subreddit', secondary=favorite_subs,
         backref=db.backref('favorite_subs', lazy='dynamic'), lazy='dynamic')
+    matched = db.relationship('User',
+                               secondary=matches,
+                               primaryjoin=(matches.c.user_id == id),
+                               secondaryjoin=(matches.c.matched_id == id),
+                               backref=db.backref('matches', lazy='dynamic'),
+                               lazy='dynamic')
 
     def favorite(self, subreddit):
         if not self.has_favorite(subreddit):
@@ -44,7 +52,7 @@ class User(db.Model):
 
     def get_reddit_favorite_subs(self):
         u = self
-        subs = app.reddit_api.get_favorite_subs(u.username)
+        subs = app.reddit_api.get_favorite_subs(u)
 
         for sub in subs:
             if Subreddit.query.filter_by(name=sub.name).first():
@@ -59,6 +67,19 @@ class User(db.Model):
                 db.session.add(f)
 
         db.session.commit()
+
+    def match(self, user):
+        if not self.is_matched(user):
+            self.matched.append(user)
+            return self
+
+    def unmatch(self, user):
+        if self.is_matched(user):
+            self.matched.remove(user)
+            return self
+
+    def is_matched(self, user):
+        return self.matched.filter(matches.c.matched_id == user.id).count() > 0
 
     def is_authenticated(self):
         return True
@@ -82,6 +103,7 @@ class Subreddit(db.Model):
     __tablename__ = 'subreddit'
     id = db.Column(db.Integer, primary_key=True)
     reddit_id = db.Column(db.String(60))
+    category = db.Column(db.String(60))
     name = db.Column(db.String(60))
 
     def favorited_users(self):

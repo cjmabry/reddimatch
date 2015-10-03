@@ -8,22 +8,22 @@ def generate_string(size=6):
 
 # for x in range(0,1000):
 def generate_random_user(username):
-    return models.User(username=username, email=generate_string(randint(5,10))+'@gmail.com',age=randint(5,110),bio=generate_string(randint(5,140)))
+    return models.User(username=username, reddit_username=username, email=generate_string(randint(5,10))+'@gmail.com',age=randint(5,110),bio=generate_string(randint(5,140)))
 
-#TODO fix this (multiple subs of same name added)
 def populate_users(numUsers):
     r = reddit_api.praw_instance()
-    subreddit = r.get_subreddit('ChivalryGame')
+    subreddit = r.get_subreddit('bonnaroo')
     posts = subreddit.get_hot()
+    # subreddit = r.get_front_page()
 
     posts_dict = {}
     for thing in posts:
         username = str(thing.author)
 
-        if not models.User.query.filter_by(username=username).first():
+        if not models.User.query.filter_by(reddit_username=username).first():
             u = generate_random_user(username)
             db.session.add(u)
-            subs = reddit_api.get_favorite_subs(username)
+            subs = reddit_api.get_offsite_user_favorite_subs(username)
 
             for sub in subs:
                 if models.Subreddit.query.filter_by(name=sub.name).first():
@@ -59,4 +59,4 @@ def populate_subreddit_db(numSubreddits):
             sub = models.Subreddit.query.filter_by(name=subreddit_name).first()
             sub.reddit_id = subreddit_id
 
-populate_users(25)
+populate_users(100)

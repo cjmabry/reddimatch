@@ -12,7 +12,7 @@
   {% endwith %}
 
   {% if current_user.is_authenticated() %}
-  
+
     <h1>Success! Here's how your profile will look to matches.</h1>
     <h3>Fill out as much or as little as you'd like, but keep in mind that matches are more likely to respond to more complete profiles.</h3>
 
@@ -26,15 +26,21 @@
         {{ render_field(form.location) }}
         {{ render_field(form.bio) }}
         {% with favs = current_user.favorited_subs() %}
-          {% if favs %}
-              {% for sub in favs %}
-                {% set name = "favorite_sub_" ~ loop.index %}
-                {{ render_field(form[name],value=sub.name) }}
-              {% endfor %}
-              {{ sub_names }}
-            </ul>
-          {% endif %}
+
+          {% for idx in range(0, 3)%}
+
+            {% if favs[idx] %}
+              {{ render_field(form['favorite_sub_' + (idx+1)|string], value=favs[idx].name)}}
+
+            {% else %}
+              {{ render_field(form['favorite_sub_' + (idx+1)|string])}}
+
+            {% endif %}
+
+          {% endfor %}
+
         {% endwith %}
+
       </dl>
       <p><input type=submit value=Next>
     </form>

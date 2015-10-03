@@ -1,8 +1,10 @@
-import praw, operator
+import praw, operator, collections, time, random
 from praw.handlers import MultiprocessHandler
 from flask import url_for, g
 from app import db, models
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
+from pprint import pprint
+from collections import OrderedDict
 from config import REDDIT_USER_AGENT, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
 
 handler = MultiprocessHandler()
@@ -32,8 +34,8 @@ def login_reddit_user(code):
 
     username = get_username(r)
 
-    if models.User.query.filter_by(username=username).first():
-        user = models.User.query.filter_by(username=username).first()
+    if models.User.query.filter_by(reddit_username=username).first():
+        user = models.User.query.filter_by(reddit_username=username).first()
         login_user(user)
         user.refresh_token = refresh_token
         db.session.commit()
@@ -64,32 +66,94 @@ def get_username(praw_instance):
 
 def create_user(username, refresh_token):
 
-    user = models.User(username=username, refresh_token = refresh_token)
+    user = models.User(username=username, reddit_username=username, refresh_token = refresh_token)
     db.session.add(user)
     user.get_reddit_favorite_subs()
     db.session.commit()
     login_user(user)
 
-#TODO validate security
-def get_favorite_subs(username):
+def get_favorite_subs(user):
+    time1 = time.time()
     r = praw_instance()
-    user = r.get_redditor(username)
-    gen = user.get_submitted(limit=None)
+    # refresh_token = user.refresh_token
 
-    karma_by_subreddit = []
+    # if refresh_token:
+    #     access_information = r.refresh_access_information(refresh_token)
+    #     r.set_access_credentials(**access_information)
+    #     new_refresh_token = access_information['refresh_token']
+    #     user.refresh_token = new_refresh_token
+    #     db.session.commit()
+    # else:
+    #     print('No refresh_token')
 
-    for thing in gen:
-        lis = [thing.subreddit.display_name, thing.score]
-        karma_by_subreddit.append(lis)
+    reddit_user = r.get_redditor(user.username)
 
-    sorted_list = sorted(karma_by_subreddit, key=operator.itemgetter(1), reverse=True)
+    comments = reddit_user.get_comments(sort='new', time='all', limit=100)
 
-    top_three = []
+    comments_by_subreddit = []
 
-    for lis in sorted_list[:3]:
-        subreddit_name = str(lis[0])
-        sub = r.get_subreddit(subreddit_name)
-        sub = models.Subreddit(name=subreddit_name)
-        top_three.append(sub)
+    for comment in comments:
+        comments_by_subreddit.append(comment.subreddit.display_name)
 
-    return top_three
+    comments = collections.Counter(comments_by_subreddit)
+
+    top_subs_by_comments = sorted(comments.items(), key=operator.itemgetter(1), reverse=True)
+
+    subs = []
+
+    for key, value in top_subs_by_comments[:3]:
+        sub = models.Subreddit(name=key)
+        subs.append(sub)
+
+    pprint(comments)
+    pprint(subs)
+
+    print(time.time() - time1)
+    return subs
+
+def get_offsite_user_favorite_subs(username):
+    r = praw_instance()
+    reddit_user = r.get_redditor(username)
+
+    time1 = time.time()
+
+    comments = reddit_user.get_comments(sort='new', time='all', limit=100)
+
+    comments_by_subreddit = []
+
+    for comment in comments:
+        comments_by_subreddit.append(comment.subreddit.display_name)
+
+    comments = collections.Counter(comments_by_subreddit)
+
+    top_subs_by_comments = sorted(comments.items(), key=operator.itemgetter(1), reverse=True)
+
+    subs = []
+
+    for key, value in top_subs_by_comments[:3]:
+        sub = models.Subreddit(name=key)
+        subs.append(sub)
+
+    pprint(comments)
+    pprint(subs)
+
+    print(time.time() - time1)
+    return subs
+
+def get_offsite_users(favs):
+    #TODO should we get and display their favorites?
+    r = praw_instance()
+
+    users = []
+
+    for sub in favs:
+        subreddit = r.get_subreddit(sub.name)
+        comments = subreddit.get_comments(limit=100)
+
+        for comment in comments:
+            if comment.author.name not in users:
+                users.append(['offsite',comment.author.name,subreddit.display_name])
+
+    users = random.sample(users, 3)
+    pprint(users)
+    return users
