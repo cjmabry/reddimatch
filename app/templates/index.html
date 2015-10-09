@@ -11,8 +11,16 @@
     {% endif %}
   {% endwith %}
 
-  <h1>Reddimatch v0.1.0</h1>
+  <div class="row">
 
-  <a href="{{ url_for('authorize') }}">Log in with reddit</a>
+    <div class="col-md-8 col-md-offset-2 text-center">
+
+      <h1>Reddimatch v0.1.0</h1>
+
+      <a class="btn btn-default" role="button" href="{{ url_for('authorize') }}">Log in with reddit</a>
+
+    </div>
+
+  </div>
 
 {% endblock %}

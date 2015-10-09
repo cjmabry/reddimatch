@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  {% if current_user.is_authenticated() %}
+
+    <div class="col-md-12 text-center">
+
+      {% if matches != None %}
+
+        <div class="row">
+          <h1>It's a match!</h1>
+          <h4>Go on, break the ice!</h4>
+        </div>
+
+        {% if matches[0][0] == 'offsite' %}
+          <p>We couldn't find any users on reddimatch, but we did find some potential matches offsite.</p>
+        {% endif %}
+
+        <div class="row matches">
+
+        {% for match in matches %}
+
+          <div class="match col-md-4 col-sm-6 text-left">
+
+            <div class="thumbnail">
+              <img class="match_pic" src="http://placehold.it/400x400">
+
+              <div class="caption">
+                <h4><a class="match_name" href="https://www.reddit.com/user/{{ match[1] }}">{{ match[1] }}</a></h4>
+
+                <p>You matched with <a href="https://www.reddit.com/user/{{ match[1] }}">{{ match[1] }}</a> because you both post in <a href="https://www.reddit.com/r/{{ match[2] }}">/r/{{ match[2] }}</a>.</p>
+
+                <p><small>
+                  {% if match[0] == 'offsite' %}
+                    {{ match[1] }} hasn't regsitered for reddimatch, but based on our algorithm we think you two would hit it off. Why not <a href="https://www.reddit.com/message/compose/?to={{ match[1] }}">send them an invite</a>?</br>
+                  {% endif %}
+                </small></p>
+
+                {% if match[3] is defined %}
+                  <strong>Favorites Subs</strong>
+                  <p>{% for sub in match[3:] %}
+                    <a href="https://www.reddit.com/r/{{sub}}">/r/{{ sub }}</a>
+                  {% endfor %}</p>
+                {% endif %}
+
+
+                {% if match[0] == 'onsite' %}
+                  <div class="clearfix text-center">
+                    <a class="btn btn-default glyphicon glyphicon-ok pull-left" role="button" href="javascript:match('{{match[1]}}');"></a> <span class="lead">Match</span>
+                    <a class="btn btn-default glyphicon glyphicon-remove pull-right" role="button" href="#"></a>
+                  </div>
+                {% endif %}
+              </div>
+
+            </div>
+
+          </div>
+
+        {% endfor %}
+
+      <div class="text-center row">
+        <div class="col-md-2 col-md-offset-5">
+          <a class="btn btn-primary btn-block" role="button" href="/matches">Go to Messages <span class="glyphicon glyphicon-chevron-right"></span></a>
+          <a class="btn btn-default btn-block" role="button" href="/match">Search Again <span class="glyphicon glyphicon-chevron-left"></span></a>
+        </div>
+      </div>
+
+      </div>
+
+      {% else %}
+
+        <h2>No matches found :(</h2>
+
+      {% endif %}
+
+    </div>
+
+  {% endif %}
+
+{% endblock %}

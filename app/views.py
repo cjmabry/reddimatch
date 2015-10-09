@@ -86,6 +86,11 @@ def match():
 @app.route('/friend')
 @login_required
 def friend():
+    return render_template('friend.html')
+
+@app.route('/friend_match')
+@login_required
+def friend_match():
     #TODO: use counter or similar to get people who are favorites of multiples of your favorites
     user = g.user
 
@@ -97,7 +102,7 @@ def friend():
         users = sub.favorited_users().all()
 
         for u in users:
-            if u.username is not user.username:
+            if u.username is not user.username and user.is_matched(u) == False:
                 if models.User.query.filter_by(reddit_username=u.username).first():
                     favs = models.User.query.filter_by(reddit_username=u.username).first().favorited_subs().all()
                 else:
@@ -117,7 +122,7 @@ def friend():
         if len(matches) == 0:
             matches = None
 
-    return render_template('matches.html', matches=matches)
+    return render_template('results.html', matches=matches)
 
 @app.route('/date')
 @login_required
@@ -127,9 +132,7 @@ def date():
 @app.route('/matches')
 @login_required
 def matches():
-    matches = request.args.get('matches')
-    flash(matches)
-    return render_template('matches.html', matches=matches)
+    return render_template('matches.html')
 
 @app.route('/logout')
 @login_required
@@ -137,17 +140,20 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-# @app.route('/accept', methods=['POST'])
-# @login_required
-# def accept():
-#     user = response.args.get('user')
-#
-#
-#     return jsonify({
-#         'text': microsoft_translate(
-#             request.form['text'],
-#             request.form['sourceLang'],
-#             request.form['destLang']) })
+@app.route('/accept', methods=['POST', 'GET'])
+@login_required
+def accept():
+    user = g.user
+    match_username = request.form['match']
+
+    if models.User.query.filter_by(username=match_username).first():
+        match_user = models.User.query.filter_by(username=match_username).first()
+
+        m = user.match(match_user)
+        db.session.add(m)
+        db.session.commit()
+
+    return 'success'
 
 @lm.user_loader
 def load_user(id):

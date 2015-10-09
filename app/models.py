@@ -81,6 +81,9 @@ class User(db.Model):
     def is_matched(self, user):
         return self.matched.filter(matches.c.matched_id == user.id).count() > 0
 
+    def get_matches(self):
+        return User.query.join(matches, (matches.c.matched_id == User.id)).filter(matches.c.user_id == self.id)
+
     def is_authenticated(self):
         return True
 

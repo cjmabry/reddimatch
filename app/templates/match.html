@@ -13,10 +13,18 @@
 
   {% if current_user.is_authenticated() %}
 
-    <h1>So far, so good! Who would you like to meet?</h2>
+  <div class="row">
 
-    <a href="{{ url_for('friend') }}">Friend</a>
-    <a href="{{ url_for('date') }}">Date</a>
+    <div class="col-md-10 col-md-offset-1 text-center">
+
+      <h1>So far, so good! Who would you like to meet?</h2>
+
+      <a class="btn btn-default" role="button" href="{{ url_for('friend') }}">Friend</a>
+      <a class="btn btn-default" role="button" href="{{ url_for('date') }}">Date</a>
+
+    </div>
+
+  </div>
 
   {% endif %}
 
