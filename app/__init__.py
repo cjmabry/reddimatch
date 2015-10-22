@@ -1,6 +1,7 @@
 from flask import Flask, flash
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager
+from flask.ext.socketio import SocketIO, emit, send
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -8,6 +9,8 @@ app.config.from_object('config')
 lm = LoginManager()
 lm.init_app(app)
 lm.login_view = 'login'
+
+socketio = SocketIO(app)
 
 db = SQLAlchemy(app)
 

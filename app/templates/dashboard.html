@@ -13,12 +13,40 @@
 
   {% if current_user.is_authenticated() %}
 
+    <h1>Welcome back, {{ current_user.username }}.</h1>
+
+    <ul>
+      {% if current_user.email is defined %}
+        {% if current_user.email|length > 0 %}
+          <li>Your email: {{ current_user.email }}</li>
+        {% endif %}
+      {% endif %}
+      {% if current_user.age is not none %}
+          <li>Your age: {{ current_user.age }}</li>
+      {% endif %}
+      {% if current_user.gender is not none %}
+        {% if current_user.gender|length > 0 %}
+          <li>Your gender: {{ current_user.gender }}</li>
+        {% endif %}
+      {% endif %}
+      {% if current_user.location is not none %}
+        {% if current_user.location|length > 0 %}
+          <li>Your location: {{ current_user.location }}</li>
+        {% endif %}
+      {% endif %}
+      {% if current_user.bio is not none %}
+        {% if current_user.bio|length > 0 %}
+          <li>Your bio: {{ current_user.bio }}</li>
+        {% endif %}
+      {% endif %}
+    </ul>
+
     {% with favs = current_user.favorited_subs() %}
       {% if favs %}
-      <h2>Your favorites, pulled from reddit</h2>
+      <h3>Your favorite subs:</h3>
         <ul class="favs">
           {% for sub in favs %}
-            <li>{{ sub.name }}</li>
+            <li><a href="https://www.reddit.com/r/{{sub.name}}">/r/{{ sub.name }}</a></li>
           {% endfor %}
         </ul>
       {% endif %}

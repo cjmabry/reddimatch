@@ -1,6 +1,6 @@
 from flask import render_template, redirect, request, flash, url_for, g
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
-from app import app, db, lm, reddit_api, models, forms
+from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
 import praw, random
 
@@ -62,13 +62,39 @@ def login():
 def register():
     form = forms.RegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
-        user = models.User.query.filter_by(username=form.username.data).first()
+        user = g.user
         user.username = form.username.data
         user.email = form.email.data
         user.age = form.age.data
         user.gender = form.gender.data
         user.location = form.location.data
         user.bio = form.bio.data
+        favorite_subs = []
+        favorite_subs.append(form.favorite_sub_1.data)
+        favorite_subs.append(form.favorite_sub_2.data)
+        favorite_subs.append(form.favorite_sub_3.data)
+
+        user.unfavorite_all()
+
+        for sub in favorite_subs:
+            if models.Subreddit.query.filter_by(name=sub).first():
+                sub = models.Subreddit.query.filter_by(name=sub).first()
+                user.favorite(sub)
+            elif models.Subreddit.query.filter_by(name=sub).first() is None:
+                r = reddit_api.praw_instance()
+                try:
+                    r.get_subreddit(sub, fetch=True)
+                except Exception as e:
+                    flash(e)
+                    return render_template('register.html', form=form)
+
+                subreddit = models.Subreddit(name=sub)
+                db.session.add(subreddit)
+                db.session.commit()
+                user.favorite(subreddit)
+            else:
+                print 'error'
+
         db.session.commit()
         return redirect(url_for('match'))
     return render_template('register.html', form=form)
@@ -154,6 +180,26 @@ def accept():
         db.session.commit()
 
     return 'success'
+
+@app.route('/messages')
+@login_required
+def messages():
+    return render_template('messages.html')
+
+@app.route('/chat', methods=['POST', 'GET'])
+@login_required
+def chat():
+    return render_template('chat.html')
+
+@socketio.on('connect')
+def test_connect():
+    print('Connected! Ohhhhh yeah!')
+    emit('my response', {'data': 'Connected'})
+
+# custom named event handler (name here is my event, duh)
+@socketio.on('my event')
+def test(event):
+    print(event)
 
 @lm.user_loader
 def load_user(id):

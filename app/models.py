@@ -18,6 +18,8 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True)
     refresh_token = db.Column(db.String(60))
     age = db.Column(db.Integer)
+    gender = db.Column(db.String(60))
+    location = db.Column(db.String(120))
     postal_code = db.Column(db.String(10))
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
@@ -43,6 +45,12 @@ class User(db.Model):
         if self.has_favorite(subreddit):
             self.favorited.remove(subreddit)
             return self
+
+    def unfavorite_all(self):
+        subs = self.favorited_subs()
+
+        for sub in subs:
+            self.unfavorite(sub)
 
     def has_favorite(self, subreddit):
         return self.favorited.filter(favorite_subs.c.subreddit_id == subreddit.id).count() > 0
