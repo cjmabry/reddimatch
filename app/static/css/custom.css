@@ -1,0 +1,205 @@
+html {
+  position: relative;
+  min-height:100%;
+}
+
+body {
+  margin-bottom:60px;
+  margin-top:50px;
+}
+
+body .navbar {
+  background-color: #ffffff;
+  border: 1px solid #f5f5f5;
+}
+
+footer {
+  position: absolute;
+  bottom:0;
+  width: 100%;
+  height:60px;
+  line-height:60px;
+  background-color: #f5f5f5;
+}
+
+.navbar-fixed-top {
+  background:#f5f5f5;
+}
+
+/* Index */
+.logo {
+  width: 150px;
+  height: auto;
+}
+
+/* Messages */
+#messages {
+  display: flex;
+}
+
+#conversations {
+  border: 1px solid #f5f5f5;
+  height:100%;
+  padding:0;
+  flex: 1 0;
+  min-width: 320px;
+  max-width: 420px;
+  max-height:100%;
+  overflow-y: scroll;
+}
+
+#conversations:hover {
+}
+
+#conversations ul#user_list {
+  list-style-type: none;
+  padding:0;
+  margin:0;
+}
+
+#conversations ul#user_list li {
+  cursor: pointer;
+  box-sizing: border-box;
+  height:60px;
+  border:solid #f5f5f5;
+  border-width: 0 0 1px 0;
+  opacity: 0.5;
+  transition: 0.2s;
+}
+
+#conversations ul#user_list li:hover {
+  opacity: 1;
+}
+
+#conversations ul#user_list li.selected {
+  opacity: 1;
+}
+
+#conversations ul#user_list li .profile_photo{
+  box-sizing: border-box;
+  height:100%;
+  width: 60px;
+  background: #EFEFEF;
+  float:left;
+}
+
+#conversations ul#user_list li .info {
+}
+
+
+#conversations ul#user_list li .username {
+  line-height: 60px;
+  float:left;
+}
+
+#conversations ul#user_list li .expand {
+  width:60px;
+  height:100%;
+  float:right;
+  line-height: 60px;
+  font-size: 2em;
+  color:#f5f5f5;
+}
+
+#current_conversation {
+  height:100%;
+  position: relative;
+  flex: 2 0;
+  overflow-y: scroll;
+}
+
+#chat_box {
+  position: absolute;
+  bottom:0;
+  width:100%;
+}
+
+#enter_message {
+  cursor: text;
+  min-height: 2.5em;
+  line-height: 1.25em;
+  width: 100%;
+  /*width: calc(100% - 65px);*/
+  border:1px solid #f5f5f5;
+  border-width: 1px 0 1px 0;
+  border-radius:0;
+  resize: none;
+  box-shadow:none;
+  float:left;
+  outline: 0px solid transparent;
+  padding:0.75em 3em 0.75em 0.75em;
+  margin:0;
+  max-height: 12.5em;
+  overflow-y: auto;
+  display: inline-block;
+  transition: 0.5s;
+  background: white;
+}
+
+/*#enter_message.active {
+  min-height: 5.25em;
+}*/
+
+#enter_message::-webkit-placeholder {
+  color:white;
+}
+
+#enter_message:focus {
+  outline: 0px solid transparent;
+  min-height: 5.25em;
+}
+
+#submit_message {
+  /*width:65px;
+  height:65px;*/
+  font-size: 1.5em;
+  line-height: 1.5em;
+  /*background: #51b2e8;*/
+  color:#f5f5f5;
+  border:none;
+  /*float:right;*/
+  padding:0;
+  transition:0.5s;
+  position: absolute;
+  right:0.75em;
+}
+
+#submit_message.has_content {
+  cursor: pointer;
+  color: #51b2e8
+}
+
+[contenteditable=true]:empty:before {
+  content: attr(placeholder);
+  display: block; /* For Firefox */
+  color:#999999;
+}
+
+#user_info {
+  border: 1px solid #f5f5f5;
+  height:100%;
+  padding:0;
+  background: #f5f5f5;
+  flex: 1 0;
+  min-width: 320px;
+  max-width: 420px;
+}
+
+@media only screen and (max-width: 992px) {
+  #user_info {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  #user_list .info, #user_list .expand {
+    display: none;
+  }
+
+  #conversations {
+    width: 70px;
+    max-width: 70px;
+    min-width: 70px;
+    overflow-x:hidden;
+  }
+}

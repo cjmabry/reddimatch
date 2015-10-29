@@ -11,16 +11,66 @@
     {% endif %}
   {% endwith %}
 
-  <div class="row">
+  <section id="cover" class="text-center">
 
-    <div class="col-md-8 col-md-offset-2 text-center">
+      <!-- <div class="row">
+        <img src="static/images/white_logo.svg" class="logo">
+      </div> -->
 
-      <h1>Reddimatch v0.1.0</h1>
+      <div class="copy text-center row">
+        <h1>Where Redditors Meet.</h1>
+        <h4>Connect with like-minded individuals today.</h4>
+      </div>
 
-      <a class="btn btn-primary" role="button" href="{{ url_for('authorize') }}">Log in with reddit</a>
+      <div class="row text-center">
 
-    </div>
+        <a href="{{ url_for('authorize') }}" class="btn btn-primary" role="button">Sign up with Reddit</a>
 
-  </div>
+      </div>
+
+      <!-- <div class="row">
+        <a class="glyphicon glyphicon-chevron-down more" aria-hidden="true" href="#info" data-scroll></a>
+      </div> -->
+
+
+  </section>
+
+  <section id="info" class="text-center">
+
+      <div class="row text-center">
+
+        <h1>Meet and chat with like-minded Redditors.</h1>
+
+      </div>
+
+      <div class="row">
+
+        <div class = "col-sm-4 text-center col-centered">
+
+          <span class="glyphicon glyphicon-log-in icon" aria-hidden="false"></span>
+
+          <p>Login through Reddit, simply and securely.</p>
+
+        </div>
+
+        <div class = "col-sm-4 text-center col-centered second">
+
+          <span class="glyphicon glyphicon-comment" aria-hidden="false"></span>
+
+          <p>Get paired with people or groups based on your unique reddit interests.</p>
+
+        </div>
+
+        <div class = "col-sm-4 text-center col-centered">
+
+          <span class="glyphicon glyphicon-globe icon" aria-hidden="false"></span>
+
+          <p>Meet someone down the street, or far, far away. It’s all up to you.</p>
+
+        </div>
+
+      </div>
+
+  </section>
 
 {% endblock %}

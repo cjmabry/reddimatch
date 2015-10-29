@@ -2,6 +2,7 @@ from flask import render_template, redirect, request, flash, url_for, g
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
 from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
+from flask.ext.socketio import emit, send
 import praw, random
 
 @app.route('/')
@@ -199,6 +200,14 @@ def test_connect():
 # custom named event handler (name here is my event, duh)
 @socketio.on('my event')
 def test(event):
+    print(event)
+
+@socketio.on('message')
+def message(msg):
+    emit('message response', {'data': msg['data']})
+
+@socketio.on('private')
+def private(event):
     print(event)
 
 @lm.user_loader

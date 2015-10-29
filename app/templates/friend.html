@@ -11,14 +11,10 @@
     {% endif %}
   {% endwith %}
 
-  {% if current_user.is_authenticated() %}
-
   <div class="row text-center">
 
     <a class="btn btn-default" role="button"  href="{{url_for('friend_match')}}">Quick Match</a>
 
   </div>
-
-  {% endif %}
 
 {% endblock %}

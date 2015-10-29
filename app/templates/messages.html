@@ -1,5 +1,8 @@
-{% extends "base.html" %}
+<script type="text/javascript" src="/static/js/vendor/socket.io.js"></script>
+
+{% extends "base-fluid.html" %}
 {% block content %}
+<script type="text/javascript" src="/static/js/custom/chat.js"></script>
 
   {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -11,33 +14,90 @@
     {% endif %}
   {% endwith %}
 
-  {% if current_user.is_authenticated() %}
+  <div id="messages" class="row">
 
-    {% with matches = current_user.get_matches() %}
+    <div id="conversations" class="pull-left">
 
-      {% if matches.count() > 0 %}
+      {% with matches = current_user.get_matches() %}
 
-        <h2>Your active conversations:</h2>
+        {% if matches.count() > 0 %}
 
-        <ul>
+          <ul id="user_list">
 
-        {% for match in matches %}
+          {% for match in matches %}
 
-          <li>{{match.username}}</li>
+            {% if loop.index == 1 %}
 
-        {% endfor %}
+            <li class="user selected" data-username="{{ match.username }}">
 
-        </ul>
+              <span class="profile_photo"></span>
+              <div class="info">
 
-      {% else %}
+                <span class="username">{{match.username}}</span>
 
-      <h2>You don't have any active conversations right now.</h2>
-      <p>Why don't you go <a href="{{ url_for('match')}}">match</a> with someone?</a>
+                <!-- <span class="time">Just Now</span> -->
 
-      {% endif %}
+              </div>
 
-    {% endwith %}
+              <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
 
-  {% endif %}
+            </li>
+
+            {% else %}
+
+            <li class="user" data-username="{{ match.username }}">
+
+              <span class="profile_photo"></span>
+              <div class="info">
+
+                <span class="username">{{match.username}}</span>
+
+                <!-- <span class="time">Just Now</span> -->
+
+              </div>
+
+              <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
+
+            </li>
+
+            {% endif %}
+
+          {% endfor %}
+
+          </ul>
+
+        {% else %}
+
+        <h2>You don't have any active conversations right now.</h2>
+        <p>Why don't you go <a href="{{ url_for('match')}}">match</a> with someone?</a>
+
+        {% endif %}
+
+      {% endwith %}
+
+    </div>
+
+    <div id="current_conversation">
+
+      <h4 id="conversation_heading" class="text-center"></h4>
+
+      <div id="messages"></div>
+
+      <div id="chat_box">
+
+          <textarea id="enter_message" placeholder="Type a message..." contenteditable="true" rows="1"></textarea>
+          <span id="submit_message" class="text-center glyphicon glyphicon-send"></span>
+
+      </div>
+
+    </div>
+
+    <div id="user_info">
+
+
+
+    </div>
+
+  </div>
 
 {% endblock %}
