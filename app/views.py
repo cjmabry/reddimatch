@@ -2,14 +2,14 @@ from flask import render_template, redirect, request, flash, url_for, g
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
 from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
-from flask.ext.socketio import emit, send, join_room, leave_room
+from flask_socketio import emit, send, join_room, leave_room, rooms
 import praw, random
 from pprint import pprint
 
 @app.route('/')
 @app.route('/index')
 def index():
-    if g.user is not None and g.user.is_authenticated():
+    if g.user is not None and g.user.is_authenticated:
         return redirect(url_for('dashboard'))
     return render_template('index.html')
 
@@ -31,7 +31,7 @@ def authorize_callback():
         error = request.args.get('error')
         flash(error)
 
-        if error == 'access_denied' and g.user is not None and g.user.is_authenticated():
+        if error == 'access_denied' and g.user is not None and g.user.is_authenticated:
             return redirect(url_for('logout'))
 
         return render_template('index.html')
@@ -45,7 +45,7 @@ def authorize_callback():
 
 @app.route('/login', methods=['GET','POST'])
 def login():
-    if g.user is not None and g.user.is_authenticated():
+    if g.user is not None and g.user.is_authenticated:
         return redirect(url_for('dashboard'))
 
     if request.args.get('code'):
@@ -205,17 +205,17 @@ def test_connect():
 @socketio.on('join')
 def on_join(data):
 
-    # # leave all rooms
-    # rooms = socketio.rooms
-    #
-    # for key, value in rooms.items():
-    #     for key in value:
-    #         leave_room(key)
+    list_rooms = rooms()
+
+    for room in list_rooms:
+        leave_room(room)
 
     username = data['username']
     join_room(username)
-    emit('message response', {'msg': 'Joined room ' + username}, room=username)
-    print(data)
+    # emit('message response', {'msg': 'Joined room ' + username}, room=username)
+
+    for room in list_rooms:
+        print(room)
 
 @socketio.on('message')
 def message(data):

@@ -30,6 +30,8 @@ def generate_url(state, scope, refreshable):
 def login_reddit_user(code):
     r = praw_instance()
 
+
+    print code
     access_information = r.get_access_information(code)
     r.set_access_credentials(**access_information)
     refresh_token = access_information['refresh_token']
