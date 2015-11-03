@@ -1,4 +1,4 @@
-import praw, operator, collections, time, random
+import praw, operator, collections, time, random, sys, os
 from praw.handlers import MultiprocessHandler
 from flask import url_for, g
 from app import db, models
@@ -8,6 +8,8 @@ from collections import OrderedDict
 from config import REDDIT_USER_AGENT, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
 
 handler = MultiprocessHandler()
+
+#TODO: try/catch all HTTP and NotFound Errors
 
 def praw_instance():
     r = praw.Reddit(user_agent=REDDIT_USER_AGENT, handler=handler)
@@ -92,8 +94,13 @@ def get_favorite_subs(user):
 
     comments_by_subreddit = []
 
-    for comment in comments:
-        comments_by_subreddit.append(comment.subreddit.display_name)
+    try:
+        for comment in comments:
+                comments_by_subreddit.append(comment.subreddit.display_name)
+
+    except praw.errors.NotFound as e:
+        print e
+        print "There be an HTTP error. The user probably doesn't have any comments, or Reddit might be down."
 
     comments = collections.Counter(comments_by_subreddit)
 

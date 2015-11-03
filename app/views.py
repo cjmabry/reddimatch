@@ -2,8 +2,9 @@ from flask import render_template, redirect, request, flash, url_for, g
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
 from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
-from flask.ext.socketio import emit, send
+from flask.ext.socketio import emit, send, join_room, leave_room
 import praw, random
+from pprint import pprint
 
 @app.route('/')
 @app.route('/index')
@@ -183,8 +184,11 @@ def accept():
     return 'success'
 
 @app.route('/messages')
+@app.route('/messages/<username>')
 @login_required
-def messages():
+def messages(username=None):
+    if username is not None:
+        print username
     return render_template('messages.html')
 
 @app.route('/chat', methods=['POST', 'GET'])
@@ -198,13 +202,25 @@ def test_connect():
     emit('my response', {'data': 'Connected'})
 
 # custom named event handler (name here is my event, duh)
-@socketio.on('my event')
-def test(event):
-    print(event)
+@socketio.on('join')
+def on_join(data):
+
+    # # leave all rooms
+    # rooms = socketio.rooms
+    #
+    # for key, value in rooms.items():
+    #     for key in value:
+    #         leave_room(key)
+
+    username = data['username']
+    join_room(username)
+    emit('message response', {'msg': 'Joined room ' + username}, room=username)
+    print(data)
 
 @socketio.on('message')
-def message(msg):
-    emit('message response', {'data': msg['data']})
+def message(data):
+    print(data)
+    emit('message response', {'msg': data['msg']}, room=data['to'])
 
 @socketio.on('private')
 def private(event):

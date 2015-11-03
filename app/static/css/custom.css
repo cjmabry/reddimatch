@@ -105,7 +105,6 @@ footer {
   height:100%;
   position: relative;
   flex: 2 0;
-  overflow-y: scroll;
 }
 
 #chat_box {
@@ -130,10 +129,18 @@ footer {
   padding:0.75em 3em 0.75em 0.75em;
   margin:0;
   max-height: 12.5em;
-  overflow-y: auto;
+  /*overflow-y: hidden;*/
   display: inline-block;
   transition: 0.5s;
   background: white;
+}
+
+#enter_message::-webkit-scrollbar{
+  width:0px;
+  background:transparent;
+}
+
+#enter_message::-webkit-scrollbar-thumb{
 }
 
 /*#enter_message.active {
@@ -146,14 +153,15 @@ footer {
 
 #enter_message:focus {
   outline: 0px solid transparent;
-  min-height: 5.25em;
+  /*min-height: 5.25em;*/
 }
 
 #submit_message {
   /*width:65px;
   height:65px;*/
   font-size: 1.5em;
-  line-height: 1.5em;
+  line-height: 1.8em;
+  vertical-align: middle;
   /*background: #51b2e8;*/
   color:#f5f5f5;
   border:none;
@@ -161,12 +169,12 @@ footer {
   padding:0;
   transition:0.5s;
   position: absolute;
-  right:0.75em;
+  right:0.5em;
 }
 
 #submit_message.has_content {
   cursor: pointer;
-  color: #51b2e8
+  color: #51b2e8;
 }
 
 [contenteditable=true]:empty:before {
@@ -183,6 +191,39 @@ footer {
   flex: 1 0;
   min-width: 320px;
   max-width: 420px;
+}
+
+#current_messages {
+  padding:0 20px 65px 20px;
+  overflow: auto;
+  max-height: 100%;
+}
+
+.message {
+  background: #51b2e8;
+  color: white;
+  word-wrap:break-word;
+  height: auto;
+  border-radius: 5px 5px 0 5px;
+  float:right;
+  display: block;
+  clear:both;
+  max-width: 66%;
+  position:relative;
+  margin-left: auto;
+  text-align:right;
+  padding: 5px 9px;
+  margin-top:20px;
+  line-height: 1.25em;
+}
+
+.message:before {
+  border-bottom: 10px solid #51b2e8;
+    border-right: 9px solid rgba(0, 0, 0, 0);
+    position: absolute;
+    bottom: 0;
+    right: -8px;
+    content: "";
 }
 
 @media only screen and (max-width: 992px) {
