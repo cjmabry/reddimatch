@@ -33,8 +33,22 @@ footer {
 }
 
 /* Messages */
+html.messages, .messages body {
+  height: 100%;
+  height: calc(100% - 50px)
+}
+
+.messages body {
+  margin-bottom: 0;
+}
+
+.messages .container-fluid{
+  height:100%;
+}
+
 #messages {
   display: flex;
+  height: 100%;
 }
 
 #conversations {
@@ -197,33 +211,55 @@ footer {
   padding:0 20px 65px 20px;
   overflow: auto;
   max-height: 100%;
+  /*max-height: calc(100% - 65px);*/
 }
 
 .message {
-  background: #51b2e8;
-  color: white;
   word-wrap:break-word;
   height: auto;
-  border-radius: 5px 5px 0 5px;
-  float:right;
   display: block;
   clear:both;
   max-width: 66%;
   position:relative;
-  margin-left: auto;
-  text-align:right;
   padding: 5px 9px;
   margin-top:20px;
   line-height: 1.25em;
 }
 
-.message:before {
+.message.to {
+  background: #51b2e8;
+  color: white;
+  border-radius: 5px 5px 0 5px;
+  margin-left: auto;
+  float:right;
+  text-align:right;
+}
+
+.message.from {
+  background: #f5f5f5;
+  color: #666;
+  border-radius: 5px 5px 5px 0;
+  margin-left: auto;
+  float:left;
+  text-align:left;
+}
+
+.message.to:before {
   border-bottom: 10px solid #51b2e8;
-    border-right: 9px solid rgba(0, 0, 0, 0);
-    position: absolute;
-    bottom: 0;
-    right: -8px;
-    content: "";
+  border-right: 9px solid rgba(0, 0, 0, 0);
+  position: absolute;
+  bottom: 0;
+  right: -8px;
+  content: "";
+}
+
+.message.from:before {
+  border-bottom: 10px solid #f5f5f5;
+  border-left: 9px solid rgba(0, 0, 0, 0);
+  position: absolute;
+  bottom: 0;
+  left: -8px;
+  content: "";
 }
 
 @media only screen and (max-width: 992px) {

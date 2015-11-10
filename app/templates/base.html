@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html>
+<html {% block page_class %}{% endblock %}>
 
   <head>
     <meta charset="utf-8">
-    <title>Reddimatch - Where redditors meet!</title>
+    <title>{% block title %}{% endblock %}</title>
     <link href="{{url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet" media="screen">
     <link href="{{url_for('static',filename='css/custom.css')}}" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     <script src="{{url_for('static', filename='js/vendor/bootstrap.min.js')}}"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
 
   <body>
@@ -45,17 +45,14 @@
       </div>
     {% endif %}
 
-    <div class="container">
+    <div class="{% block container %}{% endblock %}">
 
       {% block content %}{% endblock %}
 
     </div>
 
-    <footer class="text-center">
-      <div class="container">
-        <span class="text-muted">Copyright &copy; reddimatch, Inc. 2015</span>
-      </div>
-    </footer>
+    {% block scripts %}
+    {% endblock %}
 
   </body>
 </html>

@@ -1,4 +1,4 @@
-from flask import render_template, redirect, request, flash, url_for, g
+from flask import render_template, redirect, request, flash, url_for, g, jsonify
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
 from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
@@ -9,7 +9,7 @@ from pprint import pprint
 @app.route('/')
 @app.route('/index')
 def index():
-    if g.user is not None and g.user.is_authenticated:
+    if current_user is not None and current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     return render_template('index.html')
 
@@ -31,7 +31,7 @@ def authorize_callback():
         error = request.args.get('error')
         flash(error)
 
-        if error == 'access_denied' and g.user is not None and g.user.is_authenticated:
+        if error == 'access_denied' and current_user is not None and current_user.is_authenticated:
             return redirect(url_for('logout'))
 
         return render_template('index.html')
@@ -45,7 +45,7 @@ def authorize_callback():
 
 @app.route('/login', methods=['GET','POST'])
 def login():
-    if g.user is not None and g.user.is_authenticated:
+    if current_user is not None and current_user.is_authenticated:
         return redirect(url_for('dashboard'))
 
     if request.args.get('code'):
@@ -64,7 +64,7 @@ def login():
 def register():
     form = forms.RegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
-        user = g.user
+        user = current_user
         user.username = form.username.data
         user.email = form.email.data
         user.age = form.age.data
@@ -120,7 +120,7 @@ def friend():
 @login_required
 def friend_match():
     #TODO: use counter or similar to get people who are favorites of multiples of your favorites
-    user = g.user
+    user = current_user
 
     favs = user.favorited_subs().all()
 
@@ -171,7 +171,7 @@ def logout():
 @app.route('/accept', methods=['POST', 'GET'])
 @login_required
 def accept():
-    user = g.user
+    user = current_user
     match_username = request.form['match']
 
     if models.User.query.filter_by(username=match_username).first():
@@ -183,6 +183,16 @@ def accept():
 
     return 'success'
 
+@app.route('/get_username')
+@login_required
+def get_username():
+    if current_user.is_authenticated and current_user.username is not None:
+        return jsonify({
+            'username':current_user.username
+        })
+    else:
+        return False
+
 @app.route('/messages')
 @app.route('/messages/<username>')
 @login_required
@@ -191,40 +201,25 @@ def messages(username=None):
         print username
     return render_template('messages.html')
 
-@app.route('/chat', methods=['POST', 'GET'])
-@login_required
-def chat():
-    return render_template('chat.html')
-
 @socketio.on('connect')
-def test_connect():
-    print('Connected! Ohhhhh yeah!')
-    emit('my response', {'data': 'Connected'})
+def connect_handler():
+    if current_user.is_authenticated:
+        for room in rooms():
+            leave_room(room)
+        username = current_user.username
+        join_room(username)
+        emit('message response', {'msg': 'Joined room ' + username}, room=username)
 
-# custom named event handler (name here is my event, duh)
-@socketio.on('join')
-def on_join(data):
-
-    list_rooms = rooms()
-
-    for room in list_rooms:
-        leave_room(room)
-
-    username = data['username']
-    join_room(username)
-    # emit('message response', {'msg': 'Joined room ' + username}, room=username)
-
-    for room in list_rooms:
-        print(room)
+        for room in rooms():
+            print 'In room ' + room
+    else:
+        return False
 
 @socketio.on('message')
 def message(data):
     print(data)
-    emit('message response', {'msg': data['msg']}, room=data['to'])
-
-@socketio.on('private')
-def private(event):
-    print(event)
+    emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from']}, room=data['to'])
+    emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from']}, room=data['from'])
 
 @lm.user_loader
 def load_user(id):

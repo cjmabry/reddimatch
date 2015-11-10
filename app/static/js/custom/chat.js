@@ -1,83 +1,128 @@
 // TO-DO: auto expand text box
 
-$(document).ready(function(){
-  var current_user, has_content = false;
+var properties, Chat = {
 
-  current_user = $('.selected').attr("data-username");
+  properties : {
+      url : 'http://' + document.domain + ':' + location.port,
+      username: null,
+      object: null,
+      userList: $("ul#user_list"),
+      currentUser : null,
+      hasContent: false,
+      messageBox: $("#enter_message"),
+      currentMessages: $("#current_messages")
+  },
 
-  console.log("Current user: " + current_user);
+  init: function() {
+    p = this.properties;
+    this.connect();
+    this.ui_handlers();
+    this.chat_handlers();
+  },
 
-  var socket = io.connect('http://' + document.domain + ':' + location.port);
-  socket.on('connect', function() {
-      socket.emit('join', {username: current_user});
-      console.log('connected');
-  });
+  connect: function() {
+    p.object = io.connect(p.url);
+    this.set_username();
+  },
 
-  $("ul#user_list li").on("touchstart click", function() {
-    current_user = $(this).attr("data-username");
-    $('.selected').removeClass('selected');
-    $(this).addClass("selected");
-    $("#conversation_heading").html(current_user);
-    console.log("Current user: " + current_user);
-    socket.emit('join', {username: current_user});
-  });
+  set_username: function() {
+    $.get("/get_username", function(data) {
+        p.username = data.username;
+    });
+  },
 
-  var textarea = ("#enter_message");
+  get_current_username: function() {
+    p.currentUser = $('.selected').attr("data-username");
+  },
 
-  $(textarea).on('keyup', function() {
+  ui_handlers: function() {
+    var self = this;
+    self.get_current_username();
+    self.update_conversation();
 
-    var content = $(this).val();
+    // user selection
+    p.userList.on("click touchstart", function(e) {
 
-    if(content.replace(/\s/g, "").length > 0) {
-      $(submit_message).addClass("has_content");
-      has_content = true;
-    } else {
-      $(submit_message).removeClass("has_content");
-      has_content = false;
-      $(textarea).attr("placeholder", "Type a message...");
-    }
+      $('.selected').removeClass('selected');
 
-  });
+      if ($(e.target).prop("tagName") == 'LI') {
+        $(e.target).toggleClass("selected");
+      } else {
+        $(e.target).parents("li").toggleClass("selected");
+      }
 
-  $(textarea).keypress(function(event) {
-    var keycode = (event.keyCode ? event.keyCode : even.which);
+      self.get_current_username();
+      self.update_conversation();
+    });
 
-    if(keycode == '13' && !event.shiftKey && has_content) {
-      submit($(this).val());
-      $(this).val("");
-      event.preventDefault();
-    }
 
-    if(keycode == '13' && !event.shiftKey && !has_content) {
-      event.preventDefault();
-    }
+    $("#enter_message").on('keyup', function(event) {
 
-  });
+      var content = $(this).val();
 
-  $("#submit_message").on('click', function() {
-    var content = $("#enter_message").val();
-    submit(content);
-    $("#enter_message").val("");
-  });
+      if(content.replace(/\s/g, "").length > 0) {
+        $("#submit_message").addClass("has_content");
+        p.hasContent = true;
+      } else {
+        $("#submit_message").removeClass("has_content");
+        p.hasContent = false;
+        $("#enter_message").attr("placeholder", "Type a message...");
+      }
 
-  submit = function(content) {
-    socket.emit('message', {msg: content, to: current_user, from:'from'});
+    });
+
+    $("#enter_message").on('keypress', function(event){
+      var keycode = (event.keyCode ? event.keyCode : event.which);
+
+      if(keycode == '13' && !event.shiftKey && p.hasContent === true) {
+        event.preventDefault();
+        self.send_message();
+      }
+
+      if(keycode == '13' && !event.shiftKey && p.hasContent === false) {
+        event.preventDefault();
+      }
+
+    });
+
+    $("#submit_message").on('click', function() {
+
+      if (p.hasContent === true) {
+        self.send_message();
+      }
+    });
+
+  },
+
+  chat_handlers: function() {
+
+    p.object.on('message response', function(data) {
+      console.log(data);
+      var div = $("<div>", {class: "message"});
+      $(div).text(data.msg);
+
+      if (data.from == p.username && data.to == p.currentUser){
+        div.addClass('to');
+        p.currentMessages.append(div);
+      } else if (data.from == p.currentUser && data.to == p.username) {
+        div.addClass('from');
+        p.currentMessages.append(div);
+      }
+
+    });
+
+  },
+
+  send_message: function() {
+    p.object.emit('message', {msg: p.messageBox.val(), to: p.currentUser, from:p.username});
+    p.messageBox.val('');
+  },
+
+  update_conversation: function(){
+    $("#current_conversation #current_messages").html('');
+    $("#conversation_heading").html(p.currentUser);
   }
 
-  socket.on('message response', function(data) {
+};
 
-    var div;
-
-    div = $("<div>", {class: "message"});
-    $(div).text(data.msg);
-
-    $("#current_conversation #current_messages").append(div);
-  });
-
-  // $(textarea).on("input", function() {
-  //   $(this).height = "";
-  //   $(this).height = Math.min(textarea.scrollHeight, 300) + "px";
-  //
-  // });
-
-});
+Chat.init();

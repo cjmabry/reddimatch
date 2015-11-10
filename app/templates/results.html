@@ -1,6 +1,5 @@
-<scrpt src="/static/js/custom/match.js"></script>
-
 {% extends "base.html" %}
+{% block container%}container{% endblock %}
 {% block content %}
 
   {% with messages = get_flashed_messages() %}
@@ -93,4 +92,8 @@
 
   {% endif %}
 
+{% endblock %}
+
+{% block scripts %}
+<scrpt src="/static/js/custom/match.js"></script>
 {% endblock %}

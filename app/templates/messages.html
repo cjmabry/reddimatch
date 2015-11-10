@@ -1,8 +1,7 @@
-<script type="text/javascript" src="{{url_for('static', filename='js/vendor/socket.io-1.3.7.js')}}"></script>
-
-{% extends "base-fluid.html" %}
+{% extends "base.html" %}
+{% block container%}container-fluid{% endblock %}
+{% block page_class%}class="messages"{% endblock %}
 {% block content %}
-<script type="text/javascript" src="{{url_for('static', filename='js/custom/chat.js')}}"></script>
 
   {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -79,8 +78,6 @@
 
     <div id="current_conversation">
 
-      <h4 id="conversation_heading" class="text-center"></h4>
-
       <div id="current_messages"></div>
 
       <div id="chat_box">
@@ -94,10 +91,15 @@
 
     <div id="user_info">
 
-
+      <h4 id="conversation_heading" class="text-center"></h4>
 
     </div>
 
   </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="{{url_for('static', filename='js/vendor/socket.io-1.3.7.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='js/custom/chat.js')}}"></script>
 {% endblock %}
