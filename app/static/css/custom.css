@@ -62,9 +62,6 @@ html.messages, .messages body {
   overflow-y: scroll;
 }
 
-#conversations:hover {
-}
-
 #conversations ul#user_list {
   list-style-type: none;
   padding:0;
@@ -98,21 +95,101 @@ html.messages, .messages body {
 }
 
 #conversations ul#user_list li .info {
+  width: 193px;
+  height: 100%;
+  float: left;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 
 #conversations ul#user_list li .username {
   line-height: 60px;
+  padding-left: 15px;
+  /*position: relative;*/
+}
+
+/*#conversations ul#user_list li .username::after {
+  content:"";
+  display: inline-block;
+  height: 10px;
+  width: 10px;
+  border-radius: 100%;
+  background: green;
+  position: absolute;
+  right:-15px;
+  top:0;
+  bottom:0;
+  margin: auto;
+}*/
+
+#conversations ul#user_list li .status {
+  width: 20px;
+  height:100%;
+  margin: 0;
+  padding:0;
+  display: inline-block;
+  position: relative;
   float:left;
 }
 
-#conversations ul#user_list li .expand {
-  width:60px;
+#conversations ul#user_list li .status::before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  margin: auto;
+  background: #ddd;
+  position: absolute;
+  border-radius: 100%;
+  top:0;
+  left:0;
+  right: 0;
+  bottom:0;
+  transition: 1s;
+}
+
+#conversations ul#user_list li .status.offline::before {
+  background: #ddd;
+}
+
+#conversations ul#user_list li .status.online::before {
+  background: #66CC66;
+}
+
+#conversations ul#user_list li .right_side {
+  width:50px;
   height:100%;
   float:right;
   line-height: 60px;
-  font-size: 2em;
+  font-size: 1.5em;
+}
+
+#conversations ul#user_list li .expand {
+  width:30px;
   color:#f5f5f5;
+  transition: 0.5s;
+}
+
+#conversations ul#user_list li:hover .expand {
+  color:#ddd;
+}
+/*
+#conversations ul#user_list li:hover {
+  opacity: 1;
+}*/
+
+#conversations .find_another {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  height:60px;
+  text-align: center;
+}
+
+#conversations .find_another a {
+  border-radius: 60px;
 }
 
 #current_conversation {
@@ -208,10 +285,10 @@ html.messages, .messages body {
 }
 
 #current_messages {
-  padding:0 20px 65px 20px;
+  padding:0 20px 20px;
   overflow: auto;
   max-height: 100%;
-  /*max-height: calc(100% - 65px);*/
+  max-height: calc(100% - 40px);
 }
 
 .message {

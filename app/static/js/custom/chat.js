@@ -1,6 +1,15 @@
-// TODO auto expand text box
-// TODO auto scroll text box/ show notification
+// TODO (secondary) auto expand text box on type
+// TODO auto chat scrolling implementation
 // TODO get user info
+// TODO fix chat box display jankiness - use flexbox vertically?
+// TODO (secondary) get last message from user to display on user list
+// TODO online/offline status
+// TODO display icon in user list for online/offline
+// TODO mobile formatting of user info and user list
+// TODO if no messages, prompt user to say hello
+// TODO notifications
+// TODO handle no matches
+// TODO hover status icon to reveal offline or online
 
 var properties, Chat = {
 
@@ -143,6 +152,10 @@ var properties, Chat = {
         self.display_messages(response);
       }
     });
+
+  },
+
+  get_last_message: function(data) {
 
   },
 
