@@ -15,13 +15,8 @@ def index():
 
 @app.route('/authorize')
 def authorize():
-    # TODO: verify state
-    # TODO: error handling
-    # TODO: verify state
-    # TODO: error handling
-
-    # TODO: verify state
-    # TODO: error handling
+    # TODO verify state
+    # TODO error handling
 
     url = reddit_api.generate_url('uniqueKey', ['identity', 'history'], True)
 
@@ -29,13 +24,8 @@ def authorize():
 
 @app.route('/authorize_callback')
 def authorize_callback():
-    # TODO: check if state is same
-    # TODO: complete error handling
-    # TODO: check if state is same
-    # TODO: complete error handling
-
-    # TODO: check if state is same
-    # TODO: complete error handling
+    # TODO check if state is same
+    # TODO complete error handling
 
     if request.args.get('error'):
         error = request.args.get('error')
@@ -129,11 +119,7 @@ def friend():
 @app.route('/friend_match')
 @login_required
 def friend_match():
-    #TODO: use counter or similar to get people who are favorites of multiples of your favorites
-    #TODO: use counter or similar to get people who are favorites of multiples of your favorites
-
-    #TODO: use counter or similar to get people who are favorites of multiples of your favorites
-
+    #TODO use counter or similar to get people who are favorites of multiples of your favorites
     user = current_user
 
     favs = user.favorited_subs().all()

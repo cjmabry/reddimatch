@@ -1,14 +1,6 @@
-// TODO: auto expand text box
-// TODO: auto scroll text box/ show notification
-// TODO: get user info
-// TODO: auto expand text box
-// TODO: auto scroll text box/ show notification
-// TODO: get user info
-
-
-// TODO: auto expand text box
-// TODO: auto scroll text box/ show notification
-// TODO: get user info
+// TODO auto expand text box
+// TODO auto scroll text box/ show notification
+// TODO get user info
 
 var properties, Chat = {
 
@@ -139,11 +131,8 @@ var properties, Chat = {
   },
 
   get_messages: function(){
-    // TODO: make sure these requirements are fulfilled - ajax call with id of user to get messages from, check on server whether the user is a match with the id, then append to conversation
-    // TODO: implement pagination
-
-    // TODO: make sure these requirements are fulfilled - ajax call with id of user to get messages from, check on server whether the user is a match with the id, then append to conversation
-    // TODO: implement pagination
+    // TODO make sure these requirements are fulfilled - ajax call with id of user to get messages from, check on server whether the user is a match with the id, then append to conversation
+    // TODO implement pagination
 
     var self = this;
 
