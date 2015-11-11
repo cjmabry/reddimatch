@@ -20,6 +20,9 @@ def authorize():
     # TODO: verify state
     # TODO: error handling
 
+    # TODO: verify state
+    # TODO: error handling
+
     url = reddit_api.generate_url('uniqueKey', ['identity', 'history'], True)
 
     return redirect(url)
@@ -28,6 +31,9 @@ def authorize():
 def authorize_callback():
     # TODO: check if state is same
     # TODO: complete error handling
+    # TODO: check if state is same
+    # TODO: complete error handling
+
     # TODO: check if state is same
     # TODO: complete error handling
 
@@ -125,6 +131,9 @@ def friend():
 def friend_match():
     #TODO: use counter or similar to get people who are favorites of multiples of your favorites
     #TODO: use counter or similar to get people who are favorites of multiples of your favorites
+
+    #TODO: use counter or similar to get people who are favorites of multiples of your favorites
+
     user = current_user
 
     favs = user.favorited_subs().all()
