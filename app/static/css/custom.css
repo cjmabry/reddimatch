@@ -224,6 +224,7 @@ html.messages, .messages body {
   padding: 5px 9px;
   margin-top:20px;
   line-height: 1.25em;
+  white-space: pre-wrap;
 }
 
 .message.to {

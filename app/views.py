@@ -3,7 +3,7 @@ from flask.ext.login import LoginManager, current_user, login_user, login_requir
 from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
 from flask_socketio import emit, send, join_room, leave_room, rooms
-import praw, random
+import praw, random, datetime
 from pprint import pprint
 
 @app.route('/')
@@ -193,6 +193,63 @@ def get_username():
     else:
         return False
 
+@app.route('/get_messages')
+@login_required
+def get_messages():
+    username = request.args.get('username', None)
+
+    if current_user.is_authenticated and current_user.username is not None:
+
+        if models.User.query.filter_by(username=username):
+
+            to_id = models.User.query.filter_by(username=username).first().id
+            print 'asdasdas'
+
+            messages_list = []
+
+            if models.Message.query.filter_by(from_id=current_user.id, to_id=to_id):
+                print 'sdfjsdfsdfdsagbf?'
+
+                messages =  models.Message.query.filter_by(from_id=current_user.id,to_id=to_id).all()
+
+                for m in messages:
+                    message = {}
+
+                    message_object = {
+                        'to':m.to.username,
+                        'from':m.author.username,
+                        'content':m.content
+                    }
+
+                    message[str(m.time_sent)] = message_object
+
+                    messages_list.append(message)
+
+            if models.Message.query.filter_by(to_id=current_user.id, from_id=to_id):
+
+                messages =  models.Message.query.filter_by(to_id=current_user.id,from_id=to_id).all()
+
+                for m in messages:
+                    message = {}
+
+                    message_object = {
+                        'to':m.to.username,
+                        'from':m.author.username,
+                        'content':m.content
+                    }
+
+                    message[str(m.time_sent)] = message_object
+
+                    messages_list.append(message)
+
+            messages_list.sort()
+            pprint(messages_list)
+
+            return jsonify(results = messages_list)
+
+    else:
+        return False
+
 @app.route('/messages')
 @app.route('/messages/<username>')
 @login_required
@@ -220,6 +277,16 @@ def message(data):
     print(data)
     emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from']}, room=data['to'])
     emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from']}, room=data['from'])
+
+    # store message in DB
+    from_id = models.User.query.filter_by(username=data['from']).first().id
+    to_id = models.User.query.filter_by(username=data['to']).first().id
+
+    m = models.Message(content=data['msg'],from_id=from_id,to_id=to_id,time_sent=datetime.datetime.now())
+    db.session.add(m)
+    db.session.commit()
+    print(m)
+    print('added to db')
 
 @lm.user_loader
 def load_user(id):

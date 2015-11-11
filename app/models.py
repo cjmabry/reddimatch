@@ -128,3 +128,21 @@ class Subreddit(db.Model):
 
     def __repr__(self):
         return '<Subreddit %r>' % self.name
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    content = db.Column(db.Text)
+    to_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    from_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    to = db.relationship('User', foreign_keys=[to_id], backref='received_messages')
+    author = db.relationship('User', foreign_keys=[from_id], backref='sent_messages')
+    time_sent = db.Column(db.DateTime)
+
+    def get_id(self):
+        try:
+            return unicode(self.id)
+        except NameError:
+            return str(self.id)
+
+    def __repr__(self):
+        return '<Message ID %r>' % self.id

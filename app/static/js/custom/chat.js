@@ -1,4 +1,6 @@
-// TO-DO: auto expand text box
+// TODO: auto expand text box
+// TODO: auto scroll text box/ show notification
+// TODO: get user info
 
 var properties, Chat = {
 
@@ -56,6 +58,7 @@ var properties, Chat = {
     });
 
 
+    // check for content
     $("#enter_message").on('keyup', function(event) {
 
       var content = $(this).val();
@@ -71,6 +74,7 @@ var properties, Chat = {
 
     });
 
+    // handle enter key
     $("#enter_message").on('keypress', function(event){
       var keycode = (event.keyCode ? event.keyCode : event.which);
 
@@ -85,11 +89,13 @@ var properties, Chat = {
 
     });
 
+    // submit message click
     $("#submit_message").on('click', function() {
 
       if (p.hasContent === true) {
         self.send_message();
       }
+
     });
 
   },
@@ -121,6 +127,58 @@ var properties, Chat = {
   update_conversation: function(){
     $("#current_conversation #current_messages").html('');
     $("#conversation_heading").html(p.currentUser);
+    this.get_messages();
+  },
+
+  get_messages: function(){
+    // TODO: make sure these requirements are fulfilled - ajax call with id of user to get messages from, check on server whether the user is a match with the id, then append to conversation
+    // TODO: implement pagination
+
+    var self = this;
+
+    $.ajax({
+      url: '/get_messages',
+      data: {"username":p.currentUser},
+      success: function(response) {
+        self.display_messages(response);
+      }
+    });
+
+  },
+
+  display_messages: function(data) {
+    var div;
+
+    data = data.results;
+
+    for (var k in data) {
+
+      if (data.hasOwnProperty(k)) {
+
+        var messages = data[k];
+
+        for (var m in messages){
+          if (messages.hasOwnProperty(m)) {
+            console.log(messages[m].content);
+
+            div = $("<div>", {class: "message "});
+            $(div).text(messages[m].content);
+
+            if (messages[m].from == p.username && messages[m].to == p.currentUser){
+              div.addClass('to');
+              p.currentMessages.append(div);
+            } else if (messages[m].from == p.currentUser && messages[m].to == p.username) {
+              div.addClass('from');
+              p.currentMessages.append(div);
+            }
+
+          }
+        }
+
+      }
+
+    }
+
   }
 
 };
