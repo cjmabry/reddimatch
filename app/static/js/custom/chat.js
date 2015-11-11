@@ -1,6 +1,9 @@
 // TODO: auto expand text box
 // TODO: auto scroll text box/ show notification
 // TODO: get user info
+// TODO: auto expand text box
+// TODO: auto scroll text box/ show notification
+// TODO: get user info
 
 var properties, Chat = {
 

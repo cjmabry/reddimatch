@@ -10,6 +10,7 @@ from config import REDDIT_USER_AGENT, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, RE
 handler = MultiprocessHandler()
 
 #TODO: try/catch all HTTP and NotFound Errors
+#TODO: try/catch all HTTP and NotFound Errors
 
 def praw_instance():
     r = praw.Reddit(user_agent=REDDIT_USER_AGENT, handler=handler)
@@ -150,6 +151,7 @@ def get_offsite_user_favorite_subs(username):
     return subs
 
 def get_offsite_users(favs):
+    #TODO should we get and display their favorites?
     #TODO should we get and display their favorites?
     r = praw_instance()
 
