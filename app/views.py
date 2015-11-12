@@ -1,4 +1,4 @@
-from flask import render_template, redirect, request, flash, url_for, g, jsonify
+from flask import render_template, redirect, request, flash, url_for, g, jsonify, session
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
 from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
@@ -6,10 +6,14 @@ from flask_socketio import emit, send, join_room, leave_room, rooms
 import praw, random, datetime
 from pprint import pprint
 
+# TODO (secondary) when opening new tabs user is not logged in new tabs
+# TODO (secondary) picture uploading
+# TODO (secondary) refactor views.py
+
 @app.route('/')
 @app.route('/index')
 def index():
-    if current_user is not None and current_user.is_authenticated:
+    if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     return render_template('index.html')
 
@@ -250,6 +254,23 @@ def get_messages():
     else:
         return False
 
+@app.route('/is_online')
+@login_required
+def is_online():
+    if current_user.is_authenticated:
+        username = request.args.get('username')
+
+        if models.User.query.filter_by(username=username).first():
+            user = models.User.query.filter_by(username=username).first()
+
+            if user.is_online:
+                return 'true'
+            else:
+                return 'false'
+
+        else:
+            return 'false'
+
 @app.route('/messages')
 @app.route('/messages/<username>')
 @login_required
@@ -257,6 +278,39 @@ def messages(username=None):
     if username is not None:
         print username
     return render_template('messages.html')
+
+@app.route('/get_user_info')
+@login_required
+def get_user_info():
+    if current_user.is_authenticated:
+
+        username = request.args.get('username')
+
+        if(models.User.query.filter_by(username=username).first()):
+
+            user = models.User.query.filter_by(username=username).first()
+
+            user_dict = {}
+
+            if current_user.is_matched(user):
+                user_dict['profile_photo_url'] = user.profile_photo_url
+                user_dict['age'] = user.age
+                user_dict['gender'] = str(user.gender).title()
+                user_dict['location'] = user.location
+                user_dict['location'] = user.location
+                user_dict['bio'] = user.bio
+
+                fav_subs = user.favorited.all()
+                fav_subs_list = []
+
+                for sub in fav_subs:
+                    fav_subs_list.append(sub.name)
+
+                user_dict['fav_subs'] = fav_subs_list
+
+                pprint(user_dict)
+
+        return jsonify(user_dict)
 
 @socketio.on('connect')
 def connect_handler():
@@ -267,8 +321,20 @@ def connect_handler():
         join_room(username)
         emit('message response', {'msg': 'Joined room ' + username}, room=username)
 
+        current_user.is_online = True
+        db.session.commit()
+
         for room in rooms():
             print 'In room ' + room
+    else:
+        return False
+
+@socketio.on('disconnect')
+def disconnect_handler():
+    if current_user.is_authenticated:
+        print 'disconnected'
+        current_user.is_online = False
+        db.session.commit()
     else:
         return False
 

@@ -3,6 +3,8 @@
 {% block page_class%}class="messages"{% endblock %}
 {% block content %}
 
+<!-- TODO refactor to be in line with new chat.js -->
+
   <div id="messages" class="row">
 
     <div id="conversations" class="pull-left">
@@ -92,7 +94,45 @@
 
     <div id="user_info">
 
-      <h4 id="conversation_heading" class="text-center"></h4>
+      <div class="card current_user">
+
+        <div class="profile_photo"></div>
+        <div class="info">
+
+          <div class="wrapper">
+            <span id="conversation_heading" class="username">{{match.username}}</span>
+            <span class="age">25</span>
+            <span class="gender">Female</span>
+            <span class="location">Oakland, CA</span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <h5>Favorite Subreddits</h5>
+
+        <div class="favorite_subs">
+          <span class="badge">/r/animals</span>
+          <span class="badge">/r/animals</span>
+          <span class="badge">/r/animals</span>
+        </div>
+
+      </div>
+
+      <!-- <div class="card">
+
+        <h5>Mutual Subreddits</h5>
+
+        <div class="mutual_subs">
+          <span class="badge">/r/animals</span>
+          <span class="badge">/r/animals</span>
+          <span class="badge">/r/animals</span>
+        </div>
+
+      </div> -->
 
     </div>
 

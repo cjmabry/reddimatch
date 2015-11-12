@@ -35,6 +35,7 @@ class User(db.Model):
                                secondaryjoin=(matches.c.matched_id == id),
                                backref=db.backref('matches', lazy='dynamic'),
                                lazy='dynamic')
+    is_online = db.Column(db.Boolean)
 
     def favorite(self, subreddit):
         if not self.has_favorite(subreddit):
