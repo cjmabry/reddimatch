@@ -1,6 +1,8 @@
 import app
 from app import db
 
+# TODO allow user to accept/reject the match before matching
+
 favorite_subs = db.Table('favorite_subs',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
     db.Column('subreddit_id', db.Integer, db.ForeignKey('subreddit.id'))

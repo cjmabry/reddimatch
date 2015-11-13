@@ -1,27 +1,41 @@
 {% extends "base.html" %}
 {% block container%}container{% endblock %}
+{% block page_class%}class="match_page"{% endblock %}
 {% block content %}
-
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul class="flashes">
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
 
   {% if current_user.is_authenticated() %}
 
-  <div class="row">
+    <div class="col-md-10 col-md-offset-1">
 
-    <div class="col-md-10 col-md-offset-1 text-center">
+      <div class="row text-center">
 
-      <h1>So far, so good! Who would you like to meet?</h2>
+        <h1 class="heading">Who would you like to meet?</h2>
 
-      <a class="btn btn-default" role="button" href="{{ url_for('friend') }}">Friend</a>
-      <a class="btn btn-default" role="button" href="{{ url_for('date') }}">Date</a>
+      </div>
+
+      <div class="choices">
+
+        <div class="col-md-6 choice friend">
+
+          <h4>A friend</h4>
+
+          <a href="{{ url_for('friend_match') }}">
+            <div class="icon"></div>
+          </a>
+
+        </div>
+
+        <div class="col-md-6 choice date">
+
+          <h4>A date</h4>
+
+          <a href="#">
+            <div class="icon"></div>
+          </a>
+
+        </div>
+
+      </div>
 
     </div>
 

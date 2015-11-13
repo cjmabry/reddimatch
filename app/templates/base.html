@@ -4,10 +4,44 @@
 
   <head>
     <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Place this data between the <head> tags of your website -->
+    <meta name="description" content="Meet and chat with like-minded Redditors." />
+
+    <!-- Schema.org markup for Google+ -->
+    <meta itemprop="name" content="Reddimatch">
+    <meta itemprop="description" content="Where Redditors Meet.">
+    <meta itemprop="image" content="http://www.reddimatch.com/images/twitter.png">
+
+    <!-- Twitter Card data -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@reddimatch">
+    <meta name="twitter:title" content="Reddimatch">
+    <meta name="twitter:description" content="Where Redditors Meet.">
+    <!-- Twitter summary card with large image must be at least 280x150px -->
+    <meta name="twitter:image:src" content="http://www.reddimatch.com/images/twitter.png">
+
+    <!-- Open Graph data -->
+    <meta property="og:title" content="Reddimatch" />
+    <meta property="og:url" content="http://www.reddimatch.com/" />
+    <meta property="og:image" content="{{url_for('static', filename='images/facebook.png')}}" />
+    <meta property="og:description" content="Where Redditors Meet." />
+    <meta property="og:site_name" content="Reddimatch" />
+
+
     <title>{% block title %}{% endblock %}</title>
     <link href="{{url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet" media="screen">
     <link href="{{url_for('static',filename='css/custom.css')}}" rel="stylesheet">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     <script src="{{url_for('static', filename='js/vendor/bootstrap.min.js')}}"></script>
   </head>
@@ -25,7 +59,9 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="/">reddimatch</a>
+              <a class="navbar-brand" href="/">
+                <img src="{{url_for('static',filename='images/logo.svg')}}" alt="reddimatch">
+              </a>
             </div>
 
             <div class="collapse navbar-collapse" id="main-nav">

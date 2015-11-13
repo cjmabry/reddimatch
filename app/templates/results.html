@@ -1,16 +1,7 @@
 {% extends "base.html" %}
 {% block container%}container{% endblock %}
+{% block page_class%}class="results_page"{% endblock %}
 {% block content %}
-
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul class="flashes">
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
 
   {% if current_user.is_authenticated() %}
 
@@ -31,13 +22,13 @@
 
         {% for match in matches %}
 
-          <div class="match col-md-4 col-sm-6 text-left">
+          <div class="col-md-4 col-sm-6 col-sm-offset-0 col-xs-10 col-xs-offset-1 text-left">
 
-            <div class="thumbnail">
-              <img class="match_pic" src="http://placehold.it/400x300">
+            <div class="match">
+              <img class="profile_photo" src="http://placehold.it/400x300">
 
-              <div class="caption">
-                <h4><a class="match_name" href="https://www.reddit.com/user/{{ match[1] }}">{{ match[1] }}</a></h4>
+              <div class="match_info">
+                <h4><a class="username" href="https://www.reddit.com/user/{{ match[1] }}">{{ match[1] }}</a></h4>
 
                 <p>You matched with <a href="https://www.reddit.com/user/{{ match[1] }}">{{ match[1] }}</a> because you both post in <a href="https://www.reddit.com/r/{{ match[2] }}">/r/{{ match[2] }}</a>.</p>
 
@@ -50,18 +41,24 @@
                 {% if match[3] is defined %}
                   <strong>Favorites Subs</strong>
                   <p>{% for sub in match[3:] %}
-                    <a href="https://www.reddit.com/r/{{sub}}">/r/{{ sub }}</a>
+                    <a class="badge" href="https://www.reddit.com/r/{{sub}}">/r/{{ sub }}</a>
                   {% endfor %}</p>
                 {% endif %}
 
-
-                {% if match[0] == 'onsite' %}
-                  <div class="clearfix text-center">
-                    <a class="btn btn-default glyphicon glyphicon-ok pull-left yes-match" role="button" data-username="{{ match[1] }}" href="#"></a> <span class="lead">Match</span>
-                    <a class="btn btn-default glyphicon glyphicon-remove pull-right no-match" role="button" data-username="{{ match[1] }}" href="#"></a>
-                  </div>
-                {% endif %}
               </div>
+
+              {% if match[0] == 'onsite' %}
+                <div class="match_button">
+                  <span class="check glyphicon glyphicon-ok yes-match" role="button" data-username="{{ match[1] }}">
+                  </span>
+
+                  <span class="text">Match</span>
+
+                  <span class="cross glyphicon glyphicon-remove no-match" role="button" data-username="{{ match[1] }}">
+                  </span>
+
+                </div>
+              {% endif %}
 
             </div>
 
@@ -69,10 +66,10 @@
 
         {% endfor %}
 
-      <div class="text-center row">
-        <div class="col-md-4 col-md-offset-4 col-sm-12">
-          <a class="btn btn-primary btn-block" role="button" href="{{ url_for('messages')}}">Go to Messages <span class="glyphicon glyphicon-chevron-right pull-right"></span></a>
-          <a class="btn btn-default btn-block" role="button" href="/match"><span class="glyphicon glyphicon-chevron-left pull-left"></span>Search Again</a>
+      <div class="buttons text-center row">
+        <div class="col-md-4 col-md-offset-4 col-xs-10 col-xs-offset-1">
+          <a class="btn btn-primary btn-block" role="button" href="{{ url_for('messages')}}">Go to Messages <span class="chevron glyphicon glyphicon-chevron-right"></span></a>
+          <a class="btn btn-secondary btn-block" role="button" href="/match"><span class="chevron glyphicon glyphicon-chevron-left"></span> Search Again</a>
         </div>
       </div>
 

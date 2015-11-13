@@ -1,6 +1,7 @@
 // TODO notifications
 // TODO mobile formatting
 // TODO address broken pipes
+// TODO allow user to unmatch
 // TODO (secondary) notify user on new message if scrolled
 // TODO (secondary) if no messages, prompt user to say hello
 // TODO (secondary) handle no matches

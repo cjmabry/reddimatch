@@ -176,14 +176,37 @@ def logout():
 @login_required
 def accept():
     user = current_user
-    match_username = request.form['match']
+    match_username = request.form['username']
 
     if models.User.query.filter_by(username=match_username).first():
         match_user = models.User.query.filter_by(username=match_username).first()
 
-        m = user.match(match_user)
-        db.session.add(m)
-        db.session.commit()
+        if user.is_matched(match_user):
+            print 'Already matched'
+
+        else:
+            m = user.match(match_user)
+            db.session.add(m)
+            db.session.commit()
+
+    return 'success'
+
+@app.route('/reject', methods=['POST', 'GET'])
+@login_required
+def reject():
+    user = current_user
+    unmatch_username = request.form['username']
+
+    if models.User.query.filter_by(username=unmatch_username).first():
+        unmatch_user = models.User.query.filter_by(username=unmatch_username).first()
+
+        if user.is_matched(unmatch_user):
+            m = user.unmatch(unmatch_user)
+            db.session.add(m)
+            db.session.commit()
+
+        else:
+            print 'user not matched.'
 
     return 'success'
 
