@@ -159,9 +159,14 @@ def get_offsite_users(favs):
         subreddit = r.get_subreddit(sub.name)
         comments = subreddit.get_comments(limit=100)
 
-        for comment in comments:
-            if comment.author.name not in users:
-                users.append(['offsite',comment.author.name,subreddit.display_name])
+        try:
+            for comment in comments:
+                    if comment.author and comment.author.name not in users:
+                        users.append(['offsite',comment.author.name,subreddit.display_name])
+
+        except praw.errors.NotFound as e:
+            print e
+            print "There be an HTTP error. The user probably doesn't have any comments, or Reddit might be down."
 
     users = random.sample(users, 3)
     pprint(users)

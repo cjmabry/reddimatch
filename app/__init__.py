@@ -2,9 +2,11 @@ from flask import Flask, flash
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager
 from flask_socketio import SocketIO
+from werkzeug.contrib.fixers import ProxyFix
 
 app = Flask(__name__)
 app.config.from_object('config')
+app.wsgi_app = ProxyFix(app.wsgi_app)
 
 lm = LoginManager()
 lm.init_app(app)
