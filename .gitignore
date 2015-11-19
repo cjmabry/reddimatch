@@ -57,7 +57,7 @@ docs/_build/
 target/
 
 #Flask virtualenv
-venv/
+venv
 
 #Database
 app.db
