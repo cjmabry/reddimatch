@@ -15,36 +15,42 @@
   {% if current_user.is_authenticated() %}
 
     <h1>Success! Here's how your profile will look to matches.</h1>
-    <h3>Fill out as much or as little as you'd like, but keep in mind that matches are more likely to respond to more complete profiles.</h3>
+    <p>Fill out as much or as little as you'd like, but keep in mind that matches are more likely to respond to more complete profiles.</p>
 
-    {% from "_formhelpers.html" import render_field %}
-    <form method=post action="/register">
-      <dl>
-        {{ render_field(form.username,value=current_user.username)}}
-        {{ render_field(form.email) }}
-        {{ render_field(form.age) }}
-        {{ render_field(form.gender) }}
-        {{ render_field(form.location) }}
-        {{ render_field(form.bio) }}
-        {% with favs = current_user.favorited_subs() %}
+    <div id="avatar">
 
-          {% for idx in range(0, 3)%}
+    </div>
 
-            {% if favs[idx] %}
-              {{ render_field(form['favorite_sub_' + (idx+1)|string], value=favs[idx].name)}}
+    <div id="register_form">
+      {% from "_formhelpers.html" import render_field %}
+      <form method=post action="/register">
+        <dl>
+          {{ render_field(form.username,value=current_user.username)}}
+          {{ render_field(form.email) }}
+          {{ render_field(form.age) }}
+          {{ render_field(form.gender) }}
+          {{ render_field(form.location) }}
+          {{ render_field(form.bio) }}
+          {% with favs = current_user.favorited_subs() %}
 
-            {% else %}
-              {{ render_field(form['favorite_sub_' + (idx+1)|string])}}
+            {% for idx in range(0, 3)%}
 
-            {% endif %}
+              {% if favs[idx] %}
+                {{ render_field(form['favorite_sub_' + (idx+1)|string], value=favs[idx].name)}}
 
-          {% endfor %}
+              {% else %}
+                {{ render_field(form['favorite_sub_' + (idx+1)|string])}}
 
-        {% endwith %}
+              {% endif %}
 
-      </dl>
-      <p><input type=submit value=Next>
-    </form>
+            {% endfor %}
+
+          {% endwith %}
+
+        </dl>
+        <p><input type=submit value=Next>
+      </form>
+    </div>
 
     <h2><strong>Don't worry</strong> - your profile is only shown when you match with someone.
 

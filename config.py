@@ -1,7 +1,7 @@
-DEBUG = False
+DEBUG = True
 import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-PROPAGATE_EXCEPTIONS = True
+PROPAGATE_EXCEPTIONS = False
 
 if os.environ.get('DATABASE_URL') is None:
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'app.db')
