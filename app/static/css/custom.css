@@ -16,10 +16,10 @@ body {
 body .navbar {
   background-color: #ffffff;
   color:#51b2e8;
-  
+
 }
 
-.messages .navbar {
+.navbar {
   border: 1px solid #f5f5f5;
 
 }
@@ -147,6 +147,197 @@ footer {
   padding-bottom:30px;
 }
 
+/* Register */
+.register_form, .register_page, .dashboard_page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.register {
+  margin: 40px auto;
+}
+
+.register .alert {
+  /*margin-bottom: 5px;*/
+  margin-top: 8px;
+}
+
+.register_page .avatar, .dashboard_page .avatar, .register_page .avatar img, .dashboard_page .avatar img {
+  display: block;
+  height:300px;
+  width: 300px;
+  float:left;
+  position: relative;
+}
+
+.avatar .choose {
+  width: 50px;
+  height: 50px;
+  display: block;
+  position: absolute;
+  right:-25px;
+  top:0;
+  bottom:0;
+  margin:auto;
+  background: #51b2e8;
+  line-height:50px;
+  text-align: center;
+  border-radius: 100%;
+  color: white;
+  font-size: 1.5em;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.register_form {
+  min-height: 300px;
+  height: auto;
+  background: #eee;
+  padding:10px 10px 10px 25px;
+  width: 600px;
+  float: left;
+}
+
+/*.register_form .row {
+  margin-left: 0;
+  margin-right: 0;
+}*/
+
+.register_form .field {
+  position: relative;
+  display: inline-block;
+}
+
+/*.register_form .field.bio {
+  width: 100%;
+}*/
+
+/*.register_form .field.username, .register_form .field.email {
+  width: 50%;
+}*/
+
+.register_form input, .register_form select, .register_form textarea {
+  border: 0;
+  border-radius: 3px;
+  padding:5px 10px;
+  margin-top:25px;
+  background: white;
+  height:30px;
+  width: 100%;
+}
+
+.register_form textarea {
+  resize: none;
+  overflow: hidden;
+  width: 100%;
+  height: 50px;
+}
+
+.register_form .bio input {
+  height:3em;
+
+}
+
+.register_form .favorite_subs input {
+  border-radius: 50px;
+}
+
+.register_form .favorite_subs .add_sub {
+  background: white;
+  border-radius: 100%;
+  height: 25px;
+  width: 25px;
+  line-height: 25px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.8em;
+  margin-left:10px;
+}
+
+.register_form .favorite_subs .help_icon {
+  width: 15px;
+  height: 15px;
+  display: inline-block;
+  background: #ccc;
+  font-size: 0.6em;
+  font-weight: bolder;
+  line-height: 15px;
+  text-align: center;
+  border-radius: 100%;
+  cursor: pointer;
+  color: white;
+  position: relative;
+}
+
+.register_form .favorite_subs label {
+  display: none;
+}
+
+.register_form .favorite_subs input {
+  margin-top:0;
+}
+
+.register_form .favorite_subs .help_icon:hover::before, .register_form .favorite_subs .help_icon:hover::after {
+  display: block;
+}
+
+.register_form .help_icon::before {
+  content: "";
+  display: none;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 7px solid #51b2e8;
+  /*background: red;*/
+  position: absolute;
+  top:0;
+  bottom:0;
+  margin: auto 0 auto 20px;
+}
+
+.register_form .help_icon::after {
+  content: "";
+  display: none;
+  position: absolute;
+  white-space: normal;
+  top:-5px;
+  margin-left: 25px;
+  color: white;
+  background: #51b2e8;
+  border-radius: 5px;
+  padding: 5px;
+  border-left: 0;
+  font-weight: lighter;
+  max-width: 500px;
+  min-width: 200px;
+  z-index: 9;
+}
+
+.register_form .favorite_subs .help_icon::after {
+  content:"We’ve gathered these from your reddit profile. Feel free to change them to better represent you.";
+}
+
+.register_form input#age {
+  width: 45px;
+  text-align: center;
+}
+
+.register_form label {
+  position: absolute;
+  top: 5px;
+  /*left:0;*/
+  color: #999;
+  font-size: 0.8em;
+  margin: 0;
+  font-weight: 500;
+}
+
+.register_page .next-button {
+  margin: 20px;
+}
+
 /* Match */
 .match_page {
   display: flex;
@@ -218,7 +409,7 @@ footer {
 }
 
 .results_page h1 {
-  margin-top: 0;
+  /*margin-top: 0;*/
 }
 
 .match {
@@ -398,6 +589,11 @@ html.messages, .messages body {
   width: 60px;
   background: #EFEFEF;
   float:left;
+}
+
+#conversations ul#user_list li .profile_photo img {
+  width: 60px;
+  height: 60px;
 }
 
 #conversations ul#user_list li .info {
@@ -682,7 +878,7 @@ html.messages, .messages body {
   color: #333;
 }
 
-#user_info .profile_photo {
+#user_info .profile_photo, #user_info .profile_photo img {
   display: block;
   width: 80px;
   height: 80px;
@@ -713,9 +909,51 @@ html.messages, .messages body {
   #user_info {
     display: none;
   }
+
+.register {
+  width: 700px;
+}
+
+.register_form {
+  width: 400px;
+}
+
 }
 
 @media only screen and (max-width: 768px) {
+
+  .register {
+    height: auto;
+    width: auto;
+  }
+
+  .register_page .avatar, .dashboard_page .avatar, .register_form {
+    float:none;
+    margin:auto;
+    width: 300px;
+  }
+
+  .avatar .choose {
+    left: 0;
+    right: 0;
+    top: 275px;
+    bottom: auto;
+  }
+
+  .register_form {
+    padding:25px 10px 10px;
+    height: auto;
+  }
+
+  .register_form .field {
+    display: block;
+    width: 280px;
+  }
+
+  .register_form .favorite_subs input {
+      margin: 0 0 15px 0;
+  }
+
   #user_list .info, #user_list .expand {
     display: none;
   }

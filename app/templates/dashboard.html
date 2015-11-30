@@ -1,58 +1,78 @@
 {% extends "base.html" %}
-{% block container%}container{% endblock %}
+{% block container%}container-fluid{% endblock %}
+{% block page_class%}class="dashboard_page"{% endblock %}
 {% block content %}
 
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul class="flashes">
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+{% if current_user.is_authenticated() %}
 
-  {% if current_user.is_authenticated %}
+<div class="register row">
 
-    <h1>Welcome back, {{ current_user.username }}.</h1>
+  <div class="avatar">
 
-    <ul>
-      {% if current_user.email is defined %}
-        {% if current_user.email|length > 0 %}
-          <li>Your email: {{ current_user.email }}</li>
-        {% endif %}
-      {% endif %}
-      {% if current_user.age is not none %}
-          <li>Your age: {{ current_user.age }}</li>
-      {% endif %}
-      {% if current_user.gender is not none %}
-        {% if current_user.gender|length > 0 %}
-          <li>Your gender: {{ current_user.gender }}</li>
-        {% endif %}
-      {% endif %}
-      {% if current_user.location is not none %}
-        {% if current_user.location|length > 0 %}
-          <li>Your location: {{ current_user.location }}</li>
-        {% endif %}
-      {% endif %}
-      {% if current_user.bio is not none %}
-        {% if current_user.bio|length > 0 %}
-          <li>Your bio: {{ current_user.bio }}</li>
-        {% endif %}
-      {% endif %}
-    </ul>
+    <img src="{{ current_user.avatar(300) }}">
 
-    {% with favs = current_user.favorited_subs() %}
-      {% if favs %}
-      <h3>Your favorite subs:</h3>
-        <ul class="favs">
-          {% for sub in favs %}
-            <li><a href="https://www.reddit.com/r/{{sub.name}}">/r/{{ sub.name }}</a></li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+    <span class="choose glyphicon glyphicon-camera"></i>
 
-  {% endif %}
+  </div>
+
+  <div class="register_form">
+    {% from "_formhelpers.html" import render_field %}
+    <form class="col-sm-12" id="registration" method=post action="/register" data-parsley-validate>
+
+        <div class="row">
+
+          <div class="field username col-sm-6">
+            {{ render_field(form.username,placeholder='Username',value=current_user.username)}}
+          </div>
+
+          <div class="field email col-sm-6">
+            {{ render_field(form.email, placeholder='you@example.com') }}
+          </div>
+
+        </div>
+
+        <div class="row bio">
+
+          <div class="field bio col-sm-12">
+            {{ render_field(form.bio, placeholder="Tell your matches a little bit about yourself. Don't be shy!") }}
+          </div>
+        </div>
+
+
+        <div class="row favorite_subs">
+
+          <h4 class="col-sm-12">Favorite Subs <span class="help_icon">?</span></h4>
+
+
+          {% with favs = current_user.favorited_subs() %}
+
+            {% for idx in range(0, 3)%}
+
+            <div class="field sub col-sm-4">
+
+              {% if favs[idx] %}
+                {{ render_field(form['favorite_sub_' + (idx+1)|string], value=favs[idx].name, placeholder='Favorite Sub ' + (idx+1)|string)}}
+
+              {% else %}
+                {{ render_field(form['favorite_sub_' + (idx+1)|string], placeholder='Favorite Sub ' + (idx+1)|string)}}
+
+              {% endif %}
+
+            </div>
+
+            {% endfor %}
+
+          {% endwith %}
+
+          <!-- <span class="add_sub glyphicon glyphicon-plus"></span> -->
+
+        </div>
+
+    </form>
+  </div>
+
+</div>
+
+{% endif %}
 
 {% endblock %}

@@ -1,5 +1,6 @@
 import app
 from app import db
+from hashlib import md5
 
 # TODO allow user to accept/reject the match before matching
 
@@ -39,6 +40,13 @@ class User(db.Model):
                                lazy='dynamic')
     is_online = db.Column(db.Boolean)
 
+    def avatar(self, size):
+        if self.email is not None:
+            return 'http://www.gravatar.com/avatar/%s?d=retro&s=%d' % (md5(self.email.encode('utf-8')).hexdigest(), size)
+
+        else:
+            return 'http://www.gravatar.com/avatar/?d=mm&s=%s' % size
+
     def favorite(self, subreddit):
         if not self.has_favorite(subreddit):
             self.favorited.append(subreddit)
@@ -51,6 +59,8 @@ class User(db.Model):
 
     def unfavorite_all(self):
         subs = self.favorited_subs()
+
+        print subs
 
         for sub in subs:
             self.unfavorite(sub)

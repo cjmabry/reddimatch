@@ -2,14 +2,12 @@
 {% block container%}container-fluid{% endblock %}
 {% block page_class%}class="messages"{% endblock %}
 {% block content %}
-
+{% with matches = current_user.get_matches() %}
 <!-- TODO refactor to be in line with new chat.js -->
 
   <div id="messages" class="row">
 
     <div id="conversations" class="pull-left">
-
-      {% with matches = current_user.get_matches() %}
 
         {% if matches.count() > 0 %}
 
@@ -21,7 +19,11 @@
 
             <li class="user selected" data-username="{{ match.username }}">
 
-              <div class="profile_photo"></div>
+              <div class="profile_photo">
+
+                <img src="{{ match.avatar(60) }}">
+
+              </div>
               <div class="info">
 
                 <span class="username">{{match.username}}</span>
@@ -42,7 +44,11 @@
 
             <li class="user" data-username="{{ match.username }}">
 
-              <span class="profile_photo"></span>
+              <div class="profile_photo">
+
+                <img src="{{ match.avatar(60) }}">
+
+              </div>
               <div class="info">
 
                 <span class="username">{{match.username}}</span>
@@ -75,8 +81,6 @@
 
         {% endif %}
 
-      {% endwith %}
-
     </div>
 
     <div id="current_conversation">
@@ -94,33 +98,37 @@
 
     <div id="user_info">
 
-      <div class="card current_user">
+      {% if matches.count() > 0 %}
 
-        <div class="profile_photo"></div>
-        <div class="info">
+        <div class="card current_user">
 
-          <div class="wrapper">
-            <span id="conversation_heading" class="username">{{match.username}}</span>
-            <span class="age">25</span>
-            <span class="gender">Female</span>
-            <span class="location">Oakland, CA</span>
+            <div class="profile_photo"></div>
+            <div class="info">
+
+              <div class="wrapper">
+                <span id="conversation_heading" class="username"></span>
+                <span class="age"></span>
+                <span class="gender"></span>
+                <span class="location"></span>
+              </div>
+
+            </div>
+
           </div>
 
-        </div>
+          <div class="card">
 
-      </div>
+            <h5>Favorite Subreddits</h5>
 
-      <div class="card">
+            <div class="favorite_subs">
+              <span class="badge"></span>
+              <span class="badge"></span>
+              <span class="badge"></span>
+            </div>
 
-        <h5>Favorite Subreddits</h5>
+          </div>
 
-        <div class="favorite_subs">
-          <span class="badge">/r/animals</span>
-          <span class="badge">/r/animals</span>
-          <span class="badge">/r/animals</span>
-        </div>
-
-      </div>
+      {% endif %}
 
       <!-- <div class="card">
 
@@ -137,6 +145,9 @@
     </div>
 
   </div>
+
+{% endwith %}
+
 
 {% endblock %}
 

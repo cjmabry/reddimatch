@@ -12,7 +12,7 @@ def generate_random_user(username):
 
 def populate_users(numUsers):
     r = reddit_api.praw_instance()
-    subreddit = r.get_subreddit('funny')
+    subreddit = r.get_subreddit('nfl')
     posts = subreddit.get_hot()
     # subreddit = r.get_front_page()
 
@@ -59,4 +59,4 @@ def populate_subreddit_db(numSubreddits):
             sub = models.Subreddit.query.filter_by(name=subreddit_name).first()
             sub.reddit_id = subreddit_id
 
-populate_subreddit_db(100)
+populate_users(100)

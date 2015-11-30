@@ -70,15 +70,19 @@ def register():
     if request.method == 'POST' and form.validate():
         user = current_user
         user.username = form.username.data
-        user.email = form.email.data
-        user.age = form.age.data
-        user.gender = form.gender.data
-        user.location = form.location.data
+
+        if form.email.data:
+            user.email = form.email.data
+
         user.bio = form.bio.data
         favorite_subs = []
         favorite_subs.append(form.favorite_sub_1.data)
-        favorite_subs.append(form.favorite_sub_2.data)
-        favorite_subs.append(form.favorite_sub_3.data)
+
+        if form.favorite_sub_2.data:
+            favorite_subs.append(form.favorite_sub_2.data)
+
+        if form.favorite_sub_3.data:
+            favorite_subs.append(form.favorite_sub_3.data)
 
         user.unfavorite_all()
 
@@ -105,10 +109,51 @@ def register():
         return redirect(url_for('match'))
     return render_template('register.html', form=form)
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    return render_template('dashboard.html', id='dashboard')
+    form = forms.RegistrationForm(request.form)
+    if request.method == 'POST' and form.validate():
+        user = current_user
+        user.username = form.username.data
+
+        if form.email.data:
+            user.email = form.email.data
+
+        user.bio = form.bio.data
+        favorite_subs = []
+        favorite_subs.append(form.favorite_sub_1.data)
+
+        if form.favorite_sub_2.data:
+            favorite_subs.append(form.favorite_sub_2.data)
+
+        if form.favorite_sub_3.data:
+            favorite_subs.append(form.favorite_sub_3.data)
+
+        user.unfavorite_all()
+
+        for sub in favorite_subs:
+            if models.Subreddit.query.filter_by(name=sub).first():
+                sub = models.Subreddit.query.filter_by(name=sub).first()
+                user.favorite(sub)
+            elif models.Subreddit.query.filter_by(name=sub).first() is None:
+                r = reddit_api.praw_instance()
+                try:
+                    r.get_subreddit(sub, fetch=True)
+                except Exception as e:
+                    flash(e)
+                    return render_template('register.html', form=form)
+
+                subreddit = models.Subreddit(name=sub)
+                db.session.add(subreddit)
+                db.session.commit()
+                user.favorite(subreddit)
+            else:
+                print 'error'
+
+        db.session.commit()
+        return redirect(url_for('dashboard'))
+    return render_template('dashboard.html', form=form)
 
 @app.route('/match')
 @login_required
@@ -140,7 +185,7 @@ def friend_match():
                 else:
                     favs = reddit_api.get_favorite_subs(u)
 
-                lis = ['onsite', u.username, sub.name]
+                lis = ['onsite', u.username, sub.name, u.avatar(300)]
                 for fav in favs:
                     lis.append(fav.name)
                 matches.append(lis)
@@ -277,6 +322,24 @@ def get_messages():
     else:
         return False
 
+@app.route('/get_avatar')
+@login_required
+def get_avatar():
+    if current_user.is_authenticated:
+        username = request.args.get('username', None)
+        size = request.args.get('size', None)
+
+        if username is not None and models.User.query.filter_by(username=username).first():
+            user = models.User.query.filter_by(username=username).first()
+
+            if size is not None:
+                avatar = user.avatar(int(size))
+
+            else:
+                avatar = user.avatar(300)
+
+        return avatar
+
 @app.route('/is_online')
 @login_required
 def is_online():
@@ -322,6 +385,7 @@ def get_user_info():
                 user_dict['location'] = user.location
                 user_dict['location'] = user.location
                 user_dict['bio'] = user.bio
+                user_dict['avatar'] = str(user.avatar(100))
 
                 fav_subs = user.favorited.all()
                 fav_subs_list = []

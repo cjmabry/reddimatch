@@ -1,59 +1,113 @@
 {% extends "base.html" %}
-{% block container%}container{% endblock %}
+{% block container%}container-fluid{% endblock %}
+{% block page_class%}class="register_page"{% endblock %}
 {% block content %}
 
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul class="flashes">
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+{% if current_user.is_authenticated() %}
 
-  {% if current_user.is_authenticated() %}
+<div class="row text-center">
 
+  <div class="col-sm-12">
     <h1>Success! Here's how your profile will look to matches.</h1>
     <p>Fill out as much or as little as you'd like, but keep in mind that matches are more likely to respond to more complete profiles.</p>
+  </div>
 
-    <div id="avatar">
+</div>
 
-    </div>
+<div class="register row">
 
-    <div id="register_form">
-      {% from "_formhelpers.html" import render_field %}
-      <form method=post action="/register">
-        <dl>
-          {{ render_field(form.username,value=current_user.username)}}
-          {{ render_field(form.email) }}
-          {{ render_field(form.age) }}
-          {{ render_field(form.gender) }}
-          {{ render_field(form.location) }}
-          {{ render_field(form.bio) }}
+  <div class="avatar">
+
+    <img src="{{ current_user.avatar(300) }}">
+
+    <span class="choose glyphicon glyphicon-camera"></i>
+
+  </div>
+
+  <div class="register_form">
+    {% from "_formhelpers.html" import render_field %}
+
+    <form class="col-sm-12" id="registration" method=post action="/register" data-parsley-validate>
+
+        <div class="row">
+
+          <div class="field username col-sm-6">
+            {{ render_field(form.username,placeholder='Username',value=current_user.username)}}
+          </div>
+
+          <div class="field email col-sm-6">
+            {{ render_field(form.email, placeholder='you@example.com') }}
+          </div>
+
+        </div>
+
+        <div class="row bio">
+
+          <div class="field bio col-sm-12">
+            {{ render_field(form.bio, placeholder="Tell your matches a little bit about yourself. Don't be shy!") }}
+          </div>
+        </div>
+
+
+        <div class="row favorite_subs">
+
+          <h4 class="col-sm-12">Favorite Subs <span class="help_icon">?</span></h4>
+
+
           {% with favs = current_user.favorited_subs() %}
 
             {% for idx in range(0, 3)%}
 
+            <div class="field sub col-sm-4">
+
               {% if favs[idx] %}
-                {{ render_field(form['favorite_sub_' + (idx+1)|string], value=favs[idx].name)}}
+                {{ render_field(form['favorite_sub_' + (idx+1)|string], value=favs[idx].name, placeholder='Favorite Sub ' + (idx+1)|string)}}
 
               {% else %}
-                {{ render_field(form['favorite_sub_' + (idx+1)|string])}}
+                {{ render_field(form['favorite_sub_' + (idx+1)|string], placeholder='Favorite Sub ' + (idx+1)|string)}}
 
               {% endif %}
+
+            </div>
 
             {% endfor %}
 
           {% endwith %}
 
-        </dl>
-        <p><input type=submit value=Next>
-      </form>
+          <!-- <span class="add_sub glyphicon glyphicon-plus"></span> -->
+
+        </div>
+
+      <input class="hidden" id="next-button" type=submit value=Next>
+    </form>
+  </div>
+
+</div>
+
+  <div class="row text-center">
+
+    <div class="col-sm-12">
+
+      <p><strong>Don't worry</strong> - your profile is only shown when you match with someone.</p>
+
     </div>
 
-    <h2><strong>Don't worry</strong> - your profile is only shown when you match with someone.
+  </div>
 
-  {% endif %}
+  <div class="row text-center">
 
+    <label for="next-button" class="btn btn-primary next-button">Next <span class="glyphicon glyphicon-chevron-right"></span></label>
+
+  </div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="{{url_for('static', filename='js/vendor/parsley.min.js')}}"></script>
+
+<script type="text/javascript">
+  $('form').parsley();
+</script>
 {% endblock %}

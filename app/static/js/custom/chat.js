@@ -18,6 +18,7 @@ var properties, Chat = {
       object: null,
       userList: $("ul#user_list"),
       currentUser : null,
+      currentUserAvatar: null,
       hasContent: false,
       messageBox: $("#enter_message"),
       currentMessages: $("#current_messages")
@@ -189,6 +190,17 @@ var properties, Chat = {
 
   },
 
+  get_avatar: function(data) {
+    $.ajax({
+      url: '/get_avatar',
+      data: {"username":p.currentUser,"size":80},
+      success: function(response) {
+        p.currentUserAvatar = response;
+        console.log(p.currentUserAvatar);
+      }
+    });
+  },
+
   get_user_info: function(username) {
     var self = this;
     // ajax request with username, return json object with all user info
@@ -223,7 +235,13 @@ var properties, Chat = {
       location = "";
     }
 
-    user_info_div = $("<div class='card current_user'><div class='profile_photo'></div><div class='info'><div class='wrapper'><span id='conversation_heading' class='username'> " + p.currentUser + " </span><span class='age'>" + age + " </span><span class='gender'> " + gender + " </span><span class='location'> " + location + " </span></div></div></div>");
+    if (data['avatar'] !== null) {
+      avatar = data['avatar'];
+    } else {
+      avatar= "http://www.gravatar.com/?d=mm";
+    }
+
+    user_info_div = $("<div class='card current_user'><div class='profile_photo'><img src='"+ avatar +"'></div><div class='info'><div class='wrapper'><span id='conversation_heading' class='username'> " + p.currentUser + " </span><span class='age'>" + age + " </span><span class='gender'> " + gender + " </span><span class='location'> " + location + " </span></div></div></div>");
 
     fav_subs = $("<div>", {class:'favorite_subs'});
 
