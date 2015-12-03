@@ -3,8 +3,9 @@ from flask.ext.login import LoginManager, current_user, login_user, login_requir
 from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
 from flask_socketio import emit, send, join_room, leave_room, rooms
-import praw, random, datetime
+import praw, random, datetime, string
 from pprint import pprint
+from sqlalchemy import func
 
 # TODO (secondary) when opening new tabs user is not logged in new tabs
 # TODO (secondary) picture uploading
@@ -14,7 +15,7 @@ from pprint import pprint
 @app.route('/index')
 def index():
     if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('match'))
     return render_template('index.html')
 
 @app.route('/authorize')
@@ -70,40 +71,36 @@ def register():
     if request.method == 'POST' and form.validate():
         user = current_user
         user.username = form.username.data
+        user.bio = form.bio.data
 
         if form.email.data:
             user.email = form.email.data
 
-        user.bio = form.bio.data
         favorite_subs = []
-        favorite_subs.append(form.favorite_sub_1.data)
+        favorite_subs.append(form.favorite_sub_1.data.lower())
 
         if form.favorite_sub_2.data:
-            favorite_subs.append(form.favorite_sub_2.data)
+            favorite_subs.append(form.favorite_sub_2.data.lower())
 
         if form.favorite_sub_3.data:
-            favorite_subs.append(form.favorite_sub_3.data)
+            favorite_subs.append(form.favorite_sub_3.data.lower())
 
         user.unfavorite_all()
 
         for sub in favorite_subs:
-            if models.Subreddit.query.filter_by(name=sub).first():
-                sub = models.Subreddit.query.filter_by(name=sub).first()
-                user.favorite(sub)
-            elif models.Subreddit.query.filter_by(name=sub).first() is None:
-                r = reddit_api.praw_instance()
-                try:
-                    r.get_subreddit(sub, fetch=True)
-                except Exception as e:
-                    flash(e)
-                    return render_template('register.html', form=form)
 
+            # strip /r/ from name
+            if '/' in sub:
+                sub = sub.split('/')[-1]
+
+            if models.Subreddit.query.filter_by(name = sub).first() is None:
                 subreddit = models.Subreddit(name=sub)
                 db.session.add(subreddit)
                 db.session.commit()
                 user.favorite(subreddit)
             else:
-                print 'error'
+                subreddit = models.Subreddit.query.filter_by(name = sub).first()
+                user.favorite(subreddit)
 
         db.session.commit()
         return redirect(url_for('match'))
@@ -206,11 +203,6 @@ def friend_match():
 def date():
     return redirect(url_for('friend'))
 
-@app.route('/matches')
-@login_required
-def matches():
-    return render_template('matches.html')
-
 @app.route('/logout')
 @login_required
 def logout():
@@ -270,17 +262,18 @@ def get_username():
 def get_messages():
     username = request.args.get('username', None)
 
+    if username is None:
+        return 'false'
+
     if current_user.is_authenticated and current_user.username is not None:
 
         if models.User.query.filter_by(username=username):
 
             to_id = models.User.query.filter_by(username=username).first().id
-            print 'asdasdas'
 
             messages_list = []
 
             if models.Message.query.filter_by(from_id=current_user.id, to_id=to_id):
-                print 'sdfjsdfsdfdsagbf?'
 
                 messages =  models.Message.query.filter_by(from_id=current_user.id,to_id=to_id).all()
 
@@ -315,9 +308,11 @@ def get_messages():
                     messages_list.append(message)
 
             messages_list.sort()
-            pprint(messages_list)
 
-            return jsonify(results = messages_list)
+            if not messages_list:
+                return 'false'
+            else:
+                return jsonify(results = messages_list)
 
     else:
         return False
@@ -357,20 +352,28 @@ def is_online():
         else:
             return 'false'
 
-@app.route('/messages')
-@app.route('/messages/<username>')
+@app.route('/chat')
+@app.route('/chat/<username>')
 @login_required
 def messages(username=None):
-    if username is not None:
-        print username
-    return render_template('messages.html')
+    print current_user.get_matches()
+    print current_user.get_match_requests()
+
+    if current_user.get_matches() or current_user.get_match_requests() > 0:
+        return render_template('messages.html')
+
+    else:
+        return redirect(url_for('match'))
 
 @app.route('/get_user_info')
 @login_required
 def get_user_info():
     if current_user.is_authenticated:
 
-        username = request.args.get('username')
+        username = request.args.get('username', None)
+
+        if username is None:
+            return 'false'
 
         if(models.User.query.filter_by(username=username).first()):
 

@@ -5,6 +5,13 @@
 
 {% if current_user.is_authenticated() %}
 
+<div class="row">
+
+  <h1>Your Profile</h1>
+
+</div>
+
+
 <div class="register row">
 
   <div class="avatar">
@@ -26,7 +33,13 @@
           </div>
 
           <div class="field email col-sm-6">
-            {{ render_field(form.email, placeholder='you@example.com') }}
+            {% if current_user.email is defined %}
+              {{ render_field(form.email, placeholder='you@example.com', value=current_user.email) }}
+
+            {% else %}
+                {{ render_field(form.email, placeholder='you@example.com') }}
+
+            {% endif %}
           </div>
 
         </div>
@@ -34,14 +47,19 @@
         <div class="row bio">
 
           <div class="field bio col-sm-12">
+            {% if current_user.bio is defined %}
+              {% set f = form.bio.process_data(current_user.bio) %}
+
             {{ render_field(form.bio, placeholder="Tell your matches a little bit about yourself. Don't be shy!") }}
+
+            {% endif %}
           </div>
         </div>
 
 
         <div class="row favorite_subs">
 
-          <h4 class="col-sm-12">Favorite Subs <span class="help_icon">?</span></h4>
+          <h4 class="col-sm-12">Favorite Subs</h4>
 
 
           {% with favs = current_user.favorited_subs() %}

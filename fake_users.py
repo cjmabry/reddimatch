@@ -12,7 +12,7 @@ def generate_random_user(username):
 
 def populate_users(numUsers):
     r = reddit_api.praw_instance()
-    subreddit = r.get_subreddit('nfl')
+    subreddit = r.get_subreddit('test')
     posts = subreddit.get_hot()
     # subreddit = r.get_front_page()
 

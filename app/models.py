@@ -1,6 +1,7 @@
 import app
 from app import db
 from hashlib import md5
+from sqlalchemy import func, or_, and_
 
 # TODO allow user to accept/reject the match before matching
 
@@ -18,7 +19,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
     reddit_username = db.Column(db.String(80), unique=True)
-    email = db.Column(db.String(120), unique=True)
+    email = db.Column(db.String(255), unique=True)
     refresh_token = db.Column(db.String(60))
     age = db.Column(db.Integer)
     gender = db.Column(db.String(60))
@@ -38,14 +39,21 @@ class User(db.Model):
                                secondaryjoin=(matches.c.matched_id == id),
                                backref=db.backref('matches', lazy='dynamic'),
                                lazy='dynamic')
+    registered = db.Column(db.Boolean)
+    email_verified = db.Column(db.Boolean)
+    created_on = db.Column(db.DateTime)
+    verified_on = db.Column(db.DateTime)
+    last_online = db.Column(db.DateTime)
     is_online = db.Column(db.Boolean)
+    newsletter = db.Column(db.Boolean)
+
 
     def avatar(self, size):
         if self.email is not None:
-            return 'http://www.gravatar.com/avatar/%s?d=retro&s=%d' % (md5(self.email.encode('utf-8')).hexdigest(), size)
+            return 'http://www.gravatar.com/avatar/%s?d=identicon&s=%d' % (md5(self.email.encode('utf-8')).hexdigest(), size)
 
         else:
-            return 'http://www.gravatar.com/avatar/?d=mm&s=%s' % size
+            return 'http://www.gravatar.com/avatar/?d=identicon&s=%s' % size
 
     def favorite(self, subreddit):
         if not self.has_favorite(subreddit):
@@ -76,12 +84,12 @@ class User(db.Model):
         subs = app.reddit_api.get_favorite_subs(u)
 
         for sub in subs:
-            if Subreddit.query.filter_by(name=sub.name).first():
-                print(sub.name + 'found')
-                subreddit = Subreddit.query.filter_by(name=sub.name).first()
+            if Subreddit.query.filter(func.lower(Subreddit.name) == func.lower(sub.name)).first():
+                print(sub.name + ' found')
+                subreddit = Subreddit.query.filter(func.lower(Subreddit.name) == func.lower(sub.name)).first()
             else:
                 print(sub.name + ' not found')
-                subreddit = Subreddit(name=sub.name)
+                subreddit = Subreddit(name=func.lower(sub.name))
                 db.session.add(subreddit)
             f = u.favorite(subreddit)
             if f is not None:
@@ -100,10 +108,38 @@ class User(db.Model):
             return self
 
     def is_matched(self, user):
+        """Check if user is matched with another
+
+        """
         return self.matched.filter(matches.c.matched_id == user.id).count() > 0
 
     def get_matches(self):
-        return User.query.join(matches, (matches.c.matched_id == User.id)).filter(matches.c.user_id == self.id)
+        """Get matches
+
+        Get all users that the current user has matched with, who may or may not have matched with the current user
+        """
+
+        if User.query.join(matches, (matches.c.matched_id == User.id)).filter(matches.c.user_id == self.id).count() > 0:
+            return User.query.join(matches, (matches.c.matched_id == User.id)).filter(matches.c.user_id == self.id)
+
+    def get_match_requests(self):
+        """Get match requests
+
+        Get all users that have matched with the user whom the user hasn't matched with yet
+        """
+
+        query = User.query.join(matches, (matches.c.user_id == User.id)).filter(matches.c.matched_id == self.id)
+
+        requests = []
+
+        for r in query:
+            if not self.is_matched(r):
+                requests.append(r)
+
+        if len(requests) > 0:
+            return requests
+        else:
+            return False
 
     def is_authenticated(self):
         return True
@@ -128,7 +164,7 @@ class Subreddit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     reddit_id = db.Column(db.String(60))
     category = db.Column(db.String(60))
-    name = db.Column(db.String(60))
+    name = db.Column(db.String(60), unique = True)
 
     def favorited_users(self):
         return User.query.join(favorite_subs, favorite_subs.c.user_id == User.id).filter(favorite_subs.c.subreddit_id == self.id)

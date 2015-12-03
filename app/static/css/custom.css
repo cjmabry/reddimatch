@@ -16,7 +16,6 @@ body {
 body .navbar {
   background-color: #ffffff;
   color:#51b2e8;
-
 }
 
 .navbar {
@@ -43,6 +42,80 @@ body .navbar a {
 .navbar .icon-bar {
   background-color: #51b2e8;
 }
+
+.navbar a.notifications .matches_icon {
+  background: url('/static/images/bubbles-blue.svg') no-repeat;
+  transition: 0.25s;
+  height: 20px;
+  display: block;
+  width: 30px;
+  margin: auto;
+  opacity: 0.8;
+}
+
+.navbar a.notifications .matches_icon .count {
+  border-radius: 100%;
+  display: block;
+  width: 15px;
+  height: 15px;
+  background: #ff0d82;
+  font-size: 10px;
+  color: white;
+  line-height: 15px;
+  text-align: center;
+  position: absolute;
+  top:10px;
+  right: 10px;
+}
+
+.navbar a.notifications .matches_icon:hover {
+  opacity: 1;
+}
+
+.navbar a.notifications .matches_icon:before {
+
+  content: "";
+  display: none;
+  width: 0;
+  height: 0;
+  border-bottom: 5px solid #666;
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent;
+  position: absolute;
+  top:45px;
+  left:0;
+  right:0;
+  margin: auto;
+  opacity: 0;
+}
+
+.navbar a.notifications .matches_icon:after {
+  content:"Messages";
+  display: none;
+  position: absolute;
+  top:50px;
+  left:50%;
+  margin: auto;
+  transform: translate(-50%, 0);
+  font-size: 16px;
+  line-height: 16px;
+  background: #666;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  opacity: 0;
+}
+
+.navbar a.notifications .matches_icon:hover::after, .navbar a.notifications .matches_icon:hover::before {
+  display: block;
+  opacity: 1;
+}
+
+.navbar a.notifications:hover, .navbar a.notifications:focus {
+  background: transparent;
+}
+
+/*color: rgba(81, 178, 232, 1);*/
 
 .btn-primary {
   height: 50px;
@@ -161,6 +234,7 @@ footer {
 .register .alert {
   /*margin-bottom: 5px;*/
   margin-top: 8px;
+  padding: 5px;
 }
 
 .register_page .avatar, .dashboard_page .avatar, .register_page .avatar img, .dashboard_page .avatar img {
@@ -635,8 +709,7 @@ html.messages, .messages body {
   float:left;
 }
 
-#conversations ul#user_list li .status::before {
-  content: "";
+#conversations ul#user_list li .status .indicator {
   display: block;
   width: 10px;
   height: 10px;
@@ -651,13 +724,72 @@ html.messages, .messages body {
   transition: 1s;
 }
 
-#conversations ul#user_list li .status.offline::before {
+#conversations ul#user_list li.offline .status .indicator {
   background: #ddd;
 }
 
-#conversations ul#user_list li.online .status::before {
+#conversations ul#user_list li.online .status .indicator {
   background: #66CC66;
 }
+
+#conversations ul#user_list li .status .indicator::before {
+  content:"";
+  display: none;
+  background: #666;
+  padding: 5px 10px;
+  color: white;
+  position: absolute;
+  right: 20px;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  font-size: 14px;
+  white-space: nowrap;
+  height: 30px;
+  line-height: 20px;
+  border-radius: 5px;
+}
+
+#conversations ul#user_list li .status .indicator::after {
+  content:"";
+  display: none;
+  position: absolute;
+  top:0;
+  bottom:0;
+  right:15px;
+  margin: auto;
+
+  height: 0;
+  width: 0;
+
+  border-left: 5px solid #666;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+#conversations ul#user_list li .status .indicator:hover::before,  #conversations ul#user_list li .status .indicator:hover::after {
+  display: block;
+}
+
+#conversations ul#user_list li.online .status .indicator::before  {
+  content: "Online"
+}
+
+#conversations ul#user_list li.offline .status .indicator::before  {
+  content: "Offline"
+}
+
+/*#conversations ul#user_list li.accepted {
+  background: green;
+}
+
+#conversations ul#user_list li.unconfirmed {
+  background: yellow;
+}
+
+#conversations ul#user_list li.request {
+  background: blue;
+}*/
 
 #conversations ul#user_list li .right_side {
   width:50px;
@@ -794,6 +926,34 @@ html.messages, .messages body {
   max-height: 100%;
   max-height: calc(100% - 40px);
 }
+#current_messages.empty .prompt {
+  display: block;
+}
+
+#current_messages .prompt {
+  display: none;
+  width: 100%;
+  height: 300px;
+  text-align: center;
+  margin: auto;
+  position: absolute;
+  top:0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity: 0.7;
+}
+
+#current_messages .prompt .prompt_icon {
+
+  width: 200px;
+  height: 150px;
+  display: block;
+  background: red;
+  margin: auto;
+  background: url('/static/images/bubbles-blue.svg') no-repeat;
+
+}
 
 .message {
   word-wrap:break-word;
@@ -922,6 +1082,15 @@ html.messages, .messages body {
 
 @media only screen and (max-width: 768px) {
 
+  .navbar-nav>li>a {
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+
+  .navbar-nav {
+    margin: 0;
+  }
+
   .register {
     height: auto;
     width: auto;
@@ -972,6 +1141,24 @@ html.messages, .messages body {
   #conversations ul#user_list li .right_side {
     position: absolute;
     left: 0;
+  }
+
+  .navbar-nav>li, .navbar-nav {
+    float: left;
+  }
+
+  .navbar-header {
+      float: left;
+  }
+
+  .navbar-nav .open .dropdown-menu {
+      position: absolute;
+      float: none;
+      min-width: 160px;
+      margin: 2px 0 0;
+      background-color: #fff;
+      border: 1px solid rgba(0,0,0,.15);
+      box-shadow: 0 6px 12px rgba(0,0,0,.175);
   }
 
 }

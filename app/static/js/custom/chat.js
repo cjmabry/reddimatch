@@ -1,5 +1,4 @@
 // TODO notifications
-// TODO mobile formatting
 // TODO address broken pipes
 // TODO allow user to unmatch
 // TODO (secondary) notify user on new message if scrolled
@@ -27,17 +26,22 @@ var properties, Chat = {
   init: function() {
     p = this.properties;
     this.connect();
-    this.ui_handlers();
-    this.chat_handlers();
+    if ($(p.userList).has("li").length > 0) {
 
-    var self = this;
+      this.ui_handlers();
+      this.chat_handlers();
 
-    $(p.userList).each( function() {
-      $(this).find('li').each(function() {
-        var user = $(this).attr('data-username');
-        self.is_online(user);
+      var self = this;
+
+      $(p.userList).each( function() {
+        $(this).find('li').each(function() {
+          var user = $(this).attr('data-username');
+          self.is_online(user);
+        });
       });
-    });
+    } else {
+      // display a goo meet prompt
+    }
 
   },
 
@@ -133,6 +137,7 @@ var properties, Chat = {
         scroll = self.is_scrolled();
         div.addClass('to');
         p.currentMessages.append(div);
+        p.currentMessages.removeClass('empty');
 
         if(scroll) {
 
@@ -144,6 +149,7 @@ var properties, Chat = {
         scroll = self.is_scrolled();
         div.addClass('from');
         p.currentMessages.append(div);
+        p.currentMessages.removeClass('empty');
 
         if(scroll) {
 
@@ -179,11 +185,23 @@ var properties, Chat = {
       url: '/get_messages',
       data: {"username":p.currentUser},
       success: function(response) {
-        self.display_messages(response);
-        self.scroll_to_bottom(false);
+
+        if(response == 'false') {
+          self.display_prompt();
+        } else {
+          self.display_messages(response);
+          self.scroll_to_bottom(false);
+        }
       }
     });
 
+  },
+
+  display_prompt: function() {
+    div = $("<div>", {class: "prompt"});
+    $(div).html('<div class="prompt_icon"></div><h2><small>Go ahead, say hello!</small></h2>');
+    p.currentMessages.html(div);
+    p.currentMessages.addClass('empty');
   },
 
   get_last_message: function(data) {
