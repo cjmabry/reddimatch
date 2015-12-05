@@ -10,106 +10,112 @@
 
       <ul id="user_list">
 
-        {% with matches = current_user.get_matches() %}
+        {% with requests = current_user.get_match_requests() %}
 
-        {% if matches %}
+          {% if requests %}
 
-          {% for match in matches %}
+            {% for request in requests %}
 
-              {% if loop.index == 1 %}
+                <li class="user request" data-username="{{ request.username }}">
 
-              <li class="user selected {% if match.is_matched(current_user) %}accepted{% else %}unconfirmed{% endif %}" data-username="{{ match.username }}">
+                  <div class="profile_photo">
 
-                <div class="profile_photo">
+                    <img src="{{ request.avatar(60) }}">
 
-                  <img src="{{ match.avatar(60) }}">
+                  </div>
+                  <div class="info">
 
-                </div>
-                <div class="info">
+                    <span class="username">{{request.username}}</span>
 
-                  <span class="username">{{match.username}}</span>
+                    <!-- <span class="time">Just Now</span> -->
 
-                  <!-- <span class="time">Just Now</span> -->
+                  </div>
 
-                </div>
+                  <div class="right_side">
+                    <div class="status"><span class="indicator"></span></div>
 
-                <div class="right_side">
-                  <div class="status"><span class="indicator"></span></div>
+                    <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
+                  </div>
 
-                  <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
-                </div>
+                </li>
 
-              </li>
-
-              {% else %}
-
-              <li class="user {% if match.is_matched(current_user) %}accepted{% else %}unconfirmed{% endif %}" data-username="{{ match.username }}">
-
-                <div class="profile_photo">
-
-                  <img src="{{ match.avatar(60) }}">
-
-                </div>
-                <div class="info">
-
-                  <span class="username">{{match.username}}</span>
-
-                  <!-- <span class="time">Just Now</span> -->
-
-                </div>
-
-                <div class="right_side">
-                  <div class="status"><span class="indicator"></span></div>
-
-                  <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
-                </div>
-
-              </li>
-
-              {% endif %}
-
-          {% endfor %}
-
-          {% else %}
-
-          <!--  No matches -->
+            {% endfor %}
 
           {% endif %}
 
-          {% with requests = current_user.get_match_requests() %}
+        {% endwith %}
 
-            {% if requests %}
+        {% with matches = current_user.get_matches() %}
 
-              {% for request in requests %}
+          {% if matches %}
 
-                  <li class="user request" data-username="{{ request.username }}">
+            {% for match in matches %}
 
-                    <div class="profile_photo">
+              {% if match.is_matched(current_user) %}
 
-                      <img src="{{ request.avatar(60) }}">
+                <li class="user accepted" data-username="{{ match.username }}">
 
-                    </div>
-                    <div class="info">
+                  <div class="profile_photo">
 
-                      <span class="username">{{request.username}}</span>
+                    <img src="{{ match.avatar(60) }}">
 
-                      <!-- <span class="time">Just Now</span> -->
+                  </div>
+                  <div class="info">
 
-                    </div>
+                    <span class="username">{{match.username}}</span>
 
-                    <div class="right_side">
-                      <div class="status"><span class="indicator"></span></div>
+                    <!-- <span class="time">Just Now</span> -->
 
-                      <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
-                    </div>
+                  </div>
 
-                  </li>
+                  <div class="right_side">
+                    <div class="status"><span class="indicator"></span></div>
 
-              {% endfor %}
+                    <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
+                  </div>
+
+                </li>
+
+                {% endif %}
+
+            {% endfor %}
+
+            {% for match in matches %}
+
+              {% if not match.is_matched(current_user) %}
+
+                <li class="user unconfirmed" data-username="{{ match.username }}">
+
+                  <div class="profile_photo">
+
+                    <img src="{{ match.avatar(60) }}">
+
+                  </div>
+                  <div class="info">
+
+                    <span class="username">{{match.username}}</span>
+
+                    <!-- <span class="time">Just Now</span> -->
+
+                  </div>
+
+                  <div class="right_side">
+                    <div class="status"><span class="indicator"></span></div>
+
+                    <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
+                  </div>
+
+                </li>
+
+                {% endif %}
+
+            {% endfor %}
+
+            {% else %}
+
+            <!--  No matches -->
 
             {% endif %}
-
-          {% endwith %}
 
           </ul>
 
@@ -136,50 +142,6 @@
 
     <div id="user_info">
 
-      {% if matches %}
-
-        <div class="card current_user">
-
-            <div class="profile_photo"></div>
-            <div class="info">
-
-              <div class="wrapper">
-                <span id="conversation_heading" class="username"></span>
-                <span class="age"></span>
-                <span class="gender"></span>
-                <span class="location"></span>
-              </div>
-
-            </div>
-
-          </div>
-
-          <div class="card">
-
-            <h5>Favorite Subreddits</h5>
-
-            <div class="favorite_subs">
-              <span class="badge"></span>
-              <span class="badge"></span>
-              <span class="badge"></span>
-            </div>
-
-          </div>
-
-      {% endif %}
-
-      <!-- <div class="card">
-
-        <h5>Mutual Subreddits</h5>
-
-        <div class="mutual_subs">
-          <span class="badge">/r/animals</span>
-          <span class="badge">/r/animals</span>
-          <span class="badge">/r/animals</span>
-        </div>
-
-      </div> -->
-
     </div>
 
   </div>
@@ -190,6 +152,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{url_for('static',filename='js/custom/match.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='js/vendor/socket.io-1.3.7.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='js/custom/chat.js')}}"></script>
 {% endblock %}

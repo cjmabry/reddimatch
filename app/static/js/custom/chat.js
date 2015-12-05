@@ -14,22 +14,30 @@ var properties, Chat = {
   properties : {
       url : 'http://' + document.domain + ':' + location.port,
       username: null,
-      object: null,
+      socketObject: null,
       userList: $("ul#user_list"),
       currentUser : null,
       currentUserAvatar: null,
-      hasContent: false,
+      currentUserStatus: null,
+      currentUserType: null,
+      messageBoxHasContent: false,
       messageBox: $("#enter_message"),
       currentMessages: $("#current_messages")
   },
 
   init: function() {
+
     p = this.properties;
+    p.userList.children(':first').addClass('selected');
+
     this.connect();
+
     if ($(p.userList).has("li").length > 0) {
+
 
       this.ui_handlers();
       this.chat_handlers();
+
 
       var self = this;
 
@@ -39,14 +47,12 @@ var properties, Chat = {
           self.is_online(user);
         });
       });
-    } else {
-      // display a goo meet prompt
     }
 
   },
 
   connect: function() {
-    p.object = io.connect(p.url);
+    p.socketObject = io.connect(p.url);
     this.set_username();
   },
 
@@ -63,6 +69,7 @@ var properties, Chat = {
   ui_handlers: function() {
     var self = this;
     self.get_current_username();
+    self.get_avatar(300);
     self.update_conversation();
 
     // user selection
@@ -77,6 +84,7 @@ var properties, Chat = {
       }
 
       self.get_current_username();
+      self.get_avatar(300);
       self.update_conversation();
     });
 
@@ -88,10 +96,10 @@ var properties, Chat = {
 
       if(content.replace(/\s/g, "").length > 0) {
         $("#submit_message").addClass("has_content");
-        p.hasContent = true;
+        p.messageBoxHasContent = true;
       } else {
         $("#submit_message").removeClass("has_content");
-        p.hasContent = false;
+        p.messageBoxHasContent = false;
         $("#enter_message").attr("placeholder", "Type a message...");
       }
 
@@ -101,12 +109,12 @@ var properties, Chat = {
     $("#enter_message").on('keypress', function(event){
       var keycode = (event.keyCode ? event.keyCode : event.which);
 
-      if(keycode == '13' && !event.shiftKey && p.hasContent === true) {
+      if(keycode == '13' && !event.shiftKey && p.messageBoxHasContent === true) {
         event.preventDefault();
         self.send_message();
       }
 
-      if(keycode == '13' && !event.shiftKey && p.hasContent === false) {
+      if(keycode == '13' && !event.shiftKey && p.messageBoxHasContent === false) {
         event.preventDefault();
       }
 
@@ -115,7 +123,7 @@ var properties, Chat = {
     // submit message click
     $("#submit_message").on('click', function() {
 
-      if (p.hasContent === true) {
+      if (p.messageBoxHasContent === true) {
         self.send_message();
       }
 
@@ -127,7 +135,7 @@ var properties, Chat = {
 
     var scroll, self = this;
 
-    p.object.on('message response', function(data) {
+    p.socketObject.on('message response', function(data) {
 
       console.log(data);
       var div = $("<div>", {class: "message"});
@@ -163,7 +171,7 @@ var properties, Chat = {
   },
 
   send_message: function() {
-    p.object.emit('message', {msg: p.messageBox.val(), to: p.currentUser, from:p.username});
+    p.socketObject.emit('message', {msg: p.messageBox.val(), to: p.currentUser, from:p.username});
     p.messageBox.val('');
   },
 
@@ -186,8 +194,8 @@ var properties, Chat = {
       data: {"username":p.currentUser},
       success: function(response) {
 
-        if(response == 'false') {
-          self.display_prompt();
+        if(response == 'no_messages' || response == 'request' || response == 'unconfirmed') {
+          self.display_prompt(response);
         } else {
           self.display_messages(response);
           self.scroll_to_bottom(false);
@@ -197,21 +205,53 @@ var properties, Chat = {
 
   },
 
-  display_prompt: function() {
+  display_prompt: function(type) {
     div = $("<div>", {class: "prompt"});
-    $(div).html('<div class="prompt_icon"></div><h2><small>Go ahead, say hello!</small></h2>');
+
+    if(type == 'no_messages') {
+      $(div).html('<div class="prompt_icon"></div><h2><small>Go ahead, say hello!</small></h2>');
+      p.currentMessages.addClass('empty');
+    } else if (type == 'request') {
+
+      div.html(
+        "<div class='prompt_icon'></div><h2><small>This user has requested to match with you!</small></h2>" +
+        "<div class='match'>" +
+          "<div class='match_button'>" +
+            "<span class='check glyphicon glyphicon-ok yes-match' role='button' data-username='"+ p.currentUser +"'>" +
+            "</span>" +
+            "<span class='text'>Match</span>" +
+            "<span class='cross glyphicon glyphicon-remove no-match' role='button' data-username='"+ p.currentUser +"'>" +
+            "</span>" +
+          "</div>" +
+      "</div>");
+
+      p.currentMessages.addClass('request');
+    } else if (type=='unconfirmed') {
+      $(div).html('<div class="prompt_icon"></div><h2><small>This user hasn\'t accepted your match yet.</small></h2>');
+      p.currentMessages.addClass('unconfirmed');
+    }
+
     p.currentMessages.html(div);
-    p.currentMessages.addClass('empty');
+    $("span.yes-match").on("click", function() {
+      var match_username = $(this).attr("data-username");
+      match(this, match_username);
+    });
+
+    $("span.no-match").on("click", function() {
+      var match_username = $(this).attr("data-username");
+      no_match(this, match_username);
+    });
+
   },
 
   get_last_message: function(data) {
 
   },
 
-  get_avatar: function(data) {
+  get_avatar: function(size) {
     $.ajax({
       url: '/get_avatar',
-      data: {"username":p.currentUser,"size":80},
+      data: {"username":p.currentUser,"size":size},
       success: function(response) {
         p.currentUserAvatar = response;
         console.log(p.currentUserAvatar);
@@ -221,7 +261,7 @@ var properties, Chat = {
 
   get_user_info: function(username) {
     var self = this;
-    // ajax request with username, return json object with all user info
+    // ajax request with username, return json bject with all user info
     $.ajax({
       url: 'get_user_info',
       data: {"username":username},
@@ -263,15 +303,19 @@ var properties, Chat = {
 
     fav_subs = $("<div>", {class:'favorite_subs'});
 
-    for(var i=0; i<data.fav_subs.length; ++i) {
-      if(i in data.fav_subs) {
-        $(fav_subs).append(" <span class='badge'><a href='https://reddit.com/r/" + data.fav_subs[i] + "'>/r/" + data.fav_subs[i] + "</a></span> ");
+    if (data.fav_subs && data.fav_subs.length > 0) {
+
+      for(var i=0; i < data.fav_subs.length; ++i) {
+        if(i in data.fav_subs) {
+          $(fav_subs).append(" <span class='badge'><a href='https://reddit.com/r/" + data.fav_subs[i] + "'>/r/" + data.fav_subs[i] + "</a></span> ");
+        }
       }
+
+      favorite_subs_div = $("<div class='card'><h5>Favorite Subreddits</h5></div></div>");
+
+      favorite_subs_div.append(fav_subs);
+
     }
-
-    favorite_subs_div = $("<div class='card'><h5>Favorite Subreddits</h5></div></div>");
-
-    favorite_subs_div.append(fav_subs);
 
     $("#user_info").html(user_info_div);
     $("#user_info").append(favorite_subs_div);
@@ -314,6 +358,20 @@ var properties, Chat = {
     } else {
       p.userList.find("[data-username='" + user + "']").addClass('offline');
     }
+  },
+
+  sort_list: function(by) {
+
+    list = $('ul#user_list');
+    items = $('ul#user_list > li');
+
+    for (var i = 0, arr = ['request', 'accepted', 'unconfirmed']; i < arr.length; i++) {
+        for (var j = 0; j < items.length; j++) {
+            if ($(items[j]).hasClass(arr[i]))
+                list.append(items[j]);
+        }
+    }
+
   },
 
   display_messages: function(data) {

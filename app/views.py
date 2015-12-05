@@ -176,7 +176,7 @@ def friend_match():
         users = sub.favorited_users().all()
 
         for u in users:
-            if u.username is not user.username and user.is_matched(u) == False:
+            if u.username is not user.username and not user.is_matched(u) and not user.is_rejected(u) and not u.is_rejected(user):
                 if models.User.query.filter_by(reddit_username=u.username).first():
                     favs = models.User.query.filter_by(reddit_username=u.username).first().favorited_subs().all()
                 else:
@@ -235,15 +235,13 @@ def reject():
     unmatch_username = request.form['username']
 
     if models.User.query.filter_by(username=unmatch_username).first():
-        unmatch_user = models.User.query.filter_by(username=unmatch_username).first()
+        reject_user = models.User.query.filter_by(username=unmatch_username).first()
 
-        if user.is_matched(unmatch_user):
-            m = user.unmatch(unmatch_user)
-            db.session.add(m)
-            db.session.commit()
+        print reject_user
 
-        else:
-            print 'user not matched.'
+        user.reject(reject_user)
+        db.session.commit()
+
 
     return 'success'
 
@@ -263,59 +261,63 @@ def get_messages():
     username = request.args.get('username', None)
 
     if username is None:
-        return 'false'
-
-    if current_user.is_authenticated and current_user.username is not None:
-
-        if models.User.query.filter_by(username=username):
-
-            to_id = models.User.query.filter_by(username=username).first().id
-
-            messages_list = []
-
-            if models.Message.query.filter_by(from_id=current_user.id, to_id=to_id):
-
-                messages =  models.Message.query.filter_by(from_id=current_user.id,to_id=to_id).all()
-
-                for m in messages:
-                    message = {}
-
-                    message_object = {
-                        'to':m.to.username,
-                        'from':m.author.username,
-                        'content':m.content
-                    }
-
-                    message[str(m.time_sent)] = message_object
-
-                    messages_list.append(message)
-
-            if models.Message.query.filter_by(to_id=current_user.id, from_id=to_id):
-
-                messages =  models.Message.query.filter_by(to_id=current_user.id,from_id=to_id).all()
-
-                for m in messages:
-                    message = {}
-
-                    message_object = {
-                        'to':m.to.username,
-                        'from':m.author.username,
-                        'content':m.content
-                    }
-
-                    message[str(m.time_sent)] = message_object
-
-                    messages_list.append(message)
-
-            messages_list.sort()
-
-            if not messages_list:
-                return 'false'
-            else:
-                return jsonify(results = messages_list)
+        return 'no_username'
 
     else:
-        return False
+        if models.User.query.filter_by(username=username):
+
+            to_user = models.User.query.filter_by(username=username).first()
+            to_id = to_user.id
+
+            if current_user.is_matched(to_user) and to_user.is_matched(current_user):
+
+                messages_list = []
+
+                if models.Message.query.filter_by(from_id=current_user.id, to_id=to_id):
+
+                    messages =  models.Message.query.filter_by(from_id=current_user.id,to_id=to_id).all()
+
+                    for m in messages:
+                        message = {}
+
+                        message_object = {
+                            'to':m.to.username,
+                            'from':m.author.username,
+                            'content':m.content
+                        }
+
+                        message[str(m.time_sent)] = message_object
+
+                        messages_list.append(message)
+
+                if models.Message.query.filter_by(to_id=current_user.id, from_id=to_id):
+
+                    messages =  models.Message.query.filter_by(to_id=current_user.id,from_id=to_id).all()
+
+                    for m in messages:
+                        message = {}
+
+                        message_object = {
+                            'to':m.to.username,
+                            'from':m.author.username,
+                            'content':m.content
+                        }
+
+                        message[str(m.time_sent)] = message_object
+
+                        messages_list.append(message)
+
+                messages_list.sort()
+
+                if not messages_list:
+                    return 'no_messages'
+                else:
+                    return jsonify(results = messages_list)
+
+            elif current_user.is_matched(to_user) and not to_user.is_matched(current_user):
+                return "unconfirmed"
+            else:
+                return "request"
 
 @app.route('/get_avatar')
 @login_required
@@ -381,24 +383,23 @@ def get_user_info():
 
             user_dict = {}
 
-            if current_user.is_matched(user):
-                user_dict['profile_photo_url'] = user.profile_photo_url
-                user_dict['age'] = user.age
-                user_dict['gender'] = str(user.gender).title()
-                user_dict['location'] = user.location
-                user_dict['location'] = user.location
-                user_dict['bio'] = user.bio
-                user_dict['avatar'] = str(user.avatar(100))
+            user_dict['username'] = user.username
+            user_dict['profile_photo_url'] = user.profile_photo_url
+            user_dict['age'] = user.age
+            user_dict['gender'] = str(user.gender).title()
+            user_dict['location'] = user.location
+            user_dict['bio'] = user.bio
+            user_dict['avatar'] = str(user.avatar(100))
 
-                fav_subs = user.favorited.all()
-                fav_subs_list = []
+            fav_subs = user.favorited.all()
+            fav_subs_list = []
 
-                for sub in fav_subs:
-                    fav_subs_list.append(sub.name)
+            for sub in fav_subs:
+                fav_subs_list.append(sub.name)
 
-                user_dict['fav_subs'] = fav_subs_list
+            user_dict['fav_subs'] = fav_subs_list
 
-                pprint(user_dict)
+            pprint(user_dict)
 
         return jsonify(user_dict)
 

@@ -29,7 +29,7 @@
               {% if match[0] == 'onsite' %}
                 <img class="profile_photo" src="{{ match[3] }}">
               {% endif %}
-              
+
               <div class="match_info">
                 <h4><a class="username" href="https://www.reddit.com/user/{{ match[1] }}">{{ match[1] }}</a></h4>
 
@@ -86,14 +86,10 @@
 
     </div>
 
-    <script src="/static/js/custom/match.js"></script>
-
-    </script>
-
   {% endif %}
 
 {% endblock %}
 
 {% block scripts %}
-<scrpt src="/static/js/custom/match.js"></script>
+<script src="{{url_for('static', filename='js/custom/match.js')}}"></script>
 {% endblock %}

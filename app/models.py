@@ -15,6 +15,11 @@ matches = db.Table('matches',
     db.Column('matched_id', db.Integer, db.ForeignKey('user.id'))
 )
 
+rejects = db.Table('rejects',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('rejected_id', db.Integer, db.ForeignKey('user.id'))
+)
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
@@ -39,6 +44,12 @@ class User(db.Model):
                                secondaryjoin=(matches.c.matched_id == id),
                                backref=db.backref('matches', lazy='dynamic'),
                                lazy='dynamic')
+    rejected = db.relationship('User',
+                                secondary=rejects,
+                                primaryjoin=(rejects.c.user_id == id),
+                                secondaryjoin=(rejects.c.rejected_id == id),
+                                backref=db.backref('rejects', lazy='dynamic'),
+                                lazy='dynamic')
     registered = db.Column(db.Boolean)
     email_verified = db.Column(db.Boolean)
     created_on = db.Column(db.DateTime)
@@ -105,6 +116,24 @@ class User(db.Model):
     def unmatch(self, user):
         if self.is_matched(user):
             self.matched.remove(user)
+            return self
+
+    def reject(self, user):
+        if not self.is_rejected(user):
+            if self.is_matched(user):
+                self.unmatch(user)
+            if user.is_matched(self):
+                user.unmatch(self)
+
+            self.rejected.append(user)
+            return self
+
+    def is_rejected(self, user):
+        return self.rejected.filter(rejects.c.rejected_id == user.id).count() > 0
+
+    def unreject(self, user):
+        if self.is_rejected(user):
+            self.rejected.remove(user)
             return self
 
     def is_matched(self, user):

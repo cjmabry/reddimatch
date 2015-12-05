@@ -27,6 +27,21 @@ body .navbar a {
   color: #51b2e8;
 }
 
+#cover a.login {
+  position: absolute;
+  top:20px;
+  right: 20px;
+  margin-top: 0;
+  background: transparent;
+  border: solid 1px white;
+  box-sizing: border-box;
+}
+
+#cover a.login:hover {
+  border: 1px solid #51b2e8;
+  background: #51b2e8;
+}
+
 .navbar-brand {
   padding: 10px;
 }
@@ -685,6 +700,20 @@ html.messages, .messages body {
   /*position: relative;*/
 }
 
+/*#conversations ul#user_list li.unconfirmed {
+
+  opacity: 0.3;
+
+}
+
+#conversations ul#user_list li.unconfirmed:hover {
+  opacity: 1;
+}*/
+
+/*#conversations ul#user_list li.request {
+  opacity: 1;
+}*/
+
 /*#conversations ul#user_list li .username::after {
   content:"";
   display: inline-block;
@@ -777,6 +806,24 @@ html.messages, .messages body {
 
 #conversations ul#user_list li.offline .status .indicator::before  {
   content: "Offline"
+}
+
+#conversations ul#user_list li.request .status .indicator::before {
+  display: block;
+  content:"New";
+  background: #66CC66;
+}
+
+#conversations ul#user_list li.unconfirmed .status .indicator::before {
+  display: block;
+  content:"Pending";
+  background: #999;
+}
+
+#conversations ul#user_list li.request .status .indicator:hover::after, #conversations ul#user_list li.unconfirmed .status .indicator:hover::after {
+
+  display: none;
+
 }
 
 /*#conversations ul#user_list li.accepted {
@@ -926,7 +973,7 @@ html.messages, .messages body {
   max-height: 100%;
   max-height: calc(100% - 40px);
 }
-#current_messages.empty .prompt {
+#current_messages.empty .prompt, #current_messages.request .prompt, #current_messages.unconfirmed .prompt {
   display: block;
 }
 
@@ -942,6 +989,11 @@ html.messages, .messages body {
   left: 0;
   right: 0;
   opacity: 0.7;
+}
+
+#current_messages.request .prompt {
+  width: 280px;
+  height: 340px;
 }
 
 #current_messages .prompt .prompt_icon {
