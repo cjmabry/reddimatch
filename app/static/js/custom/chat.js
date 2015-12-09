@@ -1,10 +1,6 @@
-// TODO notifications
 // TODO address broken pipes
 // TODO allow user to unmatch
 // TODO (secondary) notify user on new message if scrolled
-// TODO (secondary) if no messages, prompt user to say hello
-// TODO (secondary) handle no matches
-// TODO (secondary) hover status icon to reveal offline or online
 // TODO (secondary) get last message from user to display on user list
 // TODO (secondary) auto expand text box on type
 // TODO (secondary) improve online/offline (if we can't use socket, do all in one request instead of one username at a time)
@@ -16,6 +12,7 @@ var properties, Chat = {
       username: null,
       socketObject: null,
       userList: $("ul#user_list"),
+      currentUserDiv: null,
       currentUser : null,
       currentUserAvatar: null,
       currentUserStatus: null,
@@ -64,6 +61,7 @@ var properties, Chat = {
 
   get_current_username: function() {
     p.currentUser = $('.selected').attr("data-username");
+    p.currentUserDiv = $('.selected');
   },
 
   ui_handlers: function() {
@@ -214,7 +212,7 @@ var properties, Chat = {
     } else if (type == 'request') {
 
       div.html(
-        "<div class='prompt_icon'></div><h2><small>This user has requested to match with you!</small></h2>" +
+        "<div class='prompt_icon'></div><h2><small>This user has requested to match with you! Accept their match if you'd like to chat.</small></h2>" +
         "<div class='match'>" +
           "<div class='match_button'>" +
             "<span class='check glyphicon glyphicon-ok yes-match' role='button' data-username='"+ p.currentUser +"'>" +
@@ -227,7 +225,7 @@ var properties, Chat = {
 
       p.currentMessages.addClass('request');
     } else if (type=='unconfirmed') {
-      $(div).html('<div class="prompt_icon"></div><h2><small>This user hasn\'t accepted your match yet.</small></h2>');
+      $(div).html('<div class="prompt_icon"></div><h2><small>This user hasn\'t accepted your match yet. You\'ll be able to chat with them once they do.</small></h2>');
       p.currentMessages.addClass('unconfirmed');
     }
 
@@ -240,6 +238,8 @@ var properties, Chat = {
     $("span.no-match").on("click", function() {
       var match_username = $(this).attr("data-username");
       no_match(this, match_username);
+      p.currentMessages.addClass('rejected');
+      p.currentUserDiv.addClass('rejected');
     });
 
   },
@@ -281,20 +281,20 @@ var properties, Chat = {
       age = "";
     }
 
-    if (data.gender !== 'None') {
+    if (data.gender !== 'None' || data.gender !== null) {
       gender = data.gender;
     } else {
       gender = "";
     }
 
-    if (data['location'] !== null) {
-      location = data['location'];
+    if (data.location !== null) {
+      location = data.location;
     } else {
       location = "";
     }
 
-    if (data['avatar'] !== null) {
-      avatar = data['avatar'];
+    if (data.avatar !== null) {
+      avatar = data.avatar;
     } else {
       avatar= "http://www.gravatar.com/?d=mm";
     }
@@ -319,6 +319,12 @@ var properties, Chat = {
 
     $("#user_info").html(user_info_div);
     $("#user_info").append(favorite_subs_div);
+
+    if(data.bio) {
+      bio_div = $("<div class='card'><h5>Bio</h5></div></div>");
+      $("#user_info").append(bio_div);
+      bio_div.append(data.bio);
+    }
 
   },
 

@@ -62,6 +62,8 @@ venv
 #Database
 app.db
 
+
+tmp
 config.py
 
 # Elastic Beanstalk Files

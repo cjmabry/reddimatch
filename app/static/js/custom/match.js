@@ -2,11 +2,9 @@ function match(element, match) {
   $.post('/accept', {
     username: match
   }).success(function(matched) {
-    console.log('success');
     $(element).parent().removeClass("rejected");
     $(element).parent().addClass("accepted");
-  }).fail(function(){
-    console.log('fail');
+    $('.prompt').fadeOut(2000, function() { $(this).remove(); });
   });
 }
 
@@ -17,6 +15,7 @@ function no_match(element, match) {
   }).success(function(matched) {
     $(element).parent().removeClass("accepted");
     $(element).parent().addClass("rejected");
+    $('.prompt').fadeOut(2000, function() { $(this).remove(); });
   });
 
 }

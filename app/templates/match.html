@@ -1,37 +1,35 @@
 {% extends "base.html" %}
-{% block container%}container{% endblock %}
+{% block container%}container-fluid{% endblock %}
 {% block page_class%}class="match_page"{% endblock %}
 {% block content %}
 
   {% if current_user.is_authenticated() %}
 
-    <div class="col-md-10 col-md-offset-1">
+    <div class="filters col-md-3">
 
-      <div class="row text-center">
+      <h3>Filters <span class="help_icon">?</span></h3>
 
-        <h1 class="heading">Who would you like to meet?</h2>
+      <a href="{{url_for('match')}}"><div class="card selected">Quick Match</div></a>
+      <a href="{{url_for('date')}}"><div class="card">Dating</div></a>
+      <div class="card coming-soon"><span>Political Action (Coming Soon)</span></div>
+      <div class="card coming-soon"><span>Gaming (Coming Soon)</span></div>
+      <div class="card coming-soon"><span>Foreign Exchange (Coming Soon)</span></div>
 
-      </div>
+    </div>
+
+    <div class="col-md-6">
 
       <div class="choices">
 
-        <div class="col-md-6 choice friend">
+        <div class="col-md-12 choice friend">
 
-          <h4>A friend</h4>
+          <h4>Quick Match</h4>
 
           <a href="{{ url_for('friend_match') }}">
             <div class="icon"></div>
           </a>
 
-        </div>
-
-        <div class="col-md-6 choice date">
-
-          <h4>A date</h4>
-
-          <a href="#">
-            <div class="icon"></div>
-          </a>
+          <p><strong>We'll find you a match auto-magically based on your reddit profile.</strong></p>
 
         </div>
 
@@ -39,7 +37,58 @@
 
     </div>
 
-  </div>
+    <div id="user_info" class="user_info col-md-3">
+
+      <div class="card current_user">
+        <div class="profile_photo">
+          <img src=" {{current_user.avatar(200)}}">
+        </div>
+        <div class="info">
+          <div class="wrapper">
+            <span id="conversation_heading" class="username">{{ current_user.username }}</span>
+
+              {% if current_user.age is defined and current_user.age != None %}
+                <span class="age">{{ current_user.age }}</span>
+              {% endif %}
+
+              {% if current_user.gender is defined and current_user.gender != None %}
+                <span class="gender"> {{ current_user.gender }} </span>
+              {% endif %}
+
+              {% if current_user.location is defined and current_user.location != None %}
+                <span class="location">{{ current_user.location }}</span>
+              {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% with favs = current_user.favorited_subs() %}
+
+      <div class="card">
+        <h5>Favorite Subreddits</h5>
+
+        {% for fav in favs %}
+          <a class="badge" href="https://reddit.com/r/{{ fav.name }}">/r/{{ fav.name }}</a>
+        {% endfor %}
+
+      </div>
+      {% endwith %}
+
+      {% if current_user.bio is defined and current_user.bio != None %}
+
+
+        <div class="card">
+          <h5>Bio</h5>
+          {{ current_user.bio }}
+        </div>
+
+      {% endif %}
+
+      <div class="card">
+        <a class="btn btn-primary btn-block" href="{{url_for('dashboard')}}">Update Your Profile <span class="glyphicon glyphicon-chevron-right"></span></a>
+      </div>
+
+    </div>
 
   {% endif %}
 

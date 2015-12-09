@@ -2,18 +2,50 @@ import app
 from app import db, models, reddit_api
 import random, string, praw
 from random import randint
+from loremipsum import get_sentence
+import datetime
+import math
 
 def generate_string(size=6):
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
 
 # for x in range(0,1000):
 def generate_random_user(username):
-    return models.User(username=username, reddit_username=username, email=generate_string(randint(5,10))+'@gmail.com',age=randint(5,110),bio=generate_string(randint(5,140)))
+
+    bio = get_sentence()[:139]
+
+    coords = generate_random_coordinates(36.1557611, -85.5329124, 160934)
+
+    return models.User(username=username, reddit_username=username, email=generate_string(randint(5,10))+'@gmail.com',age=randint(18,45),bio=bio, registered = True, newsletter=True, latitude = coords[0], longitude=coords[1], email_verified=False,created_on = datetime.datetime.now(), last_online=datetime.datetime.now(), is_online=False );
+
+
+def generate_random_coordinates(lat, longitude, radius):
+    radiusInDegrees = radius/111300
+
+    r = radiusInDegrees
+
+    x0 = lat
+    y0 = longitude
+
+    u = float(random.uniform(0.0,1.0))
+    v = float(random.uniform(0.0,1.0))
+
+    w = r * math.sqrt(u)
+    t = 2 * math.pi * v
+    x = w * math.cos(t)
+    y = w * math.sin(t)
+
+    lat  = x + x0
+    longitude = y + y0
+
+    location = (lat, longitude)
+
+    return location
 
 def populate_users(numUsers):
     r = reddit_api.praw_instance()
     subreddit = r.get_subreddit('test')
-    posts = subreddit.get_hot()
+    posts = subreddit.get_hot(limit=numUsers)
     # subreddit = r.get_front_page()
 
     posts_dict = {}
@@ -59,4 +91,4 @@ def populate_subreddit_db(numSubreddits):
             sub = models.Subreddit.query.filter_by(name=subreddit_name).first()
             sub.reddit_id = subreddit_id
 
-populate_users(100)
+populate_users(1000)

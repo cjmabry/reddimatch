@@ -87,7 +87,7 @@ body .navbar a {
   opacity: 1;
 }
 
-.navbar a.notifications .matches_icon:before {
+.navbar a.notifications .matches_icon::before {
 
   content: "";
   display: none;
@@ -104,7 +104,7 @@ body .navbar a {
   opacity: 0;
 }
 
-.navbar a.notifications .matches_icon:after {
+.navbar a.notifications .matches_icon::after {
   content:"Messages";
   display: none;
   position: absolute;
@@ -132,7 +132,7 @@ body .navbar a {
 
 /*color: rgba(81, 178, 232, 1);*/
 
-.btn-primary {
+.btn-primary, .btn-secondary {
   height: 50px;
   line-height: 50px;
   padding: 0 20px;
@@ -235,8 +235,8 @@ footer {
   padding-bottom:30px;
 }
 
-/* Register */
-.register_form, .register_page, .dashboard_page {
+/* Register and Dashboard */
+.register_form, .register_page, .dashboard_page, .dashboard_page .modal-open .modal, .register_page .modal-open .modal {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -344,12 +344,12 @@ footer {
   margin-left:10px;
 }
 
-.register_form .favorite_subs .help_icon {
+.help_icon {
   width: 15px;
   height: 15px;
   display: inline-block;
   background: #ccc;
-  font-size: 0.6em;
+  font-size: 11px;
   font-weight: bolder;
   line-height: 15px;
   text-align: center;
@@ -357,6 +357,7 @@ footer {
   cursor: pointer;
   color: white;
   position: relative;
+  vertical-align: middle;
 }
 
 .register_form .favorite_subs label {
@@ -367,11 +368,11 @@ footer {
   margin-top:0;
 }
 
-.register_form .favorite_subs .help_icon:hover::before, .register_form .favorite_subs .help_icon:hover::after {
+.help_icon:hover::before, .help_icon:hover::after {
   display: block;
 }
 
-.register_form .help_icon::before {
+.help_icon::before {
   content: "";
   display: none;
   width: 0;
@@ -379,14 +380,13 @@ footer {
   border-top: 5px solid transparent;
   border-bottom: 5px solid transparent;
   border-right: 7px solid #51b2e8;
-  /*background: red;*/
   position: absolute;
   top:0;
   bottom:0;
   margin: auto 0 auto 20px;
 }
 
-.register_form .help_icon::after {
+.help_icon::after {
   content: "";
   display: none;
   position: absolute;
@@ -427,18 +427,74 @@ footer {
   margin: 20px;
 }
 
+.dashboard_page #update-button-label.disabled {
+  background: #999;
+  cursor: pointer;
+}
+
 /* Match */
-.match_page {
+/*.match_page .match {
   display: flex;
   justify-content: center;
   align-items: center;
+}*/
+
+/*.match_page .container-fluid {
+  padding: 0;
+}*/
+
+.filters .card {
+  cursor: pointer;
 }
+
+.filters .card.coming-soon {
+  opacity: 0.5;
+}
+
+.filters a, .filters a:hover, .filters a:focus {
+  text-decoration: none;
+}
+
+/*.filters ul li.coming-soon::after {
+  display: none;
+  content: "Coming Soon";
+  background: #999;
+  border-radius: 5px;
+  position: absolute;
+  right: 0;
+  left: 0;
+  top:0;
+  bottom: 0;
+  margin: auto;
+  height: 30px;
+  line-height: 10px;
+  padding: 10px;
+  color: white;
+  width: 100%;
+}
+
+.filters ul li.coming-soon:hover::after {
+  display: block;
+}*/
+
+.filters .card:hover {
+  background: #f5f5f5;
+}
+
+.filters .help_icon::after {
+  content: "Filters are search criteria presets that help you narrow your search.";
+}
+
+/*.filters ul li {
+  padding: 20px;
+  border: 1px solid #999;
+}*/
 
 .match_page .heading {
   padding: 0 0 20px;
 }
 
-.match_page .icon {
+.choice .icon {
   width: 200px;
   height: 200px;
   background: red;
@@ -463,7 +519,7 @@ footer {
   position: relative;
 }
 
-.choices .choice.date .icon::after {
+/*.choices .choice.date .icon::after {
   content: "Coming Soon";
   display: none;
   background: rgba(255,255,255,0.8);
@@ -476,7 +532,7 @@ footer {
   left:0;
   right:0;
   margin: auto;
-}
+}*/
 
 .choices .choice.date .icon:hover {
   opacity: 1;
@@ -489,6 +545,268 @@ footer {
 .choices .choice .icon:hover {
   transform: scale(1.1);
 }
+
+.match_page #user_info, .date_filter_page #user_info {
+  flex: 0;
+  min-width: 0;
+  max-width: none;
+}
+
+.date label {
+  display: none;
+}
+
+input[type=range] {
+  -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+  width: 100%; /* Specific width is required for Firefox. */
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+}
+
+input[type=range]:focus {
+  outline: none; /* Removes the blue border. You should probably do some kind of focus styling for accessibility reasons though. */
+}
+
+input[type=range]::-ms-track {
+  width: 100%;
+  cursor: pointer;
+  background: transparent; /* Hides the slider so custom styles can be added */
+  border-color: transparent;
+  color: transparent;
+}
+
+/* Special styling for WebKit/Blink */
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  border-radius:20px;
+  height: 20px;
+  width: 20px;
+  background: #ffffff;
+  cursor: pointer;
+  margin-top: -5px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
+  background: #51b2e8;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: #eee;
+  border-radius: 10px;
+}
+
+input[type=range]:focus::-webkit-slider-runnable-track {
+  background: #eee;
+}
+
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: #eee;
+  border-radius: 10px;
+}
+
+input[type=range]::-ms-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+input[type=range]::-ms-fill-lower {
+  background: #eee;
+  border-radius: 10px;
+}
+input[type=range]:focus::-ms-fill-lower {
+  background: #eee;
+}
+input[type=range]::-ms-fill-upper {
+  background: #eee;
+  border-radius: 10px;
+}
+input[type=range]:focus::-ms-fill-upper {
+  background: #eee;
+}
+
+/*.range_slider.noUi-horizontal .noUi-connect {
+  background: #51b2e8;
+  box-shadow: none;
+  border: 0;
+  border-radius: 10px;
+}
+
+.range_slider.noUi-horizontal .noUi-base {
+  background:#51b2e8;
+}
+
+.range_slider .noUi-background {
+  background: #eee;
+  box-shadow: none;
+  border-radius: 10px;
+}
+
+#age_slider .noUi-base {
+  background: #eee;
+}
+
+.range_slider.noUi-horizontal.noUi-target {
+  border-radius: 10px;
+  border: 0;
+  box-shadow: none;
+  height: 8px;
+}
+
+.range_slider.noUi-horizontal .noUi-handle {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 20px;
+  background: #51b2e8;
+  box-shadow: none;
+  cursor: pointer;
+  left:-10px;
+}
+
+.range_slider.noUi-horizontal .noUi-handle::before, .range_slider .noUi-handle::after {
+  display: none;
+}*/
+
+/* Functional styling;
+ * These styles are required for noUiSlider to function.
+ * You don't need to change these rules to apply your design.
+ */
+.noUi-target,
+.noUi-target * {
+-webkit-touch-callout: none;
+-webkit-user-select: none;
+-ms-touch-action: none;
+	touch-action: none;
+-ms-user-select: none;
+-moz-user-select: none;
+-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+.noUi-target {
+	position: relative;
+	direction: ltr;
+}
+.noUi-base {
+	width: 99%;
+	height: 100%;
+	position: relative;
+	z-index: 1; /* Fix 401 */
+  border-radius: 20px;
+}
+.noUi-origin {
+	position: absolute;
+	right: 0;
+	top: 0;
+	left: 0;
+	bottom: 0;
+}
+.noUi-handle {
+	position: relative;
+	z-index: 1;
+}
+.noUi-stacking .noUi-handle {
+/* This class is applied to the lower origin when
+   its values is > 50%. */
+	z-index: 10;
+}
+.noUi-state-tap .noUi-origin {
+-webkit-transition: left 0.3s, top 0.3s;
+	transition: left 0.3s, top 0.3s;
+}
+.noUi-state-drag * {
+	cursor: inherit !important;
+}
+
+/* Painting and performance;
+ * Browsers can paint handles in their own layer.
+ */
+.noUi-base {
+	-webkit-transform: translate3d(0,0,0);
+	transform: translate3d(0,0,0);
+}
+
+/* Slider size and handle placement;
+ */
+.noUi-horizontal {
+	height: 6px;
+}
+.noUi-horizontal .noUi-handle {
+	width: 18px;
+	height: 18px;
+	left: -9px;
+	top: -6px;
+  border-radius: 20px;
+}
+.noUi-vertical {
+	width: 10px;
+}
+.noUi-vertical .noUi-handle {
+	width: 20px;
+	height: 20px;
+	left: -6px;
+	top: -9px;
+}
+
+.noUi-horizontal.noUi-extended {
+	padding-right: 18px;
+}
+.noUi-horizontal .noUi-handle {
+	left: 0;
+}
+.noUi-horizontal .noUi-origin  {
+	right: -18px;
+}
+
+/* Styling;
+ */
+.noUi-background {
+	background: #eee;
+}
+.noUi-connect {
+	background: #51b2e8;
+-webkit-transition: background 450ms;
+	transition: background 450ms;
+}
+.noUi-origin {
+	border-radius: 20px;
+}
+.noUi-target {
+	border-radius: 20px;
+}
+
+/* Handles and cursors;
+ */
+.noUi-draggable {
+	cursor: w-resize;
+}
+.noUi-vertical .noUi-draggable {
+	cursor: n-resize;
+}
+.noUi-handle {
+	border-radius: 20px;
+	background: #51b2e8;
+	cursor: pointer;
+}
+
+/* Disabled state;
+ */
+[disabled].noUi-connect,
+[disabled] .noUi-connect {
+	background: #B8B8B8;
+}
+[disabled].noUi-origin,
+[disabled] .noUi-handle {
+	cursor: not-allowed;
+}
+
 
 /* Results */
 .results_page {
@@ -814,6 +1132,12 @@ html.messages, .messages body {
   background: #66CC66;
 }
 
+#conversations ul#user_list li.rejected .status .indicator::before {
+  display: block;
+  content:"Rejected";
+  background: #999;
+}
+
 #conversations ul#user_list li.unconfirmed .status .indicator::before {
   display: block;
   content:"Pending";
@@ -993,7 +1317,11 @@ html.messages, .messages body {
 
 #current_messages.request .prompt {
   width: 280px;
-  height: 340px;
+  height: 360px;
+}
+
+#current_messages.unconfirmed .prompt {
+  width: 280px;
 }
 
 #current_messages .prompt .prompt_icon {
@@ -1015,7 +1343,7 @@ html.messages, .messages body {
   max-width: 66%;
   /*min-width: 300px;*/
   position:relative;
-  padding: 5px 9px;
+  padding: 10px 15px;
   margin-top:20px;
   line-height: 1.25em;
   white-space: pre-wrap;
@@ -1027,7 +1355,7 @@ html.messages, .messages body {
   border-radius: 5px 5px 0 5px;
   margin-left: auto;
   float:right;
-  text-align:right;
+  text-align:left;
 }
 
 .message.from {
@@ -1057,7 +1385,7 @@ html.messages, .messages body {
   content: "";
 }
 
-#user_info .card {
+.card {
   width: 100%;
   height: auto;
   position: relative;
@@ -1068,12 +1396,12 @@ html.messages, .messages body {
   box-sizing: border-box;
 }
 
-#user_info .card.current_user {
+.card.current_user {
   height: 80px;
   padding: 0;
 }
 
-#user_info .card .info {
+.card .info {
   display: flex;
   justify-content: center;
   height: 100%;
@@ -1083,7 +1411,7 @@ html.messages, .messages body {
   color:#999;
 }
 
-#user_info .card .username {
+.card .username {
   display: block;
   font-weight: bold;
   font-size: 14px;

@@ -15,7 +15,8 @@
         </div>
 
         {% if matches[0][0] == 'offsite' %}
-          <p>We couldn't find any users on reddimatch, but we did find some potential matches offsite.</p>
+      </br>
+          <p>We couldn't find any users on reddimatch, but we did find some potential matches on reddit.</p>
         {% endif %}
 
         <div class="row matches">
@@ -33,17 +34,29 @@
               <div class="match_info">
                 <h4><a class="username" href="https://www.reddit.com/user/{{ match[1] }}">{{ match[1] }}</a></h4>
 
-                <p>You matched with <a href="https://www.reddit.com/user/{{ match[1] }}">{{ match[1] }}</a> because you both post in <a href="https://www.reddit.com/r/{{ match[2] }}">/r/{{ match[2] }}</a>.</p>
-
-                <p><small>
-                  {% if match[0] == 'offsite' %}
-                    {{ match[1] }} hasn't regsitered for reddimatch, but based on our algorithm we think you two would hit it off. Why not <a href="https://www.reddit.com/message/compose/?to={{ match[1] }}">send them an invite</a>?</br>
-                  {% endif %}
-                </small></p>
-
                 {% if match[4] is defined %}
+
+                  <p>{{ match[4] }}</p>
+
+                {% endif %}
+
+                {% if match[0] == 'onsite' %}
+                  <p>You matched with <a href="https://www.reddit.com/user/{{ match[1] }}">{{ match[1] }}</a> because you both post in <a href="https://www.reddit.com/r/{{ match[2] }}">/r/{{ match[2] }}</a>.</p>
+                {% endif %}
+
+
+                  {% if match[0] == 'offsite' %}
+                    <p><small>
+                      {{ match[1] }} hasn't regsitered for reddimatch, but based on our algorithm we think you two would hit it off.
+                    </small></p>
+
+                    <p>Why not <a href="https://www.reddit.com/message/compose/?to={{ match[1] }}">send them a message on reddit</a>?</br>
+                  {% endif %}
+                </p>
+
+                {% if match[5] is defined %}
                   <strong>Favorites Subs</strong>
-                  <p>{% for sub in match[4:] %}
+                  <p>{% for sub in match[5:] %}
                     <a class="badge" href="https://www.reddit.com/r/{{sub}}">/r/{{ sub }}</a>
                   {% endfor %}</p>
                 {% endif %}
@@ -81,6 +94,13 @@
       {% else %}
 
         <h2>No matches found :(</h2>
+
+        <div class="buttons text-center row">
+          <div class="col-md-4 col-md-offset-4 col-xs-10 col-xs-offset-1">
+            <a class="btn btn-primary btn-block" role="button" href="{{ url_for('messages')}}">Go to Messages <span class="chevron glyphicon glyphicon-chevron-right"></span></a>
+            <a class="btn btn-secondary btn-block" role="button" href="/match"><span class="chevron glyphicon glyphicon-chevron-left"></span> Search Again</a>
+          </div>
+        </div>
 
       {% endif %}
 

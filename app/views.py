@@ -5,10 +5,11 @@ from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
 from flask_socketio import emit, send, join_room, leave_room, rooms
 import praw, random, datetime, string
 from pprint import pprint
-from sqlalchemy import func
+from sqlalchemy import func, and_
+from haversine import haversine
+from math import cos, pi
 
 # TODO (secondary) when opening new tabs user is not logged in new tabs
-# TODO (secondary) picture uploading
 # TODO (secondary) refactor views.py
 
 @app.route('/')
@@ -67,11 +68,19 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 @login_required
 def register():
+
+    if current_user.registered:
+        return redirect(url_for('match'))
+
     form = forms.RegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
         user = current_user
         user.username = form.username.data
         user.bio = form.bio.data
+        user.newsletter = True
+        user.registered = True
+        user.created_on = datetime.datetime.now()
+        user.email_verified = False
 
         if form.email.data:
             user.email = form.email.data
@@ -139,7 +148,7 @@ def dashboard():
                     r.get_subreddit(sub, fetch=True)
                 except Exception as e:
                     flash(e)
-                    return render_template('register.html', form=form)
+                    return render_template('dashboard.html', form=form)
 
                 subreddit = models.Subreddit(name=sub)
                 db.session.add(subreddit)
@@ -182,7 +191,7 @@ def friend_match():
                 else:
                     favs = reddit_api.get_favorite_subs(u)
 
-                lis = ['onsite', u.username, sub.name, u.avatar(300)]
+                lis = ['onsite', u.username, sub.name, u.avatar(300), u.bio]
                 for fav in favs:
                     lis.append(fav.name)
                 matches.append(lis)
@@ -198,10 +207,79 @@ def friend_match():
 
     return render_template('results.html', matches=matches)
 
-@app.route('/date')
+@app.route('/date', methods = ['GET', 'POST'])
 @login_required
 def date():
-    return redirect(url_for('friend'))
+    form = forms.DateRegistrationForm(request.form)
+    if request.method == 'POST' and form.validate():
+        current_user.age = form.age.data
+        current_user.gender = form.gender.data
+
+        radius = form.radius.data
+        min_age = form.min_age.data
+        max_age = form.max_age.data
+        desired_gender = form.desired_gender.data
+
+        db.session.add(current_user)
+        db.session.commit()
+
+        return redirect(url_for('date_match', age=form.age.data,gender=form.gender.data, radius=form.radius.data, min_age = min_age, max_age= max_age, desired_gender=form.desired_gender.data))
+
+    return render_template('date.html', form=form);
+
+@app.route('/date_match', methods=['GET','POST'])
+@login_required
+def date_match():
+
+    age = int(request.args.get('age'))
+    gender = request.args.get('gender')
+    radius = float(request.args.get('radius'))
+    min_age = int(request.args.get('min_age'))
+    max_age = int(request.args.get('max_age'))
+    latitude = float(current_user.latitude)
+    longitude = float(current_user.longitude)
+    desired_gender = request.args.get('desired_gender')
+
+    print desired_gender
+
+    # favs = current_user.favorited_subs().all()
+
+    matches = []
+
+    mileInLongitudeDegree = 69.174 * cos(latitude)
+
+    deltaLat = radius/69.174
+    deltaLong = radius * mileInLongitudeDegree
+
+    lat_min = latitude - deltaLat
+    lat_max = latitude + deltaLat
+    long_min = longitude - deltaLong
+    long_max = longitude + deltaLong
+
+    users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.longitude >= long_min, models.User.longitude <= long_max , models.User.age >= min_age, models.User.age <= max_age))
+
+    for u in users:
+
+        if u.username is not current_user.username and not current_user.is_matched(u) and not current_user.is_rejected(u) and not u.is_rejected(current_user) and u.gender == desired_gender:
+                print u.username
+                print u.gender
+
+                #TODO change genders in DB to numbers with corresponding table
+
+                favs = models.User.query.filter_by(reddit_username=u.username).first().favorited_subs().all()
+
+                lis = ['onsite', u.username, 'poop', u.avatar(300), u.bio]
+                for fav in favs:
+                    lis.append(fav.name)
+                matches.append(lis)
+
+    if len(matches) > 3:
+        matches = random.sample(matches, 3)
+
+    if len(matches) == 0:
+        matches = None
+
+    return render_template('results.html',matches=matches)
 
 @app.route('/logout')
 @login_required
@@ -388,6 +466,8 @@ def get_user_info():
             user_dict['age'] = user.age
             user_dict['gender'] = str(user.gender).title()
             user_dict['location'] = user.location
+            user_dict['latitude'] = user.latitude
+            user_dict['longitude'] = user.longitude
             user_dict['bio'] = user.bio
             user_dict['avatar'] = str(user.avatar(100))
 
@@ -403,9 +483,26 @@ def get_user_info():
 
         return jsonify(user_dict)
 
+@app.route('/set_location')
+@login_required
+def set_location():
+    latitude = request.args.get('latitude')
+    longitude = request.args.get('longitude')
+
+    current_user.latitude = latitude
+    current_user.longitude = longitude
+
+    db.session.add(current_user)
+    db.session.commit()
+
+    return 'true'
+
 @socketio.on('connect')
 def connect_handler():
     if current_user.is_authenticated:
+
+        current_user.last_online = datetime.datetime.now()
+
         for room in rooms():
             leave_room(room)
         username = current_user.username
@@ -423,27 +520,24 @@ def connect_handler():
 @socketio.on('disconnect')
 def disconnect_handler():
     if current_user.is_authenticated:
-        print 'disconnected'
+
         current_user.is_online = False
+        current_user.last_online = datetime.datetime.now()
         db.session.commit()
     else:
         return False
 
 @socketio.on('message')
 def message(data):
-    print(data)
-    emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from']}, room=data['to'])
-    emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from']}, room=data['from'])
+    from_user = models.User.query.filter_by(username=data['from']).first()
+    to_user = models.User.query.filter_by(username=data['to']).first()
 
-    # store message in DB
-    from_id = models.User.query.filter_by(username=data['from']).first().id
-    to_id = models.User.query.filter_by(username=data['to']).first().id
-
-    m = models.Message(content=data['msg'],from_id=from_id,to_id=to_id,time_sent=datetime.datetime.now())
-    db.session.add(m)
-    db.session.commit()
-    print(m)
-    print('added to db')
+    if from_user.is_matched(to_user) and to_user.is_matched(from_user):
+        emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from']}, room=data['to'])
+        emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from']}, room=data['from'])
+        m = models.Message(content=data['msg'],from_id=from_user.id,to_id=to_user.id,time_sent=datetime.datetime.now())
+        db.session.add(m)
+        db.session.commit()
 
 @lm.user_loader
 def load_user(id):

@@ -1,21 +1,197 @@
 {% extends "base.html" %}
-{% block container%}container{% endblock %}
+{% block container%}container-fluid{% endblock %}
+{% block page_class%}class="date_filter_page"{% endblock %}
 {% block content %}
-
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul class="flashes">
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
 
   {% if current_user.is_authenticated() %}
 
-    <h1>Date</h1>
+    <div class="filters col-md-3">
+
+      <h3>Filters <span class="help_icon">?</span></h3>
+
+      <a href="{{url_for('match')}}"><div class="card selected">Quick Match</div></a>
+      <a href="{{url_for('date')}}"><div class="card">Dating</div></a>
+      <div class="card coming-soon"><span>Political Action (Coming Soon)</span></div>
+      <div class="card coming-soon"><span>Gaming (Coming Soon)</span></div>
+      <div class="card coming-soon"><span>Foreign Exchange (Coming Soon)</span></div>
+
+    </div>
+
+    <div class="col-md-6">
+
+      <div class="choices">
+
+        <div class="col-md-12 choice date">
+
+          {% if current_user.age is defined and current_user.age != None and current_user.gender is defined and current_user.gender != None and current_user.location is defined and current_user.location != None %}
+
+            <h4>Find a Date</h4>
+
+            <a href="{{ url_for('date_match') }}">
+              <div class="icon"></div>
+            </a>
+
+            <p><strong>We'll find you a match based on age, gender, location, and interests!</strong></p>
+
+        {% else %}
+
+          {% from "_formhelpers.html" import render_field %}
+
+          <form class="col-sm-12" id="registration" method=post action="/date" data-parsley-validate>
+
+          {% if current_user.age is defined and current_user.age != None %}
+            {% set age = current_user.age %}
+          {% else %}
+            {% set age = '' %}
+          {% endif %}
+
+          <p>I am a {{render_field(form.age,value=age, placeholder='Age')}} year old {{render_field(form.gender)}} looking for a {{render_field(form.desired_gender, default=2)}}
+
+
+          <p>Search within <span id="radius">50 miles</span>.</p>
+          <div id="radius_slider" class="range_slider"></div>
+          {{render_field(form.radius, value=50)}}
+
+          <p>Between the ages of <span id="min_age_preview">18</span> and <span id="max_age_preview">35</span>.</p>
+
+          <div id="age_slider" class="range_slider"></div>
+          {{render_field(form.min_age,value=18)}}
+          {{render_field(form.max_age,value=35)}}
+
+
+          <button class="btn btn-primary" id="next-button" type=submit >Next <span class="glyphicon glyphicon-chevron-right"></span></button>
+
+        </form>
+
+        {% endif %}
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <div id="user_info" class="user_info col-md-3">
+
+      <div class="card current_user">
+        <div class="profile_photo">
+          <img src=" {{current_user.avatar(200)}}">
+        </div>
+        <div class="info">
+          <div class="wrapper">
+            <span id="conversation_heading" class="username">{{ current_user.username }}</span>
+
+              {% if current_user.age is defined and current_user.age != None %}
+                <span class="age">{{ current_user.age }}</span>
+              {% endif %}
+
+              {% if current_user.gender is defined and current_user.gender != None %}
+                <span class="gender"> {{ current_user.gender }} </span>
+              {% endif %}
+
+              {% if current_user.location is defined and current_user.location != None %}
+                <span class="location">{{ current_user.location }}</span>
+              {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% with favs = current_user.favorited_subs() %}
+
+      <div class="card">
+        <h5>Favorite Subreddits</h5>
+
+        {% for fav in favs %}
+          <a class="badge" href="https://reddit.com/r/{{ fav.name }}">/r/{{ fav.name }}</a>
+        {% endfor %}
+
+      </div>
+      {% endwith %}
+
+      {% if current_user.bio is defined and current_user.bio != None %}
+
+
+        <div class="card">
+          <h5>Bio</h5>
+          {{ current_user.bio }}
+        </div>
+
+      {% endif %}
+
+      <div class="card">
+        <a class="btn btn-primary btn-block" href="{{url_for('dashboard')}}">Update Your Profile <span class="glyphicon glyphicon-chevron-right"></span></a>
+      </div>
+
+    </div>
 
   {% endif %}
 
+{% endblock %}
+
+{% block scripts %}
+<script src="{{url_for('static', filename='js/custom/geo.js')}}"></script>
+<script src="{{url_for('static', filename='js/vendor/nouislider.min.js')}}"></script>
+
+<script>
+  var radius_slider = document.getElementById('radius_slider');
+  var age_slider = document.getElementById('age_slider');
+
+  noUiSlider.create(radius_slider, {
+    start: 50,
+	connect: 'lower',
+  step:1,
+	range: {
+	  'min': 1,
+	  'max': 101
+	}
+  });
+
+  noUiSlider.create(age_slider, {
+    start:[ 18, 35 ],
+    connect:true,
+    step:1,
+    range:{
+      'min':18,
+      'max':56
+    }
+  });
+
+  var radius = document.getElementById('radius');
+  var min_age = document.getElementById('min_age');
+  var min_age_preview = document.getElementById('min_age_preview');
+  var max_age = document.getElementById('max_age');
+  var max_age_preview = document.getElementById('max_age_preview');
+
+  radius_slider.noUiSlider.on('update', function(values, handle) {
+
+    if(values[handle] == 1){
+      radius.innerHTML = "1 mile";
+    } else if(values[handle] > 100){
+      radius.innerHTML = "100+ miles";
+    } else {
+      radius.innerHTML = Math.round(values[handle]) + ' miles';
+    }
+
+  });
+
+  var age, preview;
+
+  age_slider.noUiSlider.on('update', function(values, handle) {
+    if(values[handle] == 56) {
+      preview = '55+'
+    } else {
+      preview = Math.round(values[handle]);
+    }
+
+    age = Math.round(values[handle]);
+
+    if(handle == 0) {
+      min_age.value = age;
+      min_age_preview.innerHTML = preview;
+    } else {
+      max_age.value = age;
+      max_age_preview.innerHTML = preview;
+    }
+  });
+</script>
 {% endblock %}
