@@ -5,31 +5,39 @@
 
   {% if current_user.is_authenticated() %}
 
-    <div class="filters col-md-3">
+  <div class="row main">
 
-      <h3>Filters <span class="help_icon">?</span></h3>
+    <div class="filters">
+
+      <div class="heading">
+
+        <h3>Filters <span class="help_icon">?</span></h3>
+
+      </div>
 
       <a href="{{url_for('match')}}"><div class="card selected">Quick Match</div></a>
       <a href="{{url_for('date')}}"><div class="card">Dating</div></a>
-      <div class="card coming-soon"><span>Political Action (Coming Soon)</span></div>
-      <div class="card coming-soon"><span>Gaming (Coming Soon)</span></div>
-      <div class="card coming-soon"><span>Foreign Exchange (Coming Soon)</span></div>
+      <div class="card coming-soon"><span>Political Action</span></div>
+      <div class="card coming-soon"><span>Gaming</span></div>
+      <div class="card coming-soon"><span>Foreign Exchange</span></div>
 
     </div>
 
-    <div class="col-md-6">
+    <div class="controls">
 
       <div class="choices">
 
         <div class="col-md-12 choice friend">
 
-          <h4>Quick Match</h4>
+          <h2>Quick Match</h2>
 
           <a href="{{ url_for('friend_match') }}">
             <div class="icon"></div>
           </a>
 
-          <p><strong>We'll find you a match auto-magically based on your reddit profile.</strong></p>
+          <p class="description">We'll find you a match <i>auto-magically</i> based on your reddit profile.</p>
+
+          <a class="btn btn-primary" href="{{ url_for('friend_match') }}">Quick Match <span class="glyphicon glyphicon-chevron-right"></span></a>
 
         </div>
 
@@ -37,7 +45,7 @@
 
     </div>
 
-    <div id="user_info" class="user_info col-md-3">
+    <div id="user_info" class="user_info">
 
       <div class="card current_user">
         <div class="profile_photo">
@@ -90,6 +98,7 @@
 
     </div>
 
+  </div>
   {% endif %}
 
 {% endblock %}

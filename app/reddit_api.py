@@ -124,8 +124,6 @@ def get_offsite_user_favorite_subs(username):
     r = praw_instance()
     reddit_user = r.get_redditor(username)
 
-    time1 = time.time()
-
     comments = reddit_user.get_comments(sort='new', time='all', limit=100)
 
     comments_by_subreddit = []
@@ -143,14 +141,9 @@ def get_offsite_user_favorite_subs(username):
         sub = models.Subreddit(name=key)
         subs.append(sub)
 
-    pprint(comments)
-    pprint(subs)
-
-    print(time.time() - time1)
     return subs
 
 def get_offsite_users(favs):
-    #TODO should we get and display their favorites?
     r = praw_instance()
 
     users = []
@@ -162,7 +155,13 @@ def get_offsite_users(favs):
         try:
             for comment in comments:
                     if comment.author and comment.author.name not in users:
-                        users.append(['offsite',comment.author.name,subreddit.display_name])
+
+                        u = models.User(username=comment.author.name)
+
+                        u.status = 'offsite'
+                        u.subreddit = subreddit.display_name
+
+                        users.append(u)
 
         except praw.errors.NotFound as e:
             print e

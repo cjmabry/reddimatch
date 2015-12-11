@@ -1,5 +1,5 @@
-from wtforms import Form, BooleanField, StringField, PasswordField, validators, IntegerField, SelectField, HiddenField
-from wtforms.widgets import TextArea
+from wtforms import Form, BooleanField, StringField, PasswordField, validators, IntegerField, SelectField
+from wtforms.widgets import TextArea, HiddenInput
 from wtforms.fields.html5 import DecimalRangeField
 from app import models, db
 from flask.ext.login import current_user
@@ -89,11 +89,9 @@ class RegistrationForm(Form):
 
 class DateRegistrationForm(Form):
     age = IntegerField('Age', [validators.InputRequired(message = "Age is required."), validators.NumberRange(min=18, max=130, message="You must be 18 years or older.")])
-    gender =  SelectField('Gender', [validators.InputRequired()], choices=[(1,'Man'), (2,'Woman'), (3,'Transgender')], default=1)
-    desired_gender =  SelectField('Desired Gender', [validators.InputRequired()], choices=[(1,'Man'), (2,'Woman'), (3,'Transgender')], default=2)
-    radius = HiddenField('Radius', [validators.InputRequired(), validators.NumberRange(min=5, max=101)])
-    min_age = HiddenField('Minimum Age', [validators.InputRequired(), validators.NumberRange(min=18, max=130)])
-    max_age = HiddenField('Max Age', [validators.InputRequired(), validators.NumberRange(min=18, max=130)])
-
-    def validate(self):
-        return True
+    gender =  SelectField('Gender', coerce=int, validators = [validators.InputRequired()], choices=[(1,'Man'), (2,'Woman'), (3,'Transgender')], default=1)
+    desired_gender =  SelectField('Desired Gender', coerce=int, validators = [validators.InputRequired()], choices=[(1,'Man'), (2,'Woman'), (3,'Transgender')], default=2)
+    radius = IntegerField('Radius', widget=HiddenInput(), validators = [validators.NumberRange(min=5, max=101)])
+    min_age = IntegerField('Minimum Age', widget=HiddenInput(), validators = [validators.InputRequired(), validators.NumberRange(min=18, max=130)])
+    max_age = IntegerField('Max Age', widget=HiddenInput(), validators = [validators.InputRequired(), validators.NumberRange(min=18, max=130)])
+    searchable = BooleanField("Searchable")

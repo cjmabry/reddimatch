@@ -35,6 +35,7 @@ body .navbar a {
   background: transparent;
   border: solid 1px white;
   box-sizing: border-box;
+  z-index: 9999;
 }
 
 #cover a.login:hover {
@@ -162,7 +163,9 @@ footer {
   width: 100%;
   height:60px;
   line-height:60px;
-  background-color: #f5f5f5;
+  background-color: transparent;
+  color: white;
+  text-align: center;
 }
 
 .navbar-fixed-top {
@@ -226,13 +229,116 @@ footer {
   padding: 50px 0;
 }
 
+#info .row {
+  padding: 0 20px;
+}
+
 #info .glyphicon {
   font-size: 5em;
 }
 
 #info h1 {
-  font-weight: 300;
   padding-bottom:30px;
+  font-weight:lighter;
+}
+
+#info .col-centered {
+  max-width: 280px;
+  padding: 20px;
+}
+
+.index_page #feedback {
+  display: none;
+}
+
+.index_page footer a {
+  color: #333;
+  font-weight: bold;
+}
+
+#feedback {
+  display: block;
+  height: 30px;
+  line-height: 20px;
+  background: #333;
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  font-size: 12px;
+  color: white;
+  text-align: center;
+  padding: 5px 20px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: 0.25s;
+  opacity: 0.3;
+  width: 120px;
+}
+
+#feedback::after {
+  content:"feedback@reddimatch.com";
+  display: none;
+  position: absolute;
+  top:0;
+  bottom: 0;
+  left: -215px;
+  margin: auto;
+  background: #51b2e8;
+  color: white;
+  text-align: center;
+  padding: 5px 10px;
+  border-radius: 5px;
+  white-space: nowrap;
+  width: 200px;
+  font-weight: bold;
+  text-align: center;
+}
+
+#feedback::before {
+  content: "";
+  display: none;
+  position: absolute;
+  left:-15px;
+  top: 0;
+  bottom:0;
+  margin: auto;
+  height: 0;
+  width: 0;
+  border: 1px solid #51b2e8;
+  border-left: 7px solid #51b2e8;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 0;
+}
+
+#feedback:hover::after, #feedback:hover::before {
+  display: block;
+}
+
+#feedback:hover {
+  opacity: 1;
+}
+
+.carousel {
+  max-width: 700px;
+  margin: auto;
+  padding-bottom: 20px;
+}
+
+#info .carousel .glyphicon {
+  font-size: 40px;
+}
+
+#info .carousel .glyphicon.glyphicon-chevron-right {
+  margin-right: -10px;
+}
+
+.carousel-control.left, .carousel-control.right {
+  background: transparent;
+}
+
+.carousel-control {
+   text-shadow: 0 0 2px rgba(0,0,0,.6);
 }
 
 /* Register and Dashboard */
@@ -432,27 +538,152 @@ footer {
   cursor: pointer;
 }
 
+/* Privacy */
+.privacy body {
+  background: #51b2e8;
+  color: white;
+}
+
+.privacy .logo {
+  width: 300px;
+  margin: auto;
+}
+
 /* Match */
-/*.match_page .match {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/*.match_page body, .date_filter_page body, html.match_page, html.date_filter_page, .match_page .container-fluid, .date_filter_page .container-fluid {
+  height: 100%;
+  height: calc( 100% - 50px);
+  margin-bottom:0;
 }*/
 
 /*.match_page .container-fluid {
   padding: 0;
 }*/
 
+html.match_page {
+  height: 100%;
+}
+
+.match_page body {
+  margin-top: 50px;
+  height: 100%;
+  height: calc(100% - 50px);
+  margin-bottom: 0;
+}
+
+.match_page .container-fluid {
+  height: 100%;
+}
+
+.match_page .controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.filters {
+  border: 1px solid #f5f5f5;
+  border-width: 0 1px 0;
+}
+
 .filters .card {
   cursor: pointer;
+  border-width: 1px 0 0;
+  padding-left: 30px;
 }
 
 .filters .card.coming-soon {
-  opacity: 0.5;
+  opacity: 0.7;
+}
+
+.filters .card.coming-soon::after {
+  content:"Coming Soon";
+  display:none;
+  background: #999;
+  color: white;
+  position: absolute;
+  top:0;
+  bottom: 0;
+  left: 0px;
+  margin: auto;
+  height: 100%;
+  white-space: nowrap;
+  width: 100%;
+  justify-content: left;
+  align-items: center;
+  text-indent: 30px;
+}
+
+.filters .card.coming-soon:hover::after {
+  display: flex;
 }
 
 .filters a, .filters a:hover, .filters a:focus {
   text-decoration: none;
+}
+
+.filters {
+  flex: 1 0;
+  min-width: 300px;
+  max-width: 420px;
+  padding: 0;
+}
+
+.filters .heading {
+  height:70px;
+  line-height: 70px;
+  padding-left: 20px;
+}
+
+.filters .heading h3 {
+  margin: 0;
+  line-height: 70px;
+}
+
+.controls .description {
+  padding: 20px 0;
+}
+
+.controls input, .controls select {
+  background: #f5f5f5;
+  border: 0;
+  box-shadow: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  text-align: center;
+  height: 30px;
+}
+
+.controls input#searchable {
+  height: auto;
+}
+
+.controls select {
+  height: 30px;
+  margin: 10px 0;
+  width: 110px;
+}
+
+.controls input#age {
+  width: 45px;
+}
+
+.controls .criteria {
+  padding: 20px 0 0;
+}
+
+.controls #next-button {
+  margin: 20px 0;
+}
+
+.match_page .controls, .date_filter_page .controls {
+  flex: 2 0;
+}
+
+.match_page .choices, .date_filter_page .choices {
+  max-width: 600px;
+  margin: auto;
+  padding: 0 20px;
 }
 
 /*.filters ul li.coming-soon::after {
@@ -490,9 +721,9 @@ footer {
   border: 1px solid #999;
 }*/
 
-.match_page .heading {
+/*.match_page .heading, .date_filter_page .heading {
   padding: 0 0 20px;
-}
+}*/
 
 .choice .icon {
   width: 200px;
@@ -546,10 +777,15 @@ footer {
   transform: scale(1.1);
 }
 
-.match_page #user_info, .date_filter_page #user_info {
+/*.match_page #user_info, .date_filter_page #user_info {
   flex: 0;
   min-width: 0;
   max-width: none;
+}*/
+
+.date_filter_page .main, .match_page .main {
+  display: flex;
+  height: 100%;
 }
 
 .date label {
@@ -674,6 +910,10 @@ input[type=range]:focus::-ms-fill-upper {
 .range_slider.noUi-horizontal .noUi-handle::before, .range_slider .noUi-handle::after {
   display: none;
 }*/
+
+.range_slider {
+  margin: 20px;
+}
 
 /* Functional styling;
  * These styles are required for noUiSlider to function.
@@ -1213,11 +1453,10 @@ html.messages, .messages body {
 
 #enter_message {
   cursor: text;
-  min-height: 2.5em;
   line-height: 1.25em;
   width: 100%;
   /*width: calc(100% - 65px);*/
-  border:1px solid #f5f5f5;
+  border:1px solid #eee;
   border-width: 1px 0 1px 0;
   border-radius:0;
   resize: none;
@@ -1226,7 +1465,7 @@ html.messages, .messages body {
   outline: 0px solid transparent;
   padding:0.75em 3em 0.75em 0.75em;
   margin:0;
-  max-height: 12.5em;
+  height: 5.25em;
   /*overflow-y: hidden;*/
   display: inline-block;
   transition: 0.5s;
@@ -1283,6 +1522,7 @@ html.messages, .messages body {
 
 #user_info {
   border: 1px solid #f5f5f5;
+  border-width: 0 1px;
   height:100%;
   padding:0;
   background: #f5f5f5;
@@ -1458,6 +1698,10 @@ html.messages, .messages body {
   width: 400px;
 }
 
+.messages #feedback, .match_page #feedback {
+  display: none;
+}
+
 }
 
 @media only screen and (max-width: 768px) {
@@ -1541,11 +1785,40 @@ html.messages, .messages body {
       box-shadow: 0 6px 12px rgba(0,0,0,.175);
   }
 
+  .match_page .filters {
+    font-size: 0.9em;
+    min-width: 0;
+  }
+
 }
 
 @media only screen and (max-width: 460px) {
   .message {
     max-width: 100%;
     min-width: 0;
+  }
+
+  .match_page .main {
+    display: table;
+  }
+
+  .match_page .filters {
+    display: table-footer-group;
+  }
+
+  .match_page .controls {
+    display: table-header-group;
+  }
+
+  .match_page .filters, .match_page .controls  {
+    width: 100%;
+    max-width: 100%;
+    flex: none;
+    clear: both;
+    height: auto;
+  }
+
+  #enter_message {
+    height: 2.75em;
   }
 }

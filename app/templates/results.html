@@ -14,10 +14,10 @@
           <h4>Go on, break the ice.</h4>
         </div>
 
-        {% if matches[0][0] == 'offsite' %}
+        <!-- {% if matches['onsite'] == False %}
       </br>
           <p>We couldn't find any users on reddimatch, but we did find some potential matches on reddit.</p>
-        {% endif %}
+        {% endif %} -->
 
         <div class="row matches">
 
@@ -27,50 +27,61 @@
 
             <div class="match">
 
-              {% if match[0] == 'onsite' %}
-                <img class="profile_photo" src="{{ match[3] }}">
+              {% if match.status == 'onsite' %}
+                <img class="profile_photo" src="{{ match.avatar(300) }}">
               {% endif %}
 
               <div class="match_info">
-                <h4><a class="username" href="https://www.reddit.com/user/{{ match[1] }}">{{ match[1] }}</a></h4>
+                <h4><span class="username">{{ match.username }}</span></h4>
 
-                {% if match[4] is defined %}
+                {% if match.type == 'date' %}
 
-                  <p>{{ match[4] }}</p>
+                  <p><span class="badge">{{match.age}}</span>
+                  <span class="badge">{{match.gender}}</span>
+                  <span class="badge">{{match.distance}} miles away</a></p>
 
                 {% endif %}
 
-                {% if match[0] == 'onsite' %}
-                  <p>You matched with <a href="https://www.reddit.com/user/{{ match[1] }}">{{ match[1] }}</a> because you both post in <a href="https://www.reddit.com/r/{{ match[2] }}">/r/{{ match[2] }}</a>.</p>
+                {% if match.bio is not none %}
+
+                  <p>{{ match.bio }}</p>
+
+                {% endif %}
+
+                {% if match.status == 'onsite' %}
+                  <!-- <p>You matched with <strong>{{ match.username }}</strong> because you both post in <a href="https://www.reddit.com/r/{{ match[2] }}">/r/{{ match[2] }}</a>.</p> -->
                 {% endif %}
 
 
-                  {% if match[0] == 'offsite' %}
+                  {% if match.status == 'offsite' %}
                     <p><small>
-                      {{ match[1] }} hasn't regsitered for reddimatch, but based on our algorithm we think you two would hit it off.
+                      {{ match.username }} hasn't regsitered for reddimatch, but based on our algorithm we think you two would hit it off.
                     </small></p>
 
-                    <p>Why not <a href="https://www.reddit.com/message/compose/?to={{ match[1] }}">send them a message on reddit</a>?</br>
+                    <p>Why not <a href="https://www.reddit.com/message/compose/?to={{ match.username }}">send them a message on reddit</a>?</br>
                   {% endif %}
                 </p>
 
-                {% if match[5] is defined %}
-                  <strong>Favorites Subs</strong>
-                  <p>{% for sub in match[5:] %}
-                    <a class="badge" href="https://www.reddit.com/r/{{sub}}">/r/{{ sub }}</a>
-                  {% endfor %}</p>
-                {% endif %}
+                  {% if match.status == 'onsite' %}
+                    {% set subs = match.favorited_subs() %}
+
+                      <strong>Favorites Subs</strong>
+                      <p>{% for sub in subs %}
+                        <a class="badge" href="https://www.reddit.com/r/{{sub.name}}">/r/{{ sub.name }}</a>
+                      {% endfor %}</p>
+
+                    {% endif %}
 
               </div>
 
-              {% if match[0] == 'onsite' %}
+              {% if match.status == 'onsite' %}
                 <div class="match_button">
-                  <span class="check glyphicon glyphicon-ok yes-match" role="button" data-username="{{ match[1] }}">
+                  <span class="check glyphicon glyphicon-ok yes-match" role="button" data-username="{{match.username}}">
                   </span>
 
                   <span class="text">Match</span>
 
-                  <span class="cross glyphicon glyphicon-remove no-match" role="button" data-username="{{ match[1] }}">
+                  <span class="cross glyphicon glyphicon-remove no-match" role="button" data-username="{{match.username}}">
                   </span>
 
                 </div>

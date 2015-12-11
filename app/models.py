@@ -3,8 +3,6 @@ from app import db
 from hashlib import md5
 from sqlalchemy import func, or_, and_
 
-# TODO allow user to accept/reject the match before matching
-
 favorite_subs = db.Table('favorite_subs',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
     db.Column('subreddit_id', db.Integer, db.ForeignKey('subreddit.id'))
@@ -27,7 +25,7 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True)
     refresh_token = db.Column(db.String(60))
     age = db.Column(db.Integer)
-    gender = db.Column(db.String(60))
+    gender_id = db.Column(db.Integer, db.ForeignKey('gender.id'))
     orientation = db.Column(db.String(60))
     location = db.Column(db.String(120))
     postal_code = db.Column(db.String(10))
@@ -58,7 +56,7 @@ class User(db.Model):
     last_online = db.Column(db.DateTime)
     is_online = db.Column(db.Boolean)
     newsletter = db.Column(db.Boolean)
-
+    date_searchable = db.Column(db.Boolean)
 
     def avatar(self, size):
         if self.email is not None:
@@ -90,6 +88,9 @@ class User(db.Model):
 
     def favorited_subs(self):
         return Subreddit.query.join(favorite_subs, (favorite_subs.c.subreddit_id == Subreddit.id)).filter(favorite_subs.c.user_id == self.id)
+
+    def favorited_subs_offsite(self):
+        return app.reddit_api.get_offsite_user_favorite_subs(self.username)
 
     def get_reddit_favorite_subs(self):
         u = self
@@ -225,3 +226,17 @@ class Message(db.Model):
 
     def __repr__(self):
         return '<Message ID %r>' % self.id
+
+class Gender(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String(50))
+    users = db.relationship('User', backref='gender', lazy='dynamic')
+
+    def get_id(self):
+        try:
+            return unicode(self.id)
+        except NameError:
+            return str(self.id)
+
+    def __repr__(self):
+        return self.name

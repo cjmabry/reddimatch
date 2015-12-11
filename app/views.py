@@ -186,15 +186,11 @@ def friend_match():
 
         for u in users:
             if u.username is not user.username and not user.is_matched(u) and not user.is_rejected(u) and not u.is_rejected(user):
-                if models.User.query.filter_by(reddit_username=u.username).first():
-                    favs = models.User.query.filter_by(reddit_username=u.username).first().favorited_subs().all()
-                else:
-                    favs = reddit_api.get_favorite_subs(u)
 
-                lis = ['onsite', u.username, sub.name, u.avatar(300), u.bio]
-                for fav in favs:
-                    lis.append(fav.name)
-                matches.append(lis)
+                u.status = 'onsite'
+                u.type = 'friend'
+
+                matches.append(u)
 
     if len(matches) > 3:
         matches = random.sample(matches, 3)
@@ -213,7 +209,8 @@ def date():
     form = forms.DateRegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
         current_user.age = form.age.data
-        current_user.gender = form.gender.data
+        current_user.gender_id = form.gender.data
+        current_user.date_searchable = not form.searchable.data
 
         radius = form.radius.data
         min_age = form.min_age.data
@@ -223,7 +220,7 @@ def date():
         db.session.add(current_user)
         db.session.commit()
 
-        return redirect(url_for('date_match', age=form.age.data,gender=form.gender.data, radius=form.radius.data, min_age = min_age, max_age= max_age, desired_gender=form.desired_gender.data))
+        return redirect(url_for('date_match', age=form.age.data,gender_id=form.gender.data, radius=form.radius.data, min_age = min_age, max_age= max_age, desired_gender=desired_gender))
 
     return render_template('date.html', form=form);
 
@@ -232,46 +229,82 @@ def date():
 def date_match():
 
     age = int(request.args.get('age'))
-    gender = request.args.get('gender')
-    radius = float(request.args.get('radius'))
+    gender_id = int(request.args.get('gender_id'))
+    radius = int(request.args.get('radius'))
     min_age = int(request.args.get('min_age'))
     max_age = int(request.args.get('max_age'))
     latitude = float(current_user.latitude)
     longitude = float(current_user.longitude)
-    desired_gender = request.args.get('desired_gender')
+    desired_gender = int(request.args.get('desired_gender'))
 
+
+    print gender_id
     print desired_gender
 
-    # favs = current_user.favorited_subs().all()
+    # print 'age'
+    # print age
+    #
+    # print 'gender'
+    # print gender
+
+    # print 'radius'
+    # print radius
+    # print 'min_age'
+    # print min_age
+    # print 'max_age'
+    # print max_age
+    # print 'latitude'
+    # print latitude
+    # print 'longitude'
+    # print longitude
+    # print 'desired_gender'
+    # print desired_gender
 
     matches = []
 
-    mileInLongitudeDegree = 69.174 * cos(latitude)
+    # mileInLongitudeDegree = 69.174 * cos(latitude)
 
-    deltaLat = radius/69.174
-    deltaLong = radius * mileInLongitudeDegree
+    deltaLat = radius/69.174 + 2
+    # deltaLong = radius / mileInLongitudeDegree
 
     lat_min = latitude - deltaLat
     lat_max = latitude + deltaLat
-    long_min = longitude - deltaLong
-    long_max = longitude + deltaLong
+    # long_min = longitude - deltaLong
+    # long_max = longitude + deltaLong
 
-    users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.longitude >= long_min, models.User.longitude <= long_max , models.User.age >= min_age, models.User.age <= max_age))
+    # print 'mileInLongitudeDegree'
+    # print mileInLongitudeDegree
+    # print 'lat_min'
+    # print lat_min
+    # print 'lat_max'
+    # print lat_max
+    # print 'long_min'
+    # print long_min
+    # print 'long_max'
+    # print long_max
+
+
+    if radius == 101:
+        users = models.User.query.filter(and_(models.User.age >= min_age, models.User.age <= max_age, models.User.date_searchable))
+    else:
+        users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= min_age, models.User.age <= max_age, models.User.date_searchable))
+
+    print users.all()
 
     for u in users:
 
-        if u.username is not current_user.username and not current_user.is_matched(u) and not current_user.is_rejected(u) and not u.is_rejected(current_user) and u.gender == desired_gender:
-                print u.username
-                print u.gender
+        if u.username is not current_user.username and not current_user.is_matched(u) and not current_user.is_rejected(u) and not u.is_rejected(current_user) and u.gender_id == desired_gender:
 
-                #TODO change genders in DB to numbers with corresponding table
+            distance = abs(haversine((latitude, longitude),(u.latitude, u.longitude),miles=True))
 
-                favs = models.User.query.filter_by(reddit_username=u.username).first().favorited_subs().all()
+            u.status = 'onsite'
+            u.type = 'date'
+            u.distance = int(distance)
 
-                lis = ['onsite', u.username, 'poop', u.avatar(300), u.bio]
-                for fav in favs:
-                    lis.append(fav.name)
-                matches.append(lis)
+            if radius == 101:
+                matches.append(u)
+            elif distance <= radius:
+                matches.append(u)
 
     if len(matches) > 3:
         matches = random.sample(matches, 3)
@@ -436,9 +469,6 @@ def is_online():
 @app.route('/chat/<username>')
 @login_required
 def messages(username=None):
-    print current_user.get_matches()
-    print current_user.get_match_requests()
-
     if current_user.get_matches() or current_user.get_match_requests() > 0:
         return render_template('messages.html')
 
@@ -538,6 +568,10 @@ def message(data):
         m = models.Message(content=data['msg'],from_id=from_user.id,to_id=to_user.id,time_sent=datetime.datetime.now())
         db.session.add(m)
         db.session.commit()
+
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
 
 @lm.user_loader
 def load_user(id):

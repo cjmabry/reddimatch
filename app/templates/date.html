@@ -1,23 +1,29 @@
 {% extends "base.html" %}
 {% block container%}container-fluid{% endblock %}
-{% block page_class%}class="date_filter_page"{% endblock %}
+{% block page_class%}class="match_page date_filter_page"{% endblock %}
 {% block content %}
 
   {% if current_user.is_authenticated() %}
 
-    <div class="filters col-md-3">
+  <div class="row main">
 
-      <h3>Filters <span class="help_icon">?</span></h3>
+    <div class="filters">
+
+      <div class="heading">
+
+        <h3>Filters <span class="help_icon">?</span></h3>
+
+      </div>
 
       <a href="{{url_for('match')}}"><div class="card selected">Quick Match</div></a>
       <a href="{{url_for('date')}}"><div class="card">Dating</div></a>
-      <div class="card coming-soon"><span>Political Action (Coming Soon)</span></div>
-      <div class="card coming-soon"><span>Gaming (Coming Soon)</span></div>
-      <div class="card coming-soon"><span>Foreign Exchange (Coming Soon)</span></div>
+      <div class="card coming-soon"><span>Political Action</span></div>
+      <div class="card coming-soon"><span>Gaming</span></div>
+      <div class="card coming-soon"><span>Foreign Exchange</span></div>
 
     </div>
 
-    <div class="col-md-6">
+    <div class="controls">
 
       <div class="choices">
 
@@ -25,13 +31,13 @@
 
           {% if current_user.age is defined and current_user.age != None and current_user.gender is defined and current_user.gender != None and current_user.location is defined and current_user.location != None %}
 
-            <h4>Find a Date</h4>
+            <h2>Find a Date</h2>
 
             <a href="{{ url_for('date_match') }}">
               <div class="icon"></div>
             </a>
 
-            <p><strong>We'll find you a match based on age, gender, location, and interests!</strong></p>
+            <p class="description">We'll find you a match based on age, gender, location, and interests!</p>
 
         {% else %}
 
@@ -45,18 +51,19 @@
             {% set age = '' %}
           {% endif %}
 
-          <p>I am a {{render_field(form.age,value=age, placeholder='Age')}} year old {{render_field(form.gender)}} looking for a {{render_field(form.desired_gender, default=2)}}
+          <p class="main_criteria">I am a {{render_field(form.age,value=age, placeholder='Age')}} year old {{render_field(form.gender)}} looking for a {{render_field(form.desired_gender, default=2)}}
 
-
-          <p>Search within <span id="radius">50 miles</span>.</p>
-          <div id="radius_slider" class="range_slider"></div>
-          {{render_field(form.radius, value=50)}}
-
-          <p>Between the ages of <span id="min_age_preview">18</span> and <span id="max_age_preview">35</span>.</p>
+          <p class="criteria">Between the ages of <span id="min_age_preview">18</span> and <span id="max_age_preview">35</span>.</p>
 
           <div id="age_slider" class="range_slider"></div>
           {{render_field(form.min_age,value=18)}}
           {{render_field(form.max_age,value=35)}}
+
+          <p class="criteria">Search up to <span id="radius_preview">50 miles</span> away.</p>
+          <div id="radius_slider" class="range_slider"></div>
+          {{render_field(form.radius, value=50)}}
+
+          <p class="criteria">{{render_field(form.searchable)}}<small> I don't want to show up in other users' date searches.</small></p>
 
 
           <button class="btn btn-primary" id="next-button" type=submit >Next <span class="glyphicon glyphicon-chevron-right"></span></button>
@@ -71,7 +78,7 @@
 
     </div>
 
-    <div id="user_info" class="user_info col-md-3">
+    <div id="user_info" class="user_info">
 
       <div class="card current_user">
         <div class="profile_photo">
@@ -124,6 +131,7 @@
 
     </div>
 
+  </div>
   {% endif %}
 
 {% endblock %}
@@ -141,7 +149,7 @@
 	connect: 'lower',
   step:1,
 	range: {
-	  'min': 1,
+	  'min': 5,
 	  'max': 101
 	}
   });
@@ -156,6 +164,7 @@
     }
   });
 
+  var radius_preview = document.getElementById('radius_preview');
   var radius = document.getElementById('radius');
   var min_age = document.getElementById('min_age');
   var min_age_preview = document.getElementById('min_age_preview');
@@ -165,12 +174,14 @@
   radius_slider.noUiSlider.on('update', function(values, handle) {
 
     if(values[handle] == 1){
-      radius.innerHTML = "1 mile";
+      radius_preview.innerHTML = "1 mile";
     } else if(values[handle] > 100){
-      radius.innerHTML = "100+ miles";
+      radius_preview.innerHTML = "100+ miles";
     } else {
-      radius.innerHTML = Math.round(values[handle]) + ' miles';
+      radius_preview.innerHTML = parseInt(values[handle]) + ' miles';
     }
+
+    radius.value = parseInt(values[handle]);
 
   });
 
@@ -180,10 +191,10 @@
     if(values[handle] == 56) {
       preview = '55+'
     } else {
-      preview = Math.round(values[handle]);
+      preview = parseInt(values[handle]);
     }
 
-    age = Math.round(values[handle]);
+    age = parseInt(values[handle]);
 
     if(handle == 0) {
       min_age.value = age;

@@ -13,7 +13,7 @@ else:
 SQLALCHEMY_MIGRATE_REPO = os.path.join(BASE_DIR, 'db_repository')
 DATABASE_CONNECT_OPTIONS = {}
 
-REDDIT_USER_AGENT = 'web:com.reddimatch:v0.8.0 (by /u/cjmabry)'
+REDDIT_USER_AGENT = 'web:com.reddimatch:v0.9.0 (by /u/cjmabry)'
 REDDIT_CLIENT_ID = 'Q9TKty4V9mQQlA'
 REDDIT_CLIENT_SECRET = '1O14gtnAlNy_0X6j5F8E3HDSp9Q'
 REDDIT_REDIRECT_URI = 'http://127.0.0.1:8000/authorize_callback'
