@@ -1,0 +1,4 @@
+sudo gunicorn --worker-class eventlet wsgi -b 0.0.0.0:8000
+rsync -a ./ --filter=':- .gitignore' root@45.55.207.88:/home/www/reddimatch --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r
+chmod -R +rx /home/www/reddimatch/app/static/css
+chmod -R +rx /home/www/reddimatch/app/static/js
