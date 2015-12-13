@@ -4,7 +4,6 @@ from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
 from flask_socketio import emit, send, join_room, leave_room, rooms
 import praw, random, datetime, string
-from pprint import pprint
 from sqlalchemy import func, and_
 from haversine import haversine
 from math import cos, pi
@@ -73,6 +72,7 @@ def register():
         return redirect(url_for('match'))
 
     form = forms.RegistrationForm(request.form)
+
     if request.method == 'POST' and form.validate():
         user = current_user
         user.username = form.username.data
@@ -119,6 +119,8 @@ def register():
 @login_required
 def dashboard():
     form = forms.RegistrationForm(request.form)
+
+    date_form = forms.DateRegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
         user = current_user
         user.username = form.username.data
@@ -148,32 +150,24 @@ def dashboard():
                     r.get_subreddit(sub, fetch=True)
                 except Exception as e:
                     flash(e)
-                    return render_template('dashboard.html', form=form)
+                    return render_template('dashboard.html', form=form, date_form=date_form)
 
                 subreddit = models.Subreddit(name=sub)
                 db.session.add(subreddit)
                 db.session.commit()
-                user.favorite(subreddit)
-            else:
-                print 'error'
 
         db.session.commit()
         return redirect(url_for('dashboard'))
-    return render_template('dashboard.html', form=form)
+    return render_template('dashboard.html', form=form, date_form = date_form)
 
 @app.route('/match')
 @login_required
 def match():
     return render_template('match.html')
 
-@app.route('/friend')
+@app.route('/quick_match')
 @login_required
-def friend():
-    return render_template('friend.html')
-
-@app.route('/friend_match')
-@login_required
-def friend_match():
+def quick_match():
     #TODO use counter or similar to get people who are favorites of multiples of your favorites
     user = current_user
 
@@ -207,112 +201,116 @@ def friend_match():
 @login_required
 def date():
     form = forms.DateRegistrationForm(request.form)
-    if request.method == 'POST' and form.validate():
-        current_user.age = form.age.data
-        current_user.gender_id = form.gender.data
-        current_user.date_searchable = not form.searchable.data
 
-        radius = form.radius.data
-        min_age = form.min_age.data
-        max_age = form.max_age.data
-        desired_gender = form.desired_gender.data
+    if request.method == 'POST' and form.validate():
+
+        # check for no lat and long
+
+        # get form data
+        current_user.age = int(form.age.data)
+        current_user.gender_id = int(form.gender.data)
+        current_user.desired_gender_id = int(form.desired_gender.data)
+        current_user.date_searchable = not form.searchable.data
+        current_user.min_age = int(form.min_age.data)
+        current_user.max_age = int(form.max_age.data)
 
         db.session.add(current_user)
         db.session.commit()
 
-        return redirect(url_for('date_match', age=form.age.data,gender_id=form.gender.data, radius=form.radius.data, min_age = min_age, max_age= max_age, desired_gender=desired_gender))
+        # distance stuff
+        radius = int(form.radius.data)
+        deltaLat = float(radius/69.174 + 2)
+        lat_min = current_user.latitude - deltaLat
+        lat_max = current_user.latitude + deltaLat
+
+        if radius > 100:
+            radius = None
+
+        mutual_sub_matches = []
+        matches = []
+        secondary_matches = []
+
+        # get matches, favorite subs disregarded
+        if radius:
+            users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
+        else:
+            users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
+
+        # get matches that also have a similiar favorite sub
+        for sub in current_user.favorited_subs().all():
+
+            mutual_sub_matches.extend(users.intersect(sub.favorited_users()).all())
+
+        # get rid of dupes caused by multiple favorite subs
+        mutual_sub_matches = list(set(mutual_sub_matches))
+
+        if len(mutual_sub_matches) > 0:
+            for u in mutual_sub_matches:
+                if not current_user.is_matched(u) and not current_user.is_rejected(u) and not u.is_rejected(current_user):
+                    distance = abs(haversine((current_user.latitude, current_user.longitude),(u.latitude,u.longitude),miles=True))
+                    u.status = 'onsite'
+                    u.type = 'date'
+                    u.distance = int(distance)
+
+                    if radius:
+                        if distance <= radius:
+                            matches.append(u)
+                    else:
+                        matches.append(u)
+
+        if len(matches) > 0 and len(matches) < 3 or len(matches) == 0:
+
+            for u in users:
+
+                if not current_user.is_matched(u) and not current_user.is_rejected(u) and not u.is_rejected(current_user):
+                    distance = abs(haversine((current_user.latitude, current_user.longitude),(u.latitude,u.longitude),miles=True))
+                    u.status = 'onsite'
+                    u.type = 'date'
+                    u.distance = int(distance)
+
+                    if radius:
+                        if distance <= radius:
+                            secondary_matches.append(u)
+                    else:
+                        secondary_matches.append(u)
+
+            matches.extend(secondary_matches)
+
+            matches = list(set(matches))
+
+        if len(matches) > 3:
+            matches = random.sample(matches, 3)
+
+        if len(matches) == 0:
+            matches = None
+
+        return render_template('results.html',matches=matches)
+
+    if current_user.gender_id:
+        print current_user.gender_id
+        form.gender.default = current_user.gender_id
+    else:
+        form.gender.default = 1
+
+    if current_user.desired_gender_id:
+        print current_user.desired_gender_id
+        form.desired_gender.default = current_user.desired_gender_id
+    else:
+        form.desired_gender.default = 2
+
+    if current_user.min_age:
+        form.min_age.default = current_user.min_age
+    else:
+        form.min_age.default = 18
+
+    if current_user.max_age:
+        form.max_age.default = current_user.max_age
+    else:
+        form.max_age.default = 35
+
+    form.process()
 
     return render_template('date.html', form=form);
-
-@app.route('/date_match', methods=['GET','POST'])
-@login_required
-def date_match():
-
-    age = int(request.args.get('age'))
-    gender_id = int(request.args.get('gender_id'))
-    radius = int(request.args.get('radius'))
-    min_age = int(request.args.get('min_age'))
-    max_age = int(request.args.get('max_age'))
-    latitude = float(current_user.latitude)
-    longitude = float(current_user.longitude)
-    desired_gender = int(request.args.get('desired_gender'))
-
-
-    print gender_id
-    print desired_gender
-
-    # print 'age'
-    # print age
-    #
-    # print 'gender'
-    # print gender
-
-    # print 'radius'
-    # print radius
-    # print 'min_age'
-    # print min_age
-    # print 'max_age'
-    # print max_age
-    # print 'latitude'
-    # print latitude
-    # print 'longitude'
-    # print longitude
-    # print 'desired_gender'
-    # print desired_gender
-
-    matches = []
-
-    # mileInLongitudeDegree = 69.174 * cos(latitude)
-
-    deltaLat = radius/69.174 + 2
-    # deltaLong = radius / mileInLongitudeDegree
-
-    lat_min = latitude - deltaLat
-    lat_max = latitude + deltaLat
-    # long_min = longitude - deltaLong
-    # long_max = longitude + deltaLong
-
-    # print 'mileInLongitudeDegree'
-    # print mileInLongitudeDegree
-    # print 'lat_min'
-    # print lat_min
-    # print 'lat_max'
-    # print lat_max
-    # print 'long_min'
-    # print long_min
-    # print 'long_max'
-    # print long_max
-
-
-    if radius == 101:
-        users = models.User.query.filter(and_(models.User.age >= min_age, models.User.age <= max_age, models.User.date_searchable))
-    else:
-        users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= min_age, models.User.age <= max_age, models.User.date_searchable))
-
-    print users.all()
-
-    for u in users:
-
-        if u.username is not current_user.username and not current_user.is_matched(u) and not current_user.is_rejected(u) and not u.is_rejected(current_user) and u.gender_id == desired_gender:
-
-            distance = abs(haversine((latitude, longitude),(u.latitude, u.longitude),miles=True))
-
-            u.status = 'onsite'
-            u.type = 'date'
-            u.distance = int(distance)
-
-            if radius == 101:
-                matches.append(u)
-            elif distance <= radius:
-                matches.append(u)
-
-    if len(matches) > 3:
-        matches = random.sample(matches, 3)
-
-    if len(matches) == 0:
-        matches = None
-
-    return render_template('results.html',matches=matches)
 
 @app.route('/logout')
 @login_required
@@ -329,10 +327,7 @@ def accept():
     if models.User.query.filter_by(username=match_username).first():
         match_user = models.User.query.filter_by(username=match_username).first()
 
-        if user.is_matched(match_user):
-            print 'Already matched'
-
-        else:
+        if not user.is_matched(match_user):
             m = user.match(match_user)
             db.session.add(m)
             db.session.commit()
@@ -348,11 +343,8 @@ def reject():
     if models.User.query.filter_by(username=unmatch_username).first():
         reject_user = models.User.query.filter_by(username=unmatch_username).first()
 
-        print reject_user
-
         user.reject(reject_user)
         db.session.commit()
-
 
     return 'success'
 
@@ -509,15 +501,13 @@ def get_user_info():
 
             user_dict['fav_subs'] = fav_subs_list
 
-            pprint(user_dict)
-
         return jsonify(user_dict)
 
 @app.route('/set_location')
 @login_required
 def set_location():
-    latitude = request.args.get('latitude')
-    longitude = request.args.get('longitude')
+    latitude = float(request.args.get('latitude'))
+    longitude = float(request.args.get('longitude'))
 
     current_user.latitude = latitude
     current_user.longitude = longitude
@@ -542,8 +532,6 @@ def connect_handler():
         current_user.is_online = True
         db.session.commit()
 
-        for room in rooms():
-            print 'In room ' + room
     else:
         return False
 

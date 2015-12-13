@@ -26,6 +26,9 @@ class User(db.Model):
     refresh_token = db.Column(db.String(60))
     age = db.Column(db.Integer)
     gender_id = db.Column(db.Integer, db.ForeignKey('gender.id'))
+    desired_gender_id = db.Column(db.Integer, db.ForeignKey('gender.id'))
+    gender = db.relationship("Gender", foreign_keys=[gender_id])
+    desired_gender = db.relationship("Gender", foreign_keys=[desired_gender_id])
     orientation = db.Column(db.String(60))
     location = db.Column(db.String(120))
     postal_code = db.Column(db.String(10))
@@ -57,6 +60,8 @@ class User(db.Model):
     is_online = db.Column(db.Boolean)
     newsletter = db.Column(db.Boolean)
     date_searchable = db.Column(db.Boolean)
+    min_age = db.Column(db.Integer)
+    max_age = db.Column(db.Integer)
 
     def avatar(self, size):
         if self.email is not None:
@@ -230,7 +235,6 @@ class Message(db.Model):
 class Gender(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(50))
-    users = db.relationship('User', backref='gender', lazy='dynamic')
 
     def get_id(self):
         try:

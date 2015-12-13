@@ -16,7 +16,7 @@ def generate_random_user(username):
 
     coords = generate_random_coordinates(36.1557611, -85.5329124, 160934)
 
-    return models.User(username=username, reddit_username=username, email=generate_string(randint(5,10))+'@gmail.com',age=randint(18,45),bio=bio, registered = True, newsletter=True, latitude = coords[0], longitude=coords[1], email_verified=False,created_on = datetime.datetime.now(), last_online=datetime.datetime.now(), is_online=False, gender_id=randint(1,3), date_searchable=randint(0,1));
+    return models.User(username=username, reddit_username=username, email=generate_string(randint(5,10))+'@gmail.com',age=randint(18,45),bio=bio, registered = True, newsletter=True, latitude = coords[0], longitude=coords[1], email_verified=False,created_on = datetime.datetime.now(), last_online=datetime.datetime.now(), is_online=False, gender_id=randint(1,3), date_searchable=randint(0,1), desired_gender_id=randint(1,3));
 
 
 def generate_random_coordinates(lat, longitude, radius):

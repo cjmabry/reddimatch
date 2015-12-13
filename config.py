@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PROPAGATE_EXCEPTIONS = False
@@ -24,3 +24,14 @@ CSRF_SESSION_KEY = 'secret'
 THREADS_PER_PAGE = 2
 
 SECRET_KEY = 'secret'
+
+# email server
+MAIL_SERVER = 'smtp.gmail.com'
+MAIL_PORT = 465
+MAIL_USE_TLS = False
+MAIL_USE_SSL = True
+MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+
+# administrator list
+ADMINS = ['cjmab28+reddimatch+error@gmail.com']

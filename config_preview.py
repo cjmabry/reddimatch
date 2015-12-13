@@ -22,3 +22,14 @@ CSRF_SESSION_KEY = 'secret'
 THREADS_PER_PAGE = 2
 
 SECRET_KEY = 'secret'
+
+# email server
+MAIL_SERVER = 'smtp.googlemail.com'
+MAIL_PORT = 465
+MAIL_USE_TLS = False
+MAIL_USE_SSL = True
+MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+
+# administrator list
+ADMINS = ['cjmab28@gmail.com']

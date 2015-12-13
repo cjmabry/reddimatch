@@ -51,7 +51,7 @@
             {% set age = '' %}
           {% endif %}
 
-          <p class="main_criteria">I am a {{render_field(form.age,value=age, placeholder='Age')}} year old {{render_field(form.gender)}} looking for a {{render_field(form.desired_gender, default=2)}}
+          <p class="main_criteria">I am a {{render_field(form.age,value=age, placeholder='Age')}} year old {{render_field(form.gender)}} looking for a {{render_field(form.desired_gender)}}
 
           <p class="criteria">Between the ages of <span id="min_age_preview">18</span> and <span id="max_age_preview">35</span>.</p>
 
