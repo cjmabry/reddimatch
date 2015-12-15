@@ -1443,11 +1443,12 @@ html.messages, .messages body {
   height:100%;
   position: relative;
   flex: 2 0;
+  display: flex;
+  flex-direction: column;
 }
 
 #chat_box {
-  position: absolute;
-  bottom:0;
+  position: relative;
   width:100%;
 }
 
@@ -1455,18 +1456,15 @@ html.messages, .messages body {
   cursor: text;
   line-height: 1.25em;
   width: 100%;
-  /*width: calc(100% - 65px);*/
   border:1px solid #eee;
   border-width: 1px 0 1px 0;
   border-radius:0;
   resize: none;
   box-shadow:none;
-  float:left;
   outline: 0px solid transparent;
   padding:0.75em 3em 0.75em 0.75em;
   margin:0;
   height: 5.25em;
-  /*overflow-y: hidden;*/
   display: inline-block;
   transition: 0.5s;
   background: white;
@@ -1534,8 +1532,7 @@ html.messages, .messages body {
 #current_messages {
   padding:0 20px 20px;
   overflow: auto;
-  max-height: 100%;
-  max-height: calc(100% - 40px);
+  flex: auto;
 }
 #current_messages.empty .prompt, #current_messages.request .prompt, #current_messages.unconfirmed .prompt {
   display: block;
@@ -1819,6 +1816,6 @@ html.messages, .messages body {
   }
 
   #enter_message {
-    height: 2.75em;
+      height: 2.75em;
   }
 }

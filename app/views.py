@@ -246,7 +246,7 @@ def date():
 
         if len(mutual_sub_matches) > 0:
             for u in mutual_sub_matches:
-                if not current_user.is_matched(u) and not current_user.is_rejected(u) and not u.is_rejected(current_user):
+                if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not u.is_rejected(current_user, 'date'):
                     distance = abs(haversine((current_user.latitude, current_user.longitude),(u.latitude,u.longitude),miles=True))
                     u.status = 'onsite'
                     u.type = 'date'
@@ -262,7 +262,7 @@ def date():
 
             for u in users:
 
-                if not current_user.is_matched(u) and not current_user.is_rejected(u) and not u.is_rejected(current_user):
+                if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not u.is_rejected(current_user, 'date'):
                     distance = abs(haversine((current_user.latitude, current_user.longitude),(u.latitude,u.longitude),miles=True))
                     u.status = 'onsite'
                     u.type = 'date'
@@ -321,17 +321,24 @@ def logout():
 @app.route('/accept', methods=['POST', 'GET'])
 @login_required
 def accept():
+    print -1
     user = current_user
     match_username = request.form['username']
+    match_type = request.form['match_type']
+
+    print 0
 
     if models.User.query.filter_by(username=match_username).first():
         match_user = models.User.query.filter_by(username=match_username).first()
+        print 1
 
-        if not user.is_matched(match_user):
-            m = user.match(match_user)
+        if not user.is_matched(match_user, match_type):
+            print 2
+            m = user.match(match_user, match_type)
             db.session.add(m)
             db.session.commit()
 
+    print 3
     return 'success'
 
 @app.route('/reject', methods=['POST', 'GET'])
@@ -339,12 +346,12 @@ def accept():
 def reject():
     user = current_user
     unmatch_username = request.form['username']
+    match_type = request.form['match_type']
 
     if models.User.query.filter_by(username=unmatch_username).first():
         reject_user = models.User.query.filter_by(username=unmatch_username).first()
 
-        user.reject(reject_user)
-        db.session.commit()
+        user.unmatch(reject_user, match_type)
 
     return 'success'
 

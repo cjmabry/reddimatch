@@ -1,6 +1,7 @@
 function match(element, match) {
   $.post('/accept', {
-    username: match
+    username: match,
+    match_type: 'friend'
   }).success(function(matched) {
     $(element).parent().removeClass("rejected");
     $(element).parent().addClass("accepted");
@@ -11,7 +12,8 @@ function match(element, match) {
 function no_match(element, match) {
 
   $.post('/reject', {
-    username: match
+    username: match,
+    match_type: 'friend'
   }).success(function(matched) {
     $(element).parent().removeClass("accepted");
     $(element).parent().addClass("rejected");

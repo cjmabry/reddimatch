@@ -2,21 +2,28 @@ import app
 from app import db
 from hashlib import md5
 from sqlalchemy import func, or_, and_
+from datetime import datetime
 
 favorite_subs = db.Table('favorite_subs',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
     db.Column('subreddit_id', db.Integer, db.ForeignKey('subreddit.id'))
 )
 
-matches = db.Table('matches',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-    db.Column('matched_id', db.Integer, db.ForeignKey('user.id'))
-)
+class Match(db.Model):
+    __tablename__ = 'match_table'
+    id = db.Column(db.Integer, primary_key=True)
+    user_from_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_to_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-rejects = db.Table('rejects',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-    db.Column('rejected_id', db.Integer, db.ForeignKey('user.id'))
-)
+    match_type = db.Column(db.String(10))
+    matched_on = db.Column(db.DateTime)
+    accepted = db.Column(db.Boolean)
+    rejected = db.Column(db.Boolean)
+    user_from = db.relationship("User", foreign_keys=[user_from_id])
+    user_to = db.relationship("User", foreign_keys=[user_to_id])
+
+    def __repr__(self):
+        return '<Match request to %s>' % self.user_to.username
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -40,18 +47,6 @@ class User(db.Model):
     deleted = db.Column(db.Boolean)
     favorited = db.relationship('Subreddit', secondary=favorite_subs,
         backref=db.backref('favorite_subs', lazy='dynamic'), lazy='dynamic')
-    matched = db.relationship('User',
-                               secondary=matches,
-                               primaryjoin=(matches.c.user_id == id),
-                               secondaryjoin=(matches.c.matched_id == id),
-                               backref=db.backref('matches', lazy='dynamic'),
-                               lazy='dynamic')
-    rejected = db.relationship('User',
-                                secondary=rejects,
-                                primaryjoin=(rejects.c.user_id == id),
-                                secondaryjoin=(rejects.c.rejected_id == id),
-                                backref=db.backref('rejects', lazy='dynamic'),
-                                lazy='dynamic')
     registered = db.Column(db.Boolean)
     email_verified = db.Column(db.Boolean)
     created_on = db.Column(db.DateTime)
@@ -63,10 +58,137 @@ class User(db.Model):
     min_age = db.Column(db.Integer)
     max_age = db.Column(db.Integer)
 
-    def avatar(self, size):
+    matches_sent = db.relationship('Match', backref='match_sender', primaryjoin=(id==Match.user_from_id),lazy='dynamic')
+    matches_received = db.relationship('Match', primaryjoin=(id==Match.user_to_id), backref='match_recipient', lazy='dynamic')
+
+    def match(self, user, match_type):
+        """Send a match request from self to user of type match_type"""
+        if not self.is_matched(user, match_type) and not self.is_rejected(user, match_type):
+            if self.has_received_match(user, match_type):
+                match = Match(user_from_id = self.id, user_to_id = user.id, match_type = match_type, matched_on = datetime.now(), accepted=False, rejected=False)
+                db.session.add(match)
+                db.session.commit()
+                self.accept_match(user, match_type)
+                return self
+            elif not self.has_sent_match(user, match_type):
+                match = Match(user_from_id = self.id, user_to_id = user.id, match_type = match_type, matched_on = datetime.now(), accepted=False, rejected=False)
+                db.session.add(match)
+                db.session.commit()
+                self.matches_sent.append(match)
+                return self
+        else:
+            return self
+
+    def accept_match(self, user, match_type):
+        """Accept a match request"""
+        match = self.matches_received.filter(Match.user_from_id == user.id,match_type==match_type).first()
+        match.accepted = True
+        match.rejected = False
+        match.matched_on = datetime.now()
+        db.session.add(match)
+        db.session.commit()
+        return self
+
+    def is_matched(self, user, match_type):
+        """Check if self is matched and accepted with user"""
+        if self.has_sent_match(user, match_type) and self.has_received_match(user, match_type):
+            if self.matches_sent.filter(Match.user_to_id == user.id, match_type == match_type).first().accepted or  self.matches_received.filter(Match.user_from_id == user.id, match_type == match_type).first().accepted:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def has_received_match(self, user, match_type):
+        """Check if current user has received a match from user"""
+        return self.matches_received.filter(Match.user_from_id == user.id, Match.match_type==match_type).count() > 0
+
+    def has_sent_match(self, user, match_type):
+        """Check if current user has sent a match to user"""
+        return self.matches_sent.filter(Match.user_to_id == user.id, Match.match_type==match_type).count() > 0
+
+    def unmatch(self, user, match_type):
+        """Unmatch user from the current user and reject them"""
+        if self.has_sent_match(user, match_type):
+            match = self.matches_sent.filter(Match.user_to_id == user.id, Match.match_type==match_type).first()
+            match.rejected = True
+            match.accepted = False
+            db.session.add(match)
+        if self.has_received_match(user, match_type):
+            match = self.matches_received.filter(Match.user_from_id == user.id, Match.match_type==match_type).first()
+            match.rejected = True
+            match.accepted = False
+            db.session.add(match)
+        else:
+            match = Match(user_from_id = self.id, user_to_id = user.id, match_type = match_type, matched_on = datetime.now(), accepted=False, rejected=True)
+            db.session.add(match)
+            self.matches_sent.append(match)
+        db.session.add(self)
+        db.session.commit()
+
+    def is_rejected(self, user, match_type):
+        """ Check if user has been rejected by self """
+        if self.has_sent_match(user, match_type):
+            if self.matches_sent.filter(Match.user_to_id == user.id, Match.match_type==match_type).first().rejected == True:
+                return True
+        if self.has_received_match(user, match_type):
+            if self.matches_received.filter(Match.user_from_id == user.id, Match.match_type==match_type).first().rejected == True:
+                return True
+        return False
+
+    # def unreject(self, user, match_type):
+    #     """ Unreject user and allow to be matched with again """
+    #
+    #     # only use this when the user has permission to unreject himself, i.e. if he is the one who rejected the user and wishes to unreject, but not if a user has rejected him
+    #
+    #     if self.is_rejected(user, match_type):
+    #         if self.has_sent_match(user, match_type):
+    #             match = self.matches_sent.filter(Match.user_to_id == user.id, Match.match_type==match_type).first()
+    #             match.rejected = False
+    #             db.session.add(match)
+    #         if self.has_received_match(user, match_type):
+    #             match = self.matches_received.filter(Match.user_from_id == user.id, Match.match_type==match_type).first()
+    #             match.rejected = False
+    #             db.session.add(match)
+    #         db.session.commit()
+    #         return self
+
+    def get_matches(self, match_type=None):
+        """Get all of self's matches that haven't been rejected"""
+        matches = []
+
+        if match_type:
+            if self.matches_sent.filter(Match.match_type==match_type, Match.rejected == False).count() > 0:
+                matches.extend(self.matches_sent.filter(Match.match_type==match_type, Match.rejected == False))
+
+            if self.matches_received.filter(Match.match_type==match_type, not Match.rejected == False).count() > 0:
+                matches.extend(self.matches_received.filter(Match.match_type==match_type, Match.rejected == False))
+        else:
+            if self.matches_sent.filter(Match.rejected == False).count() > 0:
+                matches.extend(self.matches_sent.filter(Match.rejected == False))
+
+            if self.matches_received.filter(Match.rejected == False).count() > 0:
+                matches.extend(self.matches_received.filter(Match.rejected == False))
+
+        if len(matches) > 0:
+            return matches
+
+    def get_match_requests(self, match_type=None):
+        """Get match requests
+
+        Get all users that have matched with the user whom the user hasn't matched with yet
+        """
+
+        if match_type:
+            matches = self.matches_received.filter(Match.match_type == match_type, Match.rejected == False, Match.accepted == False).all()
+        else:
+            matches = self.matches_received.filter(Match.rejected == False, Match.accepted == False).all()
+
+        return matches
+
+    def avatar(self, size=300):
         if self.email is not None:
             return 'http://www.gravatar.com/avatar/%s?d=identicon&s=%d' % (md5(self.email.encode('utf-8')).hexdigest(), size)
-
         else:
             return 'http://www.gravatar.com/avatar/?d=identicon&s=%s' % size
 
@@ -82,9 +204,6 @@ class User(db.Model):
 
     def unfavorite_all(self):
         subs = self.favorited_subs()
-
-        print subs
-
         for sub in subs:
             self.unfavorite(sub)
 
@@ -114,68 +233,6 @@ class User(db.Model):
                 db.session.add(f)
 
         db.session.commit()
-
-    def match(self, user):
-        if not self.is_matched(user):
-            self.matched.append(user)
-            return self
-
-    def unmatch(self, user):
-        if self.is_matched(user):
-            self.matched.remove(user)
-            return self
-
-    def reject(self, user):
-        if not self.is_rejected(user):
-            if self.is_matched(user):
-                self.unmatch(user)
-            if user.is_matched(self):
-                user.unmatch(self)
-
-            self.rejected.append(user)
-            return self
-
-    def is_rejected(self, user):
-        return self.rejected.filter(rejects.c.rejected_id == user.id).count() > 0
-
-    def unreject(self, user):
-        if self.is_rejected(user):
-            self.rejected.remove(user)
-            return self
-
-    def is_matched(self, user):
-        """Check if user is matched with another
-
-        """
-        return self.matched.filter(matches.c.matched_id == user.id).count() > 0
-
-    def get_matches(self):
-        """Get matches
-
-        Get all users that the current user has matched with, who may or may not have matched with the current user
-        """
-
-        if User.query.join(matches, (matches.c.matched_id == User.id)).filter(matches.c.user_id == self.id).count() > 0:
-            return User.query.join(matches, (matches.c.matched_id == User.id)).filter(matches.c.user_id == self.id)
-
-    def get_match_requests(self):
-        """Get match requests
-
-        Get all users that have matched with the user whom the user hasn't matched with yet
-        """
-
-        query = User.query.join(matches, (matches.c.user_id == User.id)).filter(matches.c.matched_id == self.id)
-
-        requests = []
-
-        for r in query:
-            if not self.is_matched(r):
-                requests.append(r)
-
-        if len(requests) > 0:
-            return requests
-        else:
-            return False
 
     def is_authenticated(self):
         return True
