@@ -378,5 +378,16 @@ class Gender(db.Model):
         except NameError:
             return str(self.id)
 
+    def populate_genders():
+        male = models.Gender(name='male')
+        female = models.Gender(name='female')
+        trans = models.Gender(name='transgender')
+
+        db.session.add(male)
+        db.session.add(female)
+        db.session.add(trans)
+
+        db.session.commit()
+
     def __repr__(self):
         return self.name

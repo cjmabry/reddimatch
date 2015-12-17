@@ -271,17 +271,28 @@ def date():
         matches = []
         secondary_matches = []
 
+        print 1
+
         # get matches, favorite subs disregarded
         if radius:
             users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
         else:
             users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
 
+        print 2
         # get matches that also have a similiar favorite sub
-        for sub in current_user.favorited_subs().all():
+        # for sub in current_user.favorited_subs().all():
+        #     print 2.5
+        #
+        #     for u in users:
+        #         favs = u.favorited_subs().all()
+        #
+        #         for f in favs:
+        #             if f in current_user.favorited_subs().all():
+        #                 mutual_sub_matches.append(u)
 
-            mutual_sub_matches.extend(users.intersect(sub.favorited_users()).all())
 
+        print 3
         # get rid of dupes caused by multiple favorite subs
         mutual_sub_matches = list(set(mutual_sub_matches))
 
@@ -298,6 +309,7 @@ def date():
                             matches.append(u)
                     else:
                         matches.append(u)
+        print 4
 
         if len(matches) > 0 and len(matches) < 3 or len(matches) == 0:
 
@@ -319,11 +331,15 @@ def date():
 
             matches = list(set(matches))
 
+        print 5
+
         if len(matches) > 3:
             matches = random.sample(matches, 3)
 
         if len(matches) == 0:
             matches = None
+
+        print 6
 
         return render_template('results.html',title='Reddimatch', page_class='results_page',matches=matches)
 
