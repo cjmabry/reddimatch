@@ -1,8 +1,23 @@
 killall gunicorn
 nginx -s reload
 sudo gunicorn --worker-class eventlet wsgi -b 0.0.0.0:8000 -D
-rsync -a ./ --filter=':- .gitignore' root@45.55.207.88:/home/www/reddimatch --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r
+rsync -a -rave "ssh -i reddimatch-staging.pem" ./ --filter=':- .gitignore' root@45.55.207.88:/home/www/reddimatch --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r
 chmod -R +rx /home/www/reddimatch/app/static/css
 chmod -R +rx /home/www/reddimatch/app/static/js
 
 rsync -a ./app/views.py root@45.55.207.88:/home/www/reddimatch/app/views.py --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r
+
+
+
+
+rsync -a -rave "ssh -i reddimatch-staging.pem" ./ --filter=':- .gitignore' ubuntu@ec2-52-25-43-253.us-west-2.compute.amazonaws.com:/home/www/reddimatch --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r
+
+rsync -avL --progress -e "ssh -i /Users/chrismabry/Desktop/reddimatch/reddimatch-staging.pem" ./ --filter=':- .gitignore' ubuntu@ec2-52-25-43-253.us-west-2.compute.amazonaws.com:/home/www/reddimatch --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r
+
+rsync -avz ./ -e "ssh -i /Users/chrismabry/Desktop/reddimatch/reddimatch-staging.pem" ubuntu@ec2-52-25-43-253.us-west-2.compute.amazonaws.com:/home/www/reddimatch
+
+sudo rsync -PazSHAX –rsh “ssh -i reddimatch-staging.pem” –rsync-path “sudo rsync” \ ./ ubuntu@ec2-52-25-43-253.us-west-2.compute.amazonaws.com:/home/www/reddimatch/
+
+sudo rsync -a –rsh “ssh -i /Users/chrismabry/Desktop/reddimatch/reddimatch-staging.pem” –rsync-path “sudo rsync” \ ./ ubuntu@ec2-52-25-43-253.us-west-2.compute.amazonaws.com:/home/www/reddimatch/
+
+ssh -i reddimatch-staging.pem ubuntu@ec2-52-25-43-253.us-west-2.compute.amazonaws.com
