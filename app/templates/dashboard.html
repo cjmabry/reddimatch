@@ -1,6 +1,5 @@
 {% extends "base.html" %}
-{% block container%}container-fluid{% endblock %}
-{% block page_class%}class="dashboard_page"{% endblock %}
+{% block container %}container-fluid{% endblock %}
 {% block content %}
 
 {% if current_user.is_authenticated() %}
@@ -46,7 +45,7 @@
   <div class="register_form">
     {% from "_formhelpers.html" import render_field %}
     <form class="col-sm-12" id="registration" method=post action="/dashboard" data-parsley-validate>
-
+      {{ form.csrf_token }}
         <div class="row">
 
           <div class="field username col-sm-6">
@@ -107,21 +106,19 @@
 
         </div>
 
-        <input class="hidden" id="update-button" type=submit value=Update>
-    </form>
   </div>
 
 </div>
 
-<div class="row">
+<div>
 
   <h3>Dating Settings</h3>
 
 </div>
 
-<div class="date controls">
+<div class="date controls text-center">
 
-  <div class="row">
+  <div>
 
     {% from "_formhelpers.html" import render_field %}
 
@@ -133,19 +130,21 @@
       {% set age = '' %}
     {% endif %}
 
-    <p class="main_criteria">I am a {{render_field(date_form.age,value=age, placeholder='Age')}} year old {{render_field(date_form.gender)}} looking for a {{render_field(date_form.desired_gender, default=2)}}
+    <p class="main_criteria">I am a <span class="field">{{render_field(form.age,value=age, placeholder='Age')}}</span> year old <span class="field">{{render_field(form.gender)}}</span> looking for a <span class="field">{{render_field(form.desired_gender, default=2)}}</span>
 
     <p class="criteria">Between the ages of <span id="min_age_preview">18</span> and <span id="max_age_preview">35</span>.</p>
 
     <div id="age_slider" class="range_slider"></div>
-    {{render_field(date_form.min_age,value=18)}}
-    {{render_field(date_form.max_age,value=35)}}
+    <span class="field">{{render_field(form.min_age)}}</span>
+    <span class="field">{{render_field(form.max_age)}}</span>
 
     <p class="criteria">Search up to <span id="radius_preview">50 miles</span> away.</p>
     <div id="radius_slider" class="range_slider"></div>
-    {{render_field(date_form.radius, value=50)}}
+    <span class="field">{{render_field(form.radius)}}</span>
 
-    <p class="criteria">{{render_field(date_form.searchable)}}<small> I don't want to show up in other users' date searches.</small></p>
+    <p class="criteria">{{render_field(form.searchable)}} I don't want to show up in other users' date searches.</p>
+
+    <input class="hidden" id="update-button" type=submit value=Update>
 
   </form>
 
@@ -155,7 +154,7 @@
 
 <div class="row text-center">
 
-  <label for="update-button" id="update-button-label" class="disabled btn btn-primary next-button">Update Profile <span class="glyphicon glyphicon-chevron-right"></span></label>
+  <label for="update-button" id="update-button-label" class="enabled btn btn-primary next-button">Update Profile <span class="glyphicon glyphicon-chevron-right"></span></label>
 
 </div>
 
@@ -164,15 +163,21 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{url_for('static', filename='js/custom/dashboard.js')}}"></script>
 <script src="{{url_for('static', filename='js/vendor/nouislider.min.js')}}"></script>
 
 <script>
   var radius_slider = document.getElementById('radius_slider');
   var age_slider = document.getElementById('age_slider');
+  var radius_preview = document.getElementById('radius_preview');
+  var radius = document.getElementById('radius');
+  var min_age = document.getElementById('min_age');
+  var min_age_preview = document.getElementById('min_age_preview');
+  var max_age = document.getElementById('max_age');
+  var max_age_preview = document.getElementById('max_age_preview');
+
 
   noUiSlider.create(radius_slider, {
-    start: 50,
+    start: radius.value,
 	connect: 'lower',
   step:1,
 	range: {
@@ -182,7 +187,7 @@
   });
 
   noUiSlider.create(age_slider, {
-    start:[ 18, 35 ],
+    start:[ min_age.value, max_age.value ],
     connect:true,
     step:1,
     range:{
@@ -191,24 +196,15 @@
     }
   });
 
-  var radius_preview = document.getElementById('radius_preview');
-  var radius = document.getElementById('radius');
-  var min_age = document.getElementById('min_age');
-  var min_age_preview = document.getElementById('min_age_preview');
-  var max_age = document.getElementById('max_age');
-  var max_age_preview = document.getElementById('max_age_preview');
-
   radius_slider.noUiSlider.on('update', function(values, handle) {
 
-    if(values[handle] == 1){
-      radius_preview.innerHTML = "1 mile";
-    } else if(values[handle] > 100){
+    if(values[handle] > 100){
       radius_preview.innerHTML = "100+ miles";
     } else {
       radius_preview.innerHTML = parseInt(values[handle]) + ' miles';
     }
 
-    radius.value = parseInt(values[handle]);
+    $(radius).val(parseInt(values[handle])).trigger('change');
 
   });
 
@@ -224,10 +220,10 @@
     age = parseInt(values[handle]);
 
     if(handle == 0) {
-      min_age.value = age;
+      $(min_age).val(age).trigger('change');
       min_age_preview.innerHTML = preview;
     } else {
-      max_age.value = age;
+      $(max_age).val(age).trigger('change');
       max_age_preview.innerHTML = preview;
     }
   });

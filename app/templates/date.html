@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block container%}container-fluid{% endblock %}
-{% block page_class%}class="match_page date_filter_page"{% endblock %}
 {% block content %}
 
   {% if current_user.is_authenticated() %}
@@ -56,12 +55,12 @@
           <p class="criteria">Between the ages of <span id="min_age_preview">18</span> and <span id="max_age_preview">35</span>.</p>
 
           <div id="age_slider" class="range_slider"></div>
-          {{render_field(form.min_age,value=18)}}
-          {{render_field(form.max_age,value=35)}}
+          {{render_field(form.min_age)}}
+          {{render_field(form.max_age)}}
 
           <p class="criteria">Search up to <span id="radius_preview">50 miles</span> away.</p>
           <div id="radius_slider" class="range_slider"></div>
-          {{render_field(form.radius, value=50)}}
+          {{render_field(form.radius)}}
 
           <p class="criteria">{{render_field(form.searchable)}}<small> I don't want to show up in other users' date searches.</small></p>
 
@@ -143,9 +142,16 @@
 <script>
   var radius_slider = document.getElementById('radius_slider');
   var age_slider = document.getElementById('age_slider');
+  var radius_preview = document.getElementById('radius_preview');
+  var radius = document.getElementById('radius');
+  var min_age = document.getElementById('min_age');
+  var min_age_preview = document.getElementById('min_age_preview');
+  var max_age = document.getElementById('max_age');
+  var max_age_preview = document.getElementById('max_age_preview');
+
 
   noUiSlider.create(radius_slider, {
-    start: 50,
+    start: radius.value,
 	connect: 'lower',
   step:1,
 	range: {
@@ -155,7 +161,7 @@
   });
 
   noUiSlider.create(age_slider, {
-    start:[ 18, 35 ],
+    start:[ min_age.value, max_age.value ],
     connect:true,
     step:1,
     range:{
@@ -164,24 +170,15 @@
     }
   });
 
-  var radius_preview = document.getElementById('radius_preview');
-  var radius = document.getElementById('radius');
-  var min_age = document.getElementById('min_age');
-  var min_age_preview = document.getElementById('min_age_preview');
-  var max_age = document.getElementById('max_age');
-  var max_age_preview = document.getElementById('max_age_preview');
-
   radius_slider.noUiSlider.on('update', function(values, handle) {
 
-    if(values[handle] == 1){
-      radius_preview.innerHTML = "1 mile";
-    } else if(values[handle] > 100){
+    if(values[handle] > 100){
       radius_preview.innerHTML = "100+ miles";
     } else {
       radius_preview.innerHTML = parseInt(values[handle]) + ' miles';
     }
 
-    radius.value = parseInt(values[handle]);
+    $(radius).val(parseInt(values[handle])).trigger('change');
 
   });
 
@@ -197,10 +194,10 @@
     age = parseInt(values[handle]);
 
     if(handle == 0) {
-      min_age.value = age;
+      $(min_age).val(age).trigger('change');
       min_age_preview.innerHTML = preview;
     } else {
-      max_age.value = age;
+      $(max_age).val(age).trigger('change');
       max_age_preview.innerHTML = preview;
     }
   });

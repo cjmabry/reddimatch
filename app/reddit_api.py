@@ -9,8 +9,6 @@ from config import REDDIT_USER_AGENT, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, RE
 
 handler = MultiprocessHandler()
 
-#TODO try/catch all HTTP and NotFound Errors
-
 def praw_instance():
     r = praw.Reddit(user_agent=REDDIT_USER_AGENT, handler=handler)
 
@@ -30,8 +28,6 @@ def generate_url(state, scope, refreshable):
 def login_reddit_user(code):
     r = praw_instance()
 
-
-    print code
     access_information = r.get_access_information(code)
     r.set_access_credentials(**access_information)
     refresh_token = access_information['refresh_token']
@@ -79,16 +75,6 @@ def create_user(username, refresh_token):
 def get_favorite_subs(user):
     time1 = time.time()
     r = praw_instance()
-    # refresh_token = user.refresh_token
-
-    # if refresh_token:
-    #     access_information = r.refresh_access_information(refresh_token)
-    #     r.set_access_credentials(**access_information)
-    #     new_refresh_token = access_information['refresh_token']
-    #     user.refresh_token = new_refresh_token
-    #     db.session.commit()
-    # else:
-    #     print('No refresh_token')
 
     reddit_user = r.get_redditor(user.username)
 

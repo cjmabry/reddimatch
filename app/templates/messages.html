@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block container%}container-fluid{% endblock %}
-{% block page_class%}class="messages"{% endblock %}
 {% block content %}
 <!-- TODO refactor to be in line with new chat.js -->
 
@@ -16,18 +15,16 @@
 
             {% for request in requests %}
 
-                <li class="user request" data-username="{{ request.username }}">
+                <li class="user request" data-username="{{ request.user_from.username }}" data-match-type="{{request.match_type}}">
 
                   <div class="profile_photo">
 
-                    <img src="{{ request.avatar(60) }}">
+                    <img src="{{ request.user_from.avatar(60) }}">
 
                   </div>
                   <div class="info">
 
-                    <span class="username">{{request.username}}</span>
-
-                    <!-- <span class="time">Just Now</span> -->
+                    <span class="username">{{request.user_from.username}}<span class="glyphicon {% if request.match_type == 'date' %}glyphicon glyphicon-heart{% elif request.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
 
                   </div>
 
@@ -45,26 +42,25 @@
 
         {% endwith %}
 
-        {% with matches = current_user.get_matches() %}
+        {% with accepted_matches = current_user.get_matches() %}
 
-          {% if matches %}
+          {% if accepted_matches %}
 
-            {% for match in matches %}
+            {% for match in accepted_matches %}
 
-              {% if match.is_matched(current_user) %}
+              {% if match.user_to.username != current_user.username %}
 
-                <li class="user accepted" data-username="{{ match.username }}">
+                <li class="user accepted {{match.match_type}}" data-username="{{ match.user_to.username }}" data-match-type="{{match.match_type}}">
 
                   <div class="profile_photo">
 
-                    <img src="{{ match.avatar(60) }}">
+                    <img src="{{ match.user_to.avatar(60) }}">
 
                   </div>
                   <div class="info">
 
-                    <span class="username">{{match.username}}</span>
+                    <span class="username">{{match.user_to.username}}<span class="glyphicon {% if match.match_type == 'date' %}glyphicon glyphicon-heart{% elif match.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
 
-                    <!-- <span class="time">Just Now</span> -->
 
                   </div>
 
@@ -76,26 +72,77 @@
 
                 </li>
 
-                {% endif %}
+              {% elif match.user_from.username != current_user.username %}
+              <li class="user accepted {{match.match_type}}" data-username="{{ match.user_from.username }}" data-match-type="{{match.match_type}}">
+
+                <div class="profile_photo">
+
+                  <img src="{{ match.user_from.avatar(60) }}">
+
+                </div>
+                <div class="info">
+
+                  <span class="username">{{match.user_from.username}}<span class="glyphicon {% if match.match_type == 'date' %}glyphicon glyphicon-heart{% elif match.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
+
+
+                </div>
+
+                <div class="right_side">
+                  <div class="status"><span class="indicator"></span></div>
+
+                  <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
+                </div>
+
+              </li>
+
+              {% endif %}
 
             {% endfor %}
 
-            {% for match in matches %}
+          {% endif %}
 
-              {% if not match.is_matched(current_user) %}
+        {% endwith %}
 
-                <li class="user unconfirmed" data-username="{{ match.username }}">
+          {% with pending_matches = current_user.get_pending_matches() %}
+
+            {% if pending_matches %}
+
+              {% for match in pending_matches %}
+
+                {% if match.user_to.username != current_user.username %}
+                  <li class="user unconfirmed" data-username="{{ match.user_to.username }}" data-match-type="{{match.match_type}}">
+
+                    <div class="profile_photo">
+
+                      <img src="{{ match.user_to.avatar(60) }}">
+
+                    </div>
+                    <div class="info">
+
+                      <span class="username">{{match.user_to.username}}<span class="glyphicon {% if match.match_type == 'date' %}glyphicon glyphicon-heart{% elif match.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
+
+
+                    </div>
+
+                    <div class="right_side">
+                      <div class="status"><span class="indicator"></span></div>
+
+                      <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
+                    </div>
+
+                  </li>
+                {% elif match.user_from.username != current_user.username %}
+                <li class="user unconfirmed" data-username="{{ match.user_from.username }}" data-match-type="{{match.match_type}}">
 
                   <div class="profile_photo">
 
-                    <img src="{{ match.avatar(60) }}">
+                    <img src="{{ match.user_from.avatar(60) }}">
 
                   </div>
                   <div class="info">
 
-                    <span class="username">{{match.username}}</span>
+                    <span class="username">{{match.user_from.username}}<span class="glyphicon {% if match.match_type == 'date' %}glyphicon glyphicon-heart{% elif match.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
 
-                    <!-- <span class="time">Just Now</span> -->
 
                   </div>
 
@@ -106,16 +153,13 @@
                   </div>
 
                 </li>
-
                 {% endif %}
 
-            {% endfor %}
-
-            {% else %}
-
-            <!--  No matches -->
+              {% endfor %}
 
             {% endif %}
+
+          {% endwith %}
 
           </ul>
 
@@ -145,9 +189,6 @@
     </div>
 
   </div>
-
-{% endwith %}
-
 
 {% endblock %}
 

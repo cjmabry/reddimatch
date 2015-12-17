@@ -14,7 +14,6 @@ class Match(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_from_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user_to_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-
     match_type = db.Column(db.String(10))
     matched_on = db.Column(db.DateTime)
     accepted = db.Column(db.Boolean)
@@ -44,7 +43,7 @@ class User(db.Model):
     bio = db.Column(db.String(140))
     profile_photo_url = db.Column(db.String(120))
     registered = db.Column(db.Boolean)
-    deleted = db.Column(db.Boolean)
+    is_active = db.Column(db.Boolean)
     favorited = db.relationship('Subreddit', secondary=favorite_subs,
         backref=db.backref('favorite_subs', lazy='dynamic'), lazy='dynamic')
     registered = db.Column(db.Boolean)
@@ -57,31 +56,40 @@ class User(db.Model):
     date_searchable = db.Column(db.Boolean)
     min_age = db.Column(db.Integer)
     max_age = db.Column(db.Integer)
+    search_radius = db.Column(db.Integer)
+    oauth_denied = db.Column(db.Boolean)
 
     matches_sent = db.relationship('Match', backref='match_sender', primaryjoin=(id==Match.user_from_id),lazy='dynamic')
     matches_received = db.relationship('Match', primaryjoin=(id==Match.user_to_id), backref='match_recipient', lazy='dynamic')
 
-    def match(self, user, match_type):
+    def send_match_request(self, user, match_type):
         """Send a match request from self to user of type match_type"""
-        if not self.is_matched(user, match_type) and not self.is_rejected(user, match_type):
+        print self
+        print user
+        print match_type
+        if not self.is_matched(user, match_type) and not self.is_rejected(user, match_type) and not self.has_sent_match(user, match_type):
+            print 1
             if self.has_received_match(user, match_type):
-                match = Match(user_from_id = self.id, user_to_id = user.id, match_type = match_type, matched_on = datetime.now(), accepted=False, rejected=False)
-                db.session.add(match)
-                db.session.commit()
+                print 2
                 self.accept_match(user, match_type)
                 return self
-            elif not self.has_sent_match(user, match_type):
+            else:
+                print 3
                 match = Match(user_from_id = self.id, user_to_id = user.id, match_type = match_type, matched_on = datetime.now(), accepted=False, rejected=False)
                 db.session.add(match)
                 db.session.commit()
                 self.matches_sent.append(match)
+                user.matches_received.append(match)
+                db.session.add(user)
+                db.session.commit()
                 return self
-        else:
-            return self
+        print 4
+        return self
 
     def accept_match(self, user, match_type):
         """Accept a match request"""
-        match = self.matches_received.filter(Match.user_from_id == user.id,match_type==match_type).first()
+        print 11
+        match = self.matches_received.filter(Match.user_from_id == user.id,Match.match_type==match_type).first()
         match.accepted = True
         match.rejected = False
         match.matched_on = datetime.now()
@@ -89,23 +97,42 @@ class User(db.Model):
         db.session.commit()
         return self
 
-    def is_matched(self, user, match_type):
+    def is_matched(self, user, match_type = None):
         """Check if self is matched and accepted with user"""
-        if self.has_sent_match(user, match_type) and self.has_received_match(user, match_type):
-            if self.matches_sent.filter(Match.user_to_id == user.id, match_type == match_type).first().accepted or  self.matches_received.filter(Match.user_from_id == user.id, match_type == match_type).first().accepted:
-                return True
+        if match_type:
+            if self.has_sent_match(user, match_type):
+                if self.matches_sent.filter(Match.user_to_id == user.id, Match.match_type == match_type).first().accepted:
+                    return True
+            if self.has_received_match(user, match_type):
+                if self.matches_received.filter(Match.user_from_id == user.id, Match.match_type == match_type).first().accepted:
+                    return True
             else:
                 return False
         else:
-            return False
+            if self.has_sent_match(user):
+                if self.matches_sent.filter(Match.user_to_id == user.id).first().accepted:
+                    return True
+            if self.has_received_match(user):
+                if self.matches_received.filter(Match.user_from_id == user.id).first().accepted:
+                    return True
+            else:
+                return False
 
-    def has_received_match(self, user, match_type):
-        """Check if current user has received a match from user"""
-        return self.matches_received.filter(Match.user_from_id == user.id, Match.match_type==match_type).count() > 0
+    def has_received_match(self, user, match_type=None):
+        """Check if current user has received a match request from user"""
+        if match_type:
+            print 111
+            return self.matches_received.filter(Match.user_from_id == user.id, Match.match_type==match_type).count() > 0
+        else:
+            print 222
+            return self.matches_received.filter(Match.user_from_id == user.id).count() > 0
 
-    def has_sent_match(self, user, match_type):
+    def has_sent_match(self, user, match_type=None):
         """Check if current user has sent a match to user"""
-        return self.matches_sent.filter(Match.user_to_id == user.id, Match.match_type==match_type).count() > 0
+        if match_type:
+            return self.matches_sent.filter(Match.user_to_id == user.id, Match.match_type==match_type).count() > 0
+        else:
+            return self.matches_sent.filter(Match.user_to_id == user.id).count() > 0
 
     def unmatch(self, user, match_type):
         """Unmatch user from the current user and reject them"""
@@ -126,15 +153,24 @@ class User(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def is_rejected(self, user, match_type):
+    def is_rejected(self, user, match_type=None):
         """ Check if user has been rejected by self """
-        if self.has_sent_match(user, match_type):
-            if self.matches_sent.filter(Match.user_to_id == user.id, Match.match_type==match_type).first().rejected == True:
-                return True
-        if self.has_received_match(user, match_type):
-            if self.matches_received.filter(Match.user_from_id == user.id, Match.match_type==match_type).first().rejected == True:
-                return True
-        return False
+        if match_type:
+            if self.has_sent_match(user, match_type):
+                if self.matches_sent.filter(Match.user_to_id == user.id, Match.match_type==match_type).first().rejected == True:
+                    return True
+            if self.has_received_match(user, match_type):
+                if self.matches_received.filter(Match.user_from_id == user.id, Match.match_type==match_type).first().rejected == True:
+                    return True
+            return False
+        else:
+            if self.has_sent_match(user):
+                if self.matches_sent.filter(Match.user_to_id == user.id).first().rejected == True:
+                    return True
+            if self.has_received_match(user):
+                if self.matches_received.filter(Match.user_from_id == user.id).first().rejected == True:
+                    return True
+            return False
 
     # def unreject(self, user, match_type):
     #     """ Unreject user and allow to be matched with again """
@@ -154,29 +190,69 @@ class User(db.Model):
     #         return self
 
     def get_matches(self, match_type=None):
-        """Get all of self's matches that haven't been rejected"""
+        """Get all of self's matches that have been accepted and haven't been rejected"""
         matches = []
 
         if match_type:
-            if self.matches_sent.filter(Match.match_type==match_type, Match.rejected == False).count() > 0:
-                matches.extend(self.matches_sent.filter(Match.match_type==match_type, Match.rejected == False))
+            if self.matches_sent.filter(Match.match_type==match_type, Match.rejected == False, Match.accepted == True).count() > 0:
+                matches.extend(self.matches_sent.filter(Match.match_type==match_type, Match.rejected == False, Match.accepted == True))
 
-            if self.matches_received.filter(Match.match_type==match_type, not Match.rejected == False).count() > 0:
-                matches.extend(self.matches_received.filter(Match.match_type==match_type, Match.rejected == False))
+            if self.matches_received.filter(Match.match_type==match_type, not Match.rejected == False, Match.accepted == True).count() > 0:
+                matches.extend(self.matches_received.filter(Match.match_type==match_type, Match.rejected == False, Match.accepted == True))
         else:
-            if self.matches_sent.filter(Match.rejected == False).count() > 0:
-                matches.extend(self.matches_sent.filter(Match.rejected == False))
+            if self.matches_sent.filter(Match.rejected == False, Match.accepted == True).count() > 0:
+                matches.extend(self.matches_sent.filter(Match.rejected == False, Match.accepted == True))
 
-            if self.matches_received.filter(Match.rejected == False).count() > 0:
-                matches.extend(self.matches_received.filter(Match.rejected == False))
+            if self.matches_received.filter(Match.rejected == False, Match.accepted == True).count() > 0:
+                matches.extend(self.matches_received.filter(Match.rejected == False, Match.accepted == True))
 
         if len(matches) > 0:
             return matches
 
+    def get_pending_matches(self, match_type=None):
+        """Get all matches that self has sent that have not been accepted or rejected yet"""
+        matches = []
+
+        if match_type:
+            if self.matches_sent.filter(Match.match_type==match_type, Match.rejected == False, Match.accepted == False).count() > 0:
+                matches.extend(self.matches_sent.filter(Match.match_type==match_type, Match.rejected == False, Match.accepted == False))
+
+            # if self.matches_received.filter(Match.match_type==match_type, not Match.rejected == False, Match.accepted == False).count() > 0:
+            #     matches.extend(self.matches_received.filter(Match.match_type==match_type, Match.rejected == False, Match.accepted == False))
+        else:
+            if self.matches_sent.filter(Match.rejected == False, Match.accepted == False).count() > 0:
+                matches.extend(self.matches_sent.filter(Match.rejected == False, Match.accepted == False))
+
+            # if self.matches_received.filter(Match.rejected == False, Match.accepted == False).count() > 0:
+            #     matches.extend(self.matches_received.filter(Match.rejected == False, Match.accepted == False))
+
+        if len(matches) > 0:
+            return matches
+
+    # def get_matches(self, match_type=None):
+    #     """Get all of self's matches that haven't been rejected"""
+    #     matches = []
+    #
+    #     if match_type:
+    #         if self.matches_sent.filter(Match.match_type==match_type, Match.rejected == False).count() > 0:
+    #             matches.extend(self.matches_sent.filter(Match.match_type==match_type, Match.rejected == False))
+    #
+    #         if self.matches_received.filter(Match.match_type==match_type, not Match.rejected == False).count() > 0:
+    #             matches.extend(self.matches_received.filter(Match.match_type==match_type, Match.rejected == False))
+    #     else:
+    #         if self.matches_sent.filter(Match.rejected == False).count() > 0:
+    #             matches.extend(self.matches_sent.filter(Match.rejected == False))
+    #
+    #         if self.matches_received.filter(Match.rejected == False).count() > 0:
+    #             matches.extend(self.matches_received.filter(Match.rejected == False))
+    #
+    #     if len(matches) > 0:
+    #         return matches
+
     def get_match_requests(self, match_type=None):
         """Get match requests
 
-        Get all users that have matched with the user whom the user hasn't matched with yet
+        Get all users that have matched that haven't been accepted or rejected
         """
 
         if match_type:
@@ -184,7 +260,8 @@ class User(db.Model):
         else:
             matches = self.matches_received.filter(Match.rejected == False, Match.accepted == False).all()
 
-        return matches
+        if len(matches) > 0:
+            return matches
 
     def avatar(self, size=300):
         if self.email is not None:
@@ -238,7 +315,7 @@ class User(db.Model):
         return True
 
     def is_active(self):
-        return True
+        return self.is_active
 
     def is_anonymous(self):
         return False
@@ -279,6 +356,8 @@ class Message(db.Model):
     to = db.relationship('User', foreign_keys=[to_id], backref='received_messages')
     author = db.relationship('User', foreign_keys=[from_id], backref='sent_messages')
     time_sent = db.Column(db.DateTime)
+    match_type = db.Column(db.String(10))
+    read = db.Column(db.Boolean)
 
     def get_id(self):
         try:

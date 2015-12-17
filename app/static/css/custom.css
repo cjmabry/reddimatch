@@ -538,19 +538,19 @@ footer {
   cursor: pointer;
 }
 
-/* Privacy */
-.privacy body {
+/* .privacy_page */
+.privacy_page body {
   background: #51b2e8;
   color: white;
 }
 
-.privacy .logo {
+.privacy_page .logo {
   width: 300px;
   margin: auto;
 }
 
 /* Match */
-/*.match_page body, .date_filter_page body, html.match_page, html.date_filter_page, .match_page .container-fluid, .date_filter_page .container-fluid {
+/*.match_page body, .date_page body, html.match_page, html.date_page, .match_page .container-fluid, .date_page .container-fluid {
   height: 100%;
   height: calc( 100% - 50px);
   margin-bottom:0;
@@ -676,11 +676,11 @@ html.match_page {
   margin: 20px 0;
 }
 
-.match_page .controls, .date_filter_page .controls {
+.match_page .controls, .date_page .controls {
   flex: 2 0;
 }
 
-.match_page .choices, .date_filter_page .choices {
+.match_page .choices, .date_page .choices {
   max-width: 600px;
   margin: auto;
   padding: 0 20px;
@@ -721,7 +721,7 @@ html.match_page {
   border: 1px solid #999;
 }*/
 
-/*.match_page .heading, .date_filter_page .heading {
+/*.match_page .heading, .date_page .heading {
   padding: 0 0 20px;
 }*/
 
@@ -777,13 +777,13 @@ html.match_page {
   transform: scale(1.1);
 }
 
-/*.match_page #user_info, .date_filter_page #user_info {
+/*.match_page #user_info, .date_page #user_info {
   flex: 0;
   min-width: 0;
   max-width: none;
 }*/
 
-.date_filter_page .main, .match_page .main {
+.date_page .main, .match_page .main {
   display: flex;
   height: 100%;
 }
@@ -1177,16 +1177,16 @@ input[type=range]:focus::-ms-fill-upper {
 }
 
 /* Messages */
-html.messages, .messages body {
+html.messages_page, .messages_page body {
   height: 100%;
   height: calc(100% - 50px)
 }
 
-.messages body {
+.messages_page body {
   margin-bottom: 0;
 }
 
-.messages .container-fluid{
+.messages_page .container-fluid{
   height:100%;
 }
 
@@ -1564,9 +1564,8 @@ html.messages, .messages body {
 #current_messages .prompt .prompt_icon {
 
   width: 200px;
-  height: 150px;
+  height: 130px;
   display: block;
-  background: red;
   margin: auto;
   background: url('/static/images/bubbles-blue.svg') no-repeat;
 
@@ -1695,7 +1694,7 @@ html.messages, .messages body {
   width: 400px;
 }
 
-.messages #feedback, .match_page #feedback {
+.messages_page #feedback, .match_page #feedback {
   display: none;
 }
 

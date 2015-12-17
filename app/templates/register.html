@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block container%}container-fluid{% endblock %}
-{% block page_class%}class="register_page"{% endblock %}
 {% block content %}
 
 {% if current_user.is_authenticated() %}
@@ -49,6 +48,7 @@
     {% from "_formhelpers.html" import render_field %}
 
     <form class="col-sm-12" id="registration" method=post action="/register" data-parsley-validate>
+        {{ form.csrf_token }}
 
         <div class="row">
 

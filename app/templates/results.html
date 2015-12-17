@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block container%}container{% endblock %}
-{% block page_class%}class="results_page"{% endblock %}
 {% block content %}
 
   {% if current_user.is_authenticated() %}
@@ -14,10 +13,9 @@
           <h4>Go on, break the ice.</h4>
         </div>
 
-        <!-- {% if matches['onsite'] == False %}
-      </br>
+        {% if matches[0]['status'] == 'offsite' %}
           <p>We couldn't find any users on reddimatch, but we did find some potential matches on reddit.</p>
-        {% endif %} -->
+        {% endif %}
 
         <div class="row matches">
 
@@ -76,12 +74,12 @@
 
               {% if match.status == 'onsite' %}
                 <div class="match_button">
-                  <span class="check glyphicon glyphicon-ok yes-match" role="button" data-username="{{match.username}}">
+                  <span class="check glyphicon glyphicon-ok yes-match" role="button" data-username="{{match.username}}" data-match-type="{{match.type}}">
                   </span>
 
                   <span class="text">Match</span>
 
-                  <span class="cross glyphicon glyphicon-remove no-match" role="button" data-username="{{match.username}}">
+                  <span class="cross glyphicon glyphicon-remove no-match" role="button" data-username="{{match.username}}" data-match-type="{{match.type}}">
                   </span>
 
                 </div>

@@ -3,12 +3,11 @@ from flask.ext.login import LoginManager, current_user, login_user, login_requir
 from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
 from flask_socketio import emit, send, join_room, leave_room, rooms
-import praw, random, datetime, string
+import praw, random, datetime, string, json, os
 from sqlalchemy import func, and_
 from haversine import haversine
 from math import cos, pi
 
-# TODO (secondary) when opening new tabs user is not logged in new tabs
 # TODO (secondary) refactor views.py
 
 @app.route('/')
@@ -16,48 +15,44 @@ from math import cos, pi
 def index():
     if current_user.is_authenticated:
         return redirect(url_for('match'))
-    return render_template('index.html')
+    return render_template('index.html', title='Reddimatch - Where redditors meet!', page_class='index_page')
 
 @app.route('/authorize')
 def authorize():
-    # TODO verify state
-    # TODO error handling
-
-    url = reddit_api.generate_url('uniqueKey', ['identity', 'history'], True)
+    state = os.urandom(10).encode('base-64').lower().strip()
+    session['state'] = state
+    url = reddit_api.generate_url(state, ['identity', 'history'], True)
 
     return redirect(url)
 
 @app.route('/authorize_callback')
 def authorize_callback():
-    # TODO check if state is same
-    # TODO complete error handling
+    code = request.args.get('code', None)
+    state = request.args.get('state', None).lower().strip()
+    error = request.args.get('error', None)
 
-    if request.args.get('error'):
-        error = request.args.get('error')
-        flash(error)
-
-        if error == 'access_denied' and current_user is not None and current_user.is_authenticated:
+    if error:
+        if error == 'access_denied':
             return redirect(url_for('logout'))
+        return redirect(url_for('index'))
 
-        return render_template('index.html')
-
-    elif request.args.get('code'):
-        return redirect(url_for('login', code=request.args.get('code')))
-
+    elif code and state:
+        if state == session['state']:
+            return redirect(url_for('login', title='Reddimatch', code=request.args.get('code')))
+        else:
+            return redirect(url_for('index'))
     else:
-        flash('error')
         return redirect(url_for('index'))
 
 @app.route('/login', methods=['GET','POST'])
 def login():
+    code = request.args.get('code', None)
+
     if current_user is not None and current_user.is_authenticated:
         return redirect(url_for('dashboard'))
 
-    if request.args.get('code'):
-        code = request.args.get('code')
-
+    if code:
         url = reddit_api.login_reddit_user(code)
-
         return redirect(request.args.get('next') or url)
 
     else:
@@ -113,17 +108,25 @@ def register():
 
         db.session.commit()
         return redirect(url_for('match'))
-    return render_template('register.html', form=form)
+    return render_template('register.html', title='Reddimatch - Register', form=form, page_class='register_page')
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    form = forms.RegistrationForm(request.form)
+    form = forms.DashboardForm(request.form)
+    user = current_user
 
-    date_form = forms.DateRegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
-        user = current_user
         user.username = form.username.data
+
+        if form.age.data:
+            user.age = int(form.age.data)
+        user.gender_id = int(form.gender.data)
+        user.desired_gender_id = int(form.desired_gender.data)
+        user.date_searchable = not form.searchable.data
+        user.min_age = int(form.min_age.data)
+        user.max_age = int(form.max_age.data)
+        user.search_radius = int(form.radius.data)
 
         if form.email.data:
             user.email = form.email.data
@@ -150,20 +153,57 @@ def dashboard():
                     r.get_subreddit(sub, fetch=True)
                 except Exception as e:
                     flash(e)
-                    return render_template('dashboard.html', form=form, date_form=date_form)
+                    return render_template('dashboard.html', title='Reddimatch - My Profile', form=form, page_class='dashboard_page')
 
                 subreddit = models.Subreddit(name=sub)
                 db.session.add(subreddit)
-                db.session.commit()
 
         db.session.commit()
-        return redirect(url_for('dashboard'))
-    return render_template('dashboard.html', form=form, date_form = date_form)
+
+        return render_template('dashboard.html', title='Reddimatch - My Profile', form=form, page_class='dashboard_page')
+
+    if user.gender_id:
+        print user.gender_id
+        form.gender.default = user.gender_id
+    else:
+        form.gender.default = 1
+
+    if user.desired_gender_id:
+        print user.desired_gender_id
+        form.desired_gender.default = user.desired_gender_id
+    else:
+        form.desired_gender.default = 2
+
+    if user.min_age:
+        print 'yo!'
+        print user.min_age
+        form.min_age.default = user.min_age
+    else:
+        form.min_age.default = 18
+
+    if user.max_age:
+        form.max_age.default = user.max_age
+    else:
+        form.max_age.default = 35
+
+    if user.search_radius:
+        form.radius.default = user.search_radius
+    else:
+        form.radius.default = 50
+
+    if user.date_searchable is not None:
+        form.searchable.default = not user.date_searchable
+    else:
+        form.searchable.default = False
+
+    form.process()
+
+    return render_template('dashboard.html', page_class='dashboard_page', title='Reddimatch - My Profile',form=form)
 
 @app.route('/match')
 @login_required
 def match():
-    return render_template('match.html')
+    return render_template('match.html', title='Reddimatch', page_class='match_page')
 
 @app.route('/quick_match')
 @login_required
@@ -179,7 +219,7 @@ def quick_match():
         users = sub.favorited_users().all()
 
         for u in users:
-            if u.username is not user.username and not user.is_matched(u) and not user.is_rejected(u) and not u.is_rejected(user):
+            if u.username is not user.username and not user.is_matched(u, 'friend') and not user.is_rejected(u, 'friend'):
 
                 u.status = 'onsite'
                 u.type = 'friend'
@@ -195,7 +235,7 @@ def quick_match():
         if len(matches) == 0:
             matches = None
 
-    return render_template('results.html', matches=matches)
+    return render_template('results.html', title='Reddimatch', page_class='results_page', matches=matches)
 
 @app.route('/date', methods = ['GET', 'POST'])
 @login_required
@@ -213,6 +253,7 @@ def date():
         current_user.date_searchable = not form.searchable.data
         current_user.min_age = int(form.min_age.data)
         current_user.max_age = int(form.max_age.data)
+        current_user.search_radius = int(form.radius.data)
 
         db.session.add(current_user)
         db.session.commit()
@@ -246,7 +287,7 @@ def date():
 
         if len(mutual_sub_matches) > 0:
             for u in mutual_sub_matches:
-                if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not u.is_rejected(current_user, 'date'):
+                if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not current_user.has_sent_match(u, 'date'):
                     distance = abs(haversine((current_user.latitude, current_user.longitude),(u.latitude,u.longitude),miles=True))
                     u.status = 'onsite'
                     u.type = 'date'
@@ -262,7 +303,7 @@ def date():
 
             for u in users:
 
-                if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not u.is_rejected(current_user, 'date'):
+                if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not current_user.has_sent_match(u, 'date'):
                     distance = abs(haversine((current_user.latitude, current_user.longitude),(u.latitude,u.longitude),miles=True))
                     u.status = 'onsite'
                     u.type = 'date'
@@ -284,7 +325,7 @@ def date():
         if len(matches) == 0:
             matches = None
 
-        return render_template('results.html',matches=matches)
+        return render_template('results.html',title='Reddimatch', page_class='results_page',matches=matches)
 
     if current_user.gender_id:
         print current_user.gender_id
@@ -308,9 +349,19 @@ def date():
     else:
         form.max_age.default = 35
 
+    if current_user.search_radius:
+        form.radius.default = current_user.search_radius
+    else:
+        form.radius.default = 50
+
+    if current_user.date_searchable is not None:
+        form.searchable.default = not current_user.date_searchable
+    else:
+        form.searchable.default = False
+
     form.process()
 
-    return render_template('date.html', form=form);
+    return render_template('date.html', title='Reddimatch', page_class='match_page date_page',form=form);
 
 @app.route('/logout')
 @login_required
@@ -326,6 +377,8 @@ def accept():
     match_username = request.form['username']
     match_type = request.form['match_type']
 
+
+    print match_username
     print 0
 
     if models.User.query.filter_by(username=match_username).first():
@@ -334,7 +387,7 @@ def accept():
 
         if not user.is_matched(match_user, match_type):
             print 2
-            m = user.match(match_user, match_type)
+            m = user.send_match_request(match_user, match_type)
             db.session.add(m)
             db.session.commit()
 
@@ -369,7 +422,8 @@ def get_username():
 @login_required
 def get_messages():
     username = request.args.get('username', None)
-
+    match_type = request.args.get('match_type', None)
+    print match_type
     if username is None:
         return 'no_username'
 
@@ -379,13 +433,12 @@ def get_messages():
             to_user = models.User.query.filter_by(username=username).first()
             to_id = to_user.id
 
-            if current_user.is_matched(to_user) and to_user.is_matched(current_user):
-
+            if current_user.is_matched(to_user, match_type):
                 messages_list = []
 
-                if models.Message.query.filter_by(from_id=current_user.id, to_id=to_id):
+                if models.Message.query.filter_by(from_id=current_user.id, to_id=to_id, match_type=match_type).count > 0:
 
-                    messages =  models.Message.query.filter_by(from_id=current_user.id,to_id=to_id).all()
+                    messages = models.Message.query.filter_by(from_id=current_user.id, to_id=to_id, match_type=match_type).all()
 
                     for m in messages:
                         message = {}
@@ -393,16 +446,17 @@ def get_messages():
                         message_object = {
                             'to':m.to.username,
                             'from':m.author.username,
-                            'content':m.content
+                            'content':m.content,
+                            'match_type':m.match_type
                         }
 
                         message[str(m.time_sent)] = message_object
 
                         messages_list.append(message)
 
-                if models.Message.query.filter_by(to_id=current_user.id, from_id=to_id):
+                if models.Message.query.filter_by(to_id=current_user.id, from_id=to_id, match_type=match_type):
 
-                    messages =  models.Message.query.filter_by(to_id=current_user.id,from_id=to_id).all()
+                    messages =  models.Message.query.filter_by(to_id=current_user.id,from_id=to_id, match_type=match_type).all()
 
                     for m in messages:
                         message = {}
@@ -410,7 +464,8 @@ def get_messages():
                         message_object = {
                             'to':m.to.username,
                             'from':m.author.username,
-                            'content':m.content
+                            'content':m.content,
+                            'match_type':m.match_type
                         }
 
                         message[str(m.time_sent)] = message_object
@@ -424,10 +479,10 @@ def get_messages():
                 else:
                     return jsonify(results = messages_list)
 
-            elif current_user.is_matched(to_user) and not to_user.is_matched(current_user):
-                return "unconfirmed"
-            else:
+            elif current_user.has_received_match(to_user, match_type) and not current_user.is_rejected(to_user, match_type):
                 return "request"
+            elif current_user.has_sent_match(to_user, match_type) and not current_user.is_rejected(to_user, match_type):
+                return "unconfirmed"
 
 @app.route('/get_avatar')
 @login_required
@@ -447,29 +502,26 @@ def get_avatar():
 
         return avatar
 
-@app.route('/is_online')
+@app.route('/is_online', methods=['POST','GET'])
 @login_required
 def is_online():
     if current_user.is_authenticated:
-        username = request.args.get('username')
+        users = request.json
+        user_dict = {}
 
-        if models.User.query.filter_by(username=username).first():
-            user = models.User.query.filter_by(username=username).first()
+        for username in users:
+            if models.User.query.filter_by(username=username).first():
+                user = models.User.query.filter_by(username=username).first()
+                user_dict[user.username] = user.is_online
 
-            if user.is_online:
-                return 'true'
-            else:
-                return 'false'
-
-        else:
-            return 'false'
+        return jsonify(user_dict)
 
 @app.route('/chat')
 @app.route('/chat/<username>')
 @login_required
 def messages(username=None):
-    if current_user.get_matches() or current_user.get_match_requests() > 0:
-        return render_template('messages.html')
+    if current_user.get_matches() or current_user.get_match_requests() > 0 or current_user.get_pending_matches():
+        return render_template('messages.html',title='Reddimatch - Messages',page_class='messages_page')
 
     else:
         return redirect(url_for('match'))
@@ -480,35 +532,39 @@ def get_user_info():
     if current_user.is_authenticated:
 
         username = request.args.get('username', None)
+        match_type = request.args.get('match_type', None)
 
-        if username is None:
+        if username is None or match_type is None:
             return 'false'
 
         if(models.User.query.filter_by(username=username).first()):
 
             user = models.User.query.filter_by(username=username).first()
 
-            user_dict = {}
+            if current_user.is_matched(user, match_type) or current_user.has_received_match(user, match_type) or current_user.has_sent_match(user, match_type) and not current_user.is_rejected(user, match_type):
 
-            user_dict['username'] = user.username
-            user_dict['profile_photo_url'] = user.profile_photo_url
-            user_dict['age'] = user.age
-            user_dict['gender'] = str(user.gender).title()
-            user_dict['location'] = user.location
-            user_dict['latitude'] = user.latitude
-            user_dict['longitude'] = user.longitude
-            user_dict['bio'] = user.bio
-            user_dict['avatar'] = str(user.avatar(100))
+                user_dict = {}
 
-            fav_subs = user.favorited.all()
-            fav_subs_list = []
+                user_dict['username'] = user.username
+                user_dict['profile_photo_url'] = user.profile_photo_url
+                user_dict['age'] = user.age
+                user_dict['gender'] = str(user.gender).title()
+                user_dict['location'] = user.location
+                user_dict['latitude'] = user.latitude
+                user_dict['longitude'] = user.longitude
+                user_dict['bio'] = user.bio
+                user_dict['avatar'] = str(user.avatar(100))
+                user_dict['match_type'] = match_type
 
-            for sub in fav_subs:
-                fav_subs_list.append(sub.name)
+                fav_subs = user.favorited.all()
+                fav_subs_list = []
 
-            user_dict['fav_subs'] = fav_subs_list
+                for sub in fav_subs:
+                    fav_subs_list.append(sub.name)
 
-        return jsonify(user_dict)
+                user_dict['fav_subs'] = fav_subs_list
+
+                return jsonify(user_dict)
 
 @app.route('/set_location')
 @login_required
@@ -524,14 +580,23 @@ def set_location():
 
     return 'true'
 
+# @app.route('/get_user')
+# @login_required
+# def get_info():
+#     username = request.args.get('username', None)
+#
+#     if username == current_user.username:
+#         u = models.User.query.filter_by(username=username).first()
+#         return jsonify(u)
+
 @socketio.on('connect')
 def connect_handler():
     if current_user.is_authenticated:
-
         current_user.last_online = datetime.datetime.now()
 
         for room in rooms():
             leave_room(room)
+
         username = current_user.username
         join_room(username)
         emit('message response', {'msg': 'Joined room ' + username}, room=username)
@@ -545,7 +610,6 @@ def connect_handler():
 @socketio.on('disconnect')
 def disconnect_handler():
     if current_user.is_authenticated:
-
         current_user.is_online = False
         current_user.last_online = datetime.datetime.now()
         db.session.commit()
@@ -557,16 +621,18 @@ def message(data):
     from_user = models.User.query.filter_by(username=data['from']).first()
     to_user = models.User.query.filter_by(username=data['to']).first()
 
-    if from_user.is_matched(to_user) and to_user.is_matched(from_user):
-        emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from']}, room=data['to'])
-        emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from']}, room=data['from'])
-        m = models.Message(content=data['msg'],from_id=from_user.id,to_id=to_user.id,time_sent=datetime.datetime.now())
+    print 34
+
+    if from_user.is_matched(to_user, data['match_type']):
+        emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from'], 'match_type': data['match_type']}, room=data['to'])
+        emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from'], 'match_type': data['match_type']}, room=data['from'])
+        m = models.Message(content=data['msg'],from_id=from_user.id,to_id=to_user.id,time_sent=datetime.datetime.now(), match_type=data['match_type'])
         db.session.add(m)
         db.session.commit()
 
 @app.route('/privacy')
 def privacy():
-    return render_template('privacy.html')
+    return render_template('privacy.html', title="Reddimatch - Privacy", page_class="privacy_page")
 
 @lm.user_loader
 def load_user(id):
@@ -578,9 +644,9 @@ def before_request():
 
 @app.errorhandler(404)
 def not_found_error(error):
-    return render_template('404.html'), 404
+    return render_template('404.html',title='These are not the droids you\'re looking for.',page_class='404_page'), 404
 
 @app.errorhandler(500)
 def internal_error(error):
     db.session.rollback()
-    return render_template('500.html'), 500
+    return render_template('500.html',title='Something went wrong.',page_class='500_page'), 500

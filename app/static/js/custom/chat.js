@@ -1,49 +1,39 @@
-// TODO address broken pipes
-// TODO allow user to unmatch
-// TODO (secondary) notify user on new message if scrolled
-// TODO (secondary) get last message from user to display on user list
-// TODO (secondary) auto expand text box on type
-// TODO (secondary) improve online/offline (if we can't use socket, do all in one request instead of one username at a time)
-
 var properties, Chat = {
-
   properties : {
       url : 'http://' + document.domain + ':' + location.port,
       username: null,
       socketObject: null,
       userList: $("ul#user_list"),
-      currentUserDiv: null,
       currentUser : null,
+      currentUserDiv: null,
       currentUserAvatar: null,
       currentUserStatus: null,
-      currentUserType: null,
+      currentUserMatchType: null,
       messageBoxHasContent: false,
       messageBox: $("#enter_message"),
       currentMessages: $("#current_messages")
   },
 
   init: function() {
-
     p = this.properties;
     p.userList.children(':first').addClass('selected');
-
     this.connect();
 
     if ($(p.userList).has("li").length > 0) {
-
-
       this.ui_handlers();
       this.chat_handlers();
 
-
       var self = this;
+
+      users = {};
 
       $(p.userList).each( function() {
         $(this).find('li').each(function() {
           var user = $(this).attr('data-username');
-          self.is_online(user);
+          users[user] = '';
         });
       });
+      self.is_online(users)
     }
 
   },
@@ -61,6 +51,7 @@ var properties, Chat = {
 
   get_current_username: function() {
     p.currentUser = $('.selected').attr("data-username");
+    p.currentUserMatchType = $('.selected').attr("data-match-type");
     p.currentUserDiv = $('.selected');
   },
 
@@ -135,11 +126,10 @@ var properties, Chat = {
 
     p.socketObject.on('message response', function(data) {
 
-      console.log(data);
       var div = $("<div>", {class: "message"});
       $(div).text(data.msg);
 
-      if (data.from == p.username && data.to == p.currentUser){
+      if (data.from == p.username && data.to == p.currentUser && data.match_type == p.currentUserMatchType){
         scroll = self.is_scrolled();
         div.addClass('to');
         p.currentMessages.append(div);
@@ -151,7 +141,7 @@ var properties, Chat = {
 
         }
 
-      } else if (data.from == p.currentUser && data.to == p.username) {
+      } else if (data.from == p.currentUser && data.to == p.username && data.match_type == p.currentUserMatchType) {
         scroll = self.is_scrolled();
         div.addClass('from');
         p.currentMessages.append(div);
@@ -169,7 +159,7 @@ var properties, Chat = {
   },
 
   send_message: function() {
-    p.socketObject.emit('message', {msg: p.messageBox.val(), to: p.currentUser, from:p.username});
+    p.socketObject.emit('message', {msg: p.messageBox.val(), to: p.currentUser, from:p.username, match_type:p.currentUserMatchType});
     p.messageBox.val('');
   },
 
@@ -177,7 +167,7 @@ var properties, Chat = {
     $("#current_conversation #current_messages").html('');
     $("#conversation_heading").html(p.currentUser);
     this.get_messages();
-    this.get_user_info(p.currentUser);
+    this.get_user_info(p.currentUser, p.currentUserMatchType);
   },
 
   get_messages: function(){
@@ -187,11 +177,12 @@ var properties, Chat = {
 
     var self = this;
 
+    console.log(p.currentUserMatchType)
+
     $.ajax({
       url: '/get_messages',
-      data: {"username":p.currentUser},
+      data: {"username":p.currentUser,"match_type":p.currentUserMatchType},
       success: function(response) {
-
         if(response == 'no_messages' || response == 'request' || response == 'unconfirmed') {
           self.display_prompt(response);
         } else {
@@ -215,10 +206,10 @@ var properties, Chat = {
         "<div class='prompt_icon'></div><h2><small>This user has requested to match with you! Accept their match if you'd like to chat.</small></h2>" +
         "<div class='match'>" +
           "<div class='match_button'>" +
-            "<span class='check glyphicon glyphicon-ok yes-match' role='button' data-username='"+ p.currentUser +"'>" +
+            "<span class='check glyphicon glyphicon-ok yes-match' role='button' data-username='"+ p.currentUser + "' data-match-type=" + p.currentUserMatchType + "'>" +
             "</span>" +
             "<span class='text'>Match</span>" +
-            "<span class='cross glyphicon glyphicon-remove no-match' role='button' data-username='"+ p.currentUser +"'>" +
+            "<span class='cross glyphicon glyphicon-remove no-match' role='button' data-username='"+ p.currentUser +"' data-match-type=" + p.currentUserMatchType + "'>" +
             "</span>" +
           "</div>" +
       "</div>");
@@ -232,12 +223,16 @@ var properties, Chat = {
     p.currentMessages.html(div);
     $("span.yes-match").on("click", function() {
       var match_username = $(this).attr("data-username");
-      match(this, match_username);
+      var match_type = p.currentUserMatchType;
+      console.log(match_username)
+      console.log(match_type)
+      match(this, match_username, match_type);
     });
 
     $("span.no-match").on("click", function() {
       var match_username = $(this).attr("data-username");
-      no_match(this, match_username);
+      var match_type = p.currentUserMatchType;
+      no_match(this, match_username, match_type);
       p.currentMessages.addClass('rejected');
       p.currentUserDiv.addClass('rejected');
     });
@@ -254,17 +249,18 @@ var properties, Chat = {
       data: {"username":p.currentUser,"size":size},
       success: function(response) {
         p.currentUserAvatar = response;
-        console.log(p.currentUserAvatar);
       }
     });
   },
 
-  get_user_info: function(username) {
+  get_user_info: function(username, match_type) {
     var self = this;
-    // ajax request with username, return json bject with all user info
+    // ajax request with username, return json object with all user info
     $.ajax({
       url: 'get_user_info',
-      data: {"username":username},
+      data: {"username":username,
+      match_type: match_type
+    },
       success: function(response){
         self.update_user_info(response);
       }
@@ -342,27 +338,29 @@ var properties, Chat = {
     }
   },
 
-  is_online: function(user) {
+  is_online: function(users) {
     var self = this;
-    // check if user is online
-    // ajax to server
-    // check if online server side
-    // return true or false
-    // set appropriate class on user
     $.ajax({
-      url: 'is_online',
-      data: {username:user},
-      success: function(response){
-        self.set_online(response , user);
+      type:'POST',
+      url:'is_online',
+      data: JSON.stringify(users),
+      dataType: 'json',
+      contentType: 'application/json; charset=utf-8',
+      success: function(users){
+        self.set_online(users);
       }
     });
   },
 
-  set_online: function(response, user){
-    if(response == 'true') {
-      p.userList.find("[data-username='" + user + "']").addClass('online');
-    } else {
-      p.userList.find("[data-username='" + user + "']").addClass('offline');
+  set_online: function(users){
+    for(var user in users){
+      if(users.hasOwnProperty(user)){
+        if(users[user] == true) {
+          p.userList.find("[data-username='" + user + "']").addClass('online');
+        } else {
+          p.userList.find("[data-username='" + user + "']").addClass('offline');
+        }
+      }
     }
   },
 
@@ -384,7 +382,6 @@ var properties, Chat = {
     var div;
 
     data = data.results;
-
     for (var k in data) {
 
       if (data.hasOwnProperty(k)) {
@@ -393,15 +390,14 @@ var properties, Chat = {
 
         for (var m in messages){
           if (messages.hasOwnProperty(m)) {
-            console.log(messages[m].content);
 
             div = $("<div>", {class: "message "});
             $(div).text(messages[m].content);
 
-            if (messages[m].from == p.username && messages[m].to == p.currentUser){
+            if (messages[m].from == p.username && messages[m].to == p.currentUser && messages[m].match_type == p.currentUserMatchType){
               div.addClass('to');
               p.currentMessages.append(div);
-            } else if (messages[m].from == p.currentUser && messages[m].to == p.username) {
+            } else if (messages[m].from == p.currentUser && messages[m].to == p.username && messages[m].match_type == p.currentUserMatchType) {
               div.addClass('from');
               p.currentMessages.append(div);
             }
