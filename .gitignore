@@ -64,9 +64,7 @@ app.db
 test.db
 tests.py
 
-
 tmp
-config.py
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
