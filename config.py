@@ -3,7 +3,7 @@ import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PROPAGATE_EXCEPTIONS = False
 
-SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://reddimatch:cjm4441993@rreddimatch.ckuiwsflfftp.us-west-2.rds.amazonaws.com:3306/main'
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://reddimatch:cjm4441993@reddimatch.ckuiwsflfftp.us-west-2.rds.amazonaws.com:3306/main'
 
 SQLALCHEMY_MIGRATE_REPO = os.path.join(BASE_DIR, 'db_repository')
 DATABASE_CONNECT_OPTIONS = {}
