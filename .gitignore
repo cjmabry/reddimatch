@@ -61,6 +61,8 @@ venv
 
 #Database
 app.db
+test.db
+tests.py
 
 
 tmp

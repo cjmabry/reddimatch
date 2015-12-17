@@ -1,2 +1,0 @@
-TODO set up vagrant to emulate production server
-TODO sort permissions on server
