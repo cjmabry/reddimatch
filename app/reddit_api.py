@@ -114,8 +114,13 @@ def get_offsite_user_favorite_subs(username):
 
     comments_by_subreddit = []
 
-    for comment in comments:
+    try:
+        for comment in comments:
         comments_by_subreddit.append(comment.subreddit.display_name)
+
+    except praw.errors.NotFound as e:
+        print e
+        print "There be an HTTP error. The user probably doesn't have any comments, or Reddit might be down."
 
     comments = collections.Counter(comments_by_subreddit)
 
