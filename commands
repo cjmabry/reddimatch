@@ -26,4 +26,4 @@ ssh -N -L 1234:reddimatch.ckuiwsflfftp.us-west-2.rds.amazonaws.com:3306 ubuntu@e
 
 ssh -i reddimatch-beta.pem ubuntu@ec2-54-200-155-165.us-west-2.compute.amazonaws.com
 
-sudo apt-get install build-essential libssl-dev libffi-dev python-dev git monit python-pip
+sudo apt-get install build-essential libssl-dev libffi-dev python-dev git monit python-pip nginx
