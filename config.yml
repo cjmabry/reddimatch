@@ -1,6 +1,0 @@
-packages:
-  yum:
-    gcc: []
-    libffi-devel: []
-    python-devel: []
-    openssl-devel: []
