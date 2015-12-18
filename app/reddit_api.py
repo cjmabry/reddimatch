@@ -116,7 +116,7 @@ def get_offsite_user_favorite_subs(username):
 
     try:
         for comment in comments:
-        comments_by_subreddit.append(comment.subreddit.display_name)
+            comments_by_subreddit.append(comment.subreddit.display_name)
 
     except praw.errors.NotFound as e:
         print e
