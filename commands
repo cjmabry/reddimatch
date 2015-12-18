@@ -21,3 +21,9 @@ sudo rsync -PazSHAX –rsh “ssh -i reddimatch-staging.pem” –rsync-path “
 sudo rsync -a –rsh “ssh -i /Users/chrismabry/Desktop/reddimatch/reddimatch-staging.pem” –rsync-path “sudo rsync” \ ./ ubuntu@ec2-52-25-43-253.us-west-2.compute.amazonaws.com:/home/www/reddimatch/
 
 ssh -i reddimatch-staging.pem ubuntu@ec2-52-25-43-253.us-west-2.compute.amazonaws.com
+
+ssh -N -L 1234:reddimatch.ckuiwsflfftp.us-west-2.rds.amazonaws.com:3306 ubuntu@ec2-52-25-43-253.us-west-2.compute.amazonaws.com -i /Users/chrismabry/Desktop/reddimatch/reddimatch-staging.pem
+
+ssh -i reddimatch-beta.pem ubuntu@ec2-54-200-155-165.us-west-2.compute.amazonaws.com
+
+sudo apt-get install build-essential libssl-dev libffi-dev python-dev git monit python-pip

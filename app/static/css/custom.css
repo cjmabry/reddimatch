@@ -276,7 +276,7 @@ footer {
 }
 
 #feedback::after {
-  content:"feedback@reddimatch.com";
+  content:"reddimatch@gmail.com";
   display: none;
   position: absolute;
   top:0;
@@ -1257,7 +1257,10 @@ html.messages_page, .messages_page body {
   padding-left: 15px;
   /*position: relative;*/
 }
-
+#conversations ul#user_list li .username .glyphicon {
+  padding: 0 5px;
+  color: #aaa;
+}
 /*#conversations ul#user_list li.unconfirmed {
 
   opacity: 0.3;
