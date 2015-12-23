@@ -1,0 +1,29 @@
+//Starting a new instance
+sudo apt-get update
+sudo apt-get install build-essential libssl-dev libffi-dev python-dev git monit python-pip nginx
+sudo mkdir /home/www
+cd /home/www
+sudo git clone https://github.com/cjmabry/reddimatch.git
+sudo cp config/config_stage.py config.py
+sudo pip install virtualenv
+sudo virtualenv venv
+sudo chown -R ubuntu:ubuntu venv/
+source venv/bin/activate
+pip install -r requirements.txt
+sudo cp config/sites-available /etc/nginx/sites-available/reddimatch
+sudo ln -s /etc/nginx/sites-available/reddimatch /etc/nginx/sites-enabled/reddimatch
+sudo rm /etc/nginx/sites-enabled/default
+sudo service nginx start
+sudo mkdir /home/www/reddimatch/tmp
+sudo chown -R ubuntu:ubuntu /home/reddimatch/tmp/
+sudo cp config/monitrc /etc/monit/monitrc
+sudo monit
+sudo nginx -s reload
+cd /home/www/reddimatch
+gunicorn --worker-class eventlet wsgi -b 0.0.0.0:8000 -D -p /home/www/reddimatch/tmp/gunicorn.pid
+
+//Deploying a change to staging
+sudo git pull
+sudo cp config/config_stage.py config.py
+sudo nginx -s reload
+kill -HUP `cat /home/www/reddimatch/tmp/gunicorn.pid`
