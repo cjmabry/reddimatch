@@ -7,10 +7,14 @@ def test():
 def commit():
     local("git add -p && git commit")
 
-def push():
-    local("git push origin develop")
+def push(branch):
+    local("git push origin" + name)
 
-def prepare_deploy():
+def deploy(branch="develop"):
+
+    if branch == "master":
+        pass
+
     test()
     commit()
-    push()
+    push(branch)
