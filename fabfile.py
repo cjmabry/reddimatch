@@ -1,6 +1,16 @@
 from fabric.api import local
 
-def prepare_deploy():
+
+def test():
     local("python ./tests.py")
+
+def commit():
     local("git add -p && git commit")
-    local("git push origin develop")
+
+def push():
+    local("git push")
+
+def prepare_deploy():
+    test()
+    commit()
+    push()
