@@ -1,7 +1,7 @@
 from flask import render_template, redirect, request, flash, url_for, g, jsonify, session
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
 from app import app, db, lm, reddit_api, models, forms, socketio
-from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI
+from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI, REDDIT_STATE
 from flask_socketio import emit, send, join_room, leave_room, rooms
 import praw, random, datetime, string, json, os
 from sqlalchemy import func, and_
@@ -19,9 +19,8 @@ def index():
 
 @app.route('/authorize')
 def authorize():
-    state = os.urandom(10).encode('base-64').lower().strip()
-    session['state'] = state
-    url = reddit_api.generate_url(state, ['identity', 'history'], True)
+    session['state'] = REDDIT_STATE
+    url = reddit_api.generate_url(REDDIT_STATE, ['identity', 'history'], True)
 
     return redirect(url)
 
@@ -219,7 +218,7 @@ def quick_match():
         users = sub.favorited_users().all()
 
         for u in users:
-            if u.username is not user.username and not user.is_matched(u, 'friend') and not user.is_rejected(u, 'friend'):
+            if u.username is not user.username and not user.is_matched(u, 'friend') and not user.is_rejected(u, 'friend') and not user.has_sent_match(u, 'friend'):
 
                 u.status = 'onsite'
                 u.type = 'friend'
@@ -277,7 +276,7 @@ def date():
         if radius:
             users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
         else:
-            users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
+            users = models.User.query.filter(and_(models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
 
         print 2
         # get matches that also have a similiar favorite sub

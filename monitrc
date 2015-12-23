@@ -1,0 +1,9 @@
+check process praw-multiprocess
+        matching "praw-multiprocess"
+        start program = "/home/www/reddimatch/venv/bin/praw-multiprocess --addr localhost --port 10101"
+        stop program = "/usr/bin/killall praw-multiprocess"
+
+set httpd port 2812
+        use address localhost
+        allow localhost
+        allow admin:monitpassword

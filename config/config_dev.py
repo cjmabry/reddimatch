@@ -3,12 +3,7 @@ import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PROPAGATE_EXCEPTIONS = False
 
-# SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://reddimatch:cjm4441993@reddimatch.ckuiwsflfftp.us-west-2.rds.amazonaws.com:3306/db'
-
-if os.environ.get('DATABASE_URL') is None:
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'app.db')
-else:
-    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'app.db')
 
 SQLALCHEMY_MIGRATE_REPO = os.path.join(BASE_DIR, 'db_repository')
 DATABASE_CONNECT_OPTIONS = {}
@@ -23,6 +18,7 @@ CSRF_SESSION_KEY = os.urandom(24)
 THREADS_PER_PAGE = 2
 
 SECRET_KEY = os.urandom(24)
+REDDIT_STATE = os.urandom(10).encode('base-64').lower().strip()
 
 # email server
 MAIL_SERVER = 'smtp.gmail.com'
