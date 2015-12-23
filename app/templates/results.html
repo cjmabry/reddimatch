@@ -36,7 +36,7 @@
 
                   <p><span class="badge">{{match.age}}</span>
                   <span class="badge">{{match.gender}}</span>
-                  <span class="badge">{{match.distance}} miles away</a></p>
+                  {% if match.distance is defined %}<span class="badge">{{match.distance}} miles away </a></p>{% endif %}
 
                 {% endif %}
 

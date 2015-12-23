@@ -17,8 +17,8 @@ CSRF_ENABLED = True
 CSRF_SESSION_KEY = os.urandom(24)
 THREADS_PER_PAGE = 2
 
-SECRET_KEY = os.urandom(24)
-REDDIT_STATE = os.urandom(10).encode('base-64').lower().strip()
+SECRET_KEY = 'secret'
+REDDIT_STATE = 'secret'
 
 # email server
 MAIL_SERVER = 'smtp.gmail.com'

@@ -253,30 +253,39 @@ def date():
         current_user.min_age = int(form.min_age.data)
         current_user.max_age = int(form.max_age.data)
         current_user.search_radius = int(form.radius.data)
+        radius = int(form.radius.data)
 
         db.session.add(current_user)
         db.session.commit()
 
-        # distance stuff
-        radius = int(form.radius.data)
-        deltaLat = float(radius/69.174 + 2)
-        lat_min = current_user.latitude - deltaLat
-        lat_max = current_user.latitude + deltaLat
 
         if radius > 100:
             radius = None
+
+        if current_user.latitude and current_user.longitude:
+
+            # get matches, favorite subs disregarded
+            if radius:
+                # distance stuff
+                deltaLat = float(radius/69.174 + 2)
+                lat_min = current_user.latitude - deltaLat
+                lat_max = current_user.latitude + deltaLat
+
+                users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
+            else:
+                users = models.User.query.filter(and_(models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
+        else:
+            distance = None
+            if not radius:
+                users = models.User.query.filter(and_(models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
+            else:
+                users = []
 
         mutual_sub_matches = []
         matches = []
         secondary_matches = []
 
         print 1
-
-        # get matches, favorite subs disregarded
-        if radius:
-            users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
-        else:
-            users = models.User.query.filter(and_(models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
 
         print 2
         # get matches that also have a similiar favorite sub
@@ -293,36 +302,42 @@ def date():
 
         print 3
         # get rid of dupes caused by multiple favorite subs
-        mutual_sub_matches = list(set(mutual_sub_matches))
-
-        if len(mutual_sub_matches) > 0:
-            for u in mutual_sub_matches:
-                if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not current_user.has_sent_match(u, 'date'):
-                    distance = abs(haversine((current_user.latitude, current_user.longitude),(u.latitude,u.longitude),miles=True))
-                    u.status = 'onsite'
-                    u.type = 'date'
-                    u.distance = int(distance)
-
-                    if radius:
-                        if distance <= radius:
-                            matches.append(u)
-                    else:
-                        matches.append(u)
-        print 4
+        # mutual_sub_matches = list(set(mutual_sub_matches))
+        #
+        # if len(mutual_sub_matches) > 0:
+        #     for u in mutual_sub_matches:
+        #         if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not current_user.has_sent_match(u, 'date'):
+        #
+        #             if u.latitude and u.longitude:
+        #                 distance = abs(haversine((current_user.latitude, current_user.longitude),(u.latitude,u.longitude),miles=True))
+        #                 u.distance = int(distance)
+        #
+        #             u.status = 'onsite'
+        #             u.type = 'date'
+        #
+        #             if radius:
+        #                 if distance:
+        #                     if distance <= radius:
+        #                         matches.append(u)
+        #             else:
+        #                 matches.append(u)
+        # print 4
 
         if len(matches) > 0 and len(matches) < 3 or len(matches) == 0:
 
             for u in users:
 
                 if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not current_user.has_sent_match(u, 'date'):
-                    distance = abs(haversine((current_user.latitude, current_user.longitude),(u.latitude,u.longitude),miles=True))
+                    if u.latitude and u.longitude and current_user.latitude and current_user.longitude:
+                        distance = abs(haversine((current_user.latitude, current_user.longitude),(u.latitude,u.longitude),miles=True))
+                        u.distance = int(distance)
                     u.status = 'onsite'
                     u.type = 'date'
-                    u.distance = int(distance)
 
                     if radius:
-                        if distance <= radius:
-                            secondary_matches.append(u)
+                        if distance:
+                            if distance <= radius:
+                                secondary_matches.append(u)
                     else:
                         secondary_matches.append(u)
 
