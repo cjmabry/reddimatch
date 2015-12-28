@@ -27,7 +27,6 @@ def authorize():
 @app.route('/authorize_callback')
 def authorize_callback():
     code = request.args.get('code', None)
-    state = request.args.get('state', None).lower().strip()
     error = request.args.get('error', None)
 
     if error:
