@@ -19,7 +19,7 @@ def index():
 
 @app.route('/authorize')
 def authorize():
-    session['state'] = REDDIT_STATE
+    # session['state'] = REDDIT_STATE
     url = reddit_api.generate_url(REDDIT_STATE, ['identity', 'history'], True)
 
     return redirect(url)
@@ -35,11 +35,9 @@ def authorize_callback():
             return redirect(url_for('logout'))
         return redirect(url_for('index'))
 
-    elif code and state:
-        if state == session['state']:
-            return redirect(url_for('login', title='Reddimatch', code=request.args.get('code')))
-        else:
-            return redirect(url_for('index'))
+    elif code:
+        # if state == session['state']:
+        return redirect(url_for('login', title='Reddimatch', code=request.args.get('code')))
     else:
         return redirect(url_for('index'))
 
