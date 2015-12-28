@@ -27,3 +27,9 @@ sudo git pull
 sudo cp config/config_stage.py config.py
 sudo nginx -s reload
 kill -HUP `cat /home/www/reddimatch/tmp/gunicorn.pid`
+
+//Deploy change to production
+sudo git pull
+sudo cp config/config_prod.py config.py
+sudo nginx -s reload
+kill -HUP `cat /home/www/reddimatch/tmp/gunicorn.pid`
