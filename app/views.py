@@ -486,6 +486,9 @@ def get_messages():
                     messages =  models.Message.query.filter_by(to_id=current_user.id,from_id=to_id, match_type=match_type).all()
 
                     for m in messages:
+                        if m.read is not True:
+                            m.read = True
+                            db.session.add(m)
                         message = {}
 
                         message_object = {
@@ -500,6 +503,8 @@ def get_messages():
                         messages_list.append(message)
 
                 messages_list.sort()
+
+                db.session.commit()
 
                 if not messages_list:
                     return 'no_messages'
@@ -607,14 +612,16 @@ def set_location():
 
     return 'true'
 
-# @app.route('/get_user')
-# @login_required
-# def get_info():
-#     username = request.args.get('username', None)
-#
-#     if username == current_user.username:
-#         u = models.User.query.filter_by(username=username).first()
-#         return jsonify(u)
+@app.route('/mark_as_read')
+@login_required
+def mark_as_read():
+    message_id = request.args.get('id', None)
+    print message_id
+    m = models.Message.query.filter_by(id = message_id).first()
+    m.read = True
+    db.session.add(m)
+    db.session.commit()
+    return 'true'
 
 @socketio.on('connect')
 def connect_handler():
@@ -648,14 +655,12 @@ def message(data):
     from_user = models.User.query.filter_by(username=data['from']).first()
     to_user = models.User.query.filter_by(username=data['to']).first()
 
-    print 34
-
     if from_user.is_matched(to_user, data['match_type']):
-        emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from'], 'match_type': data['match_type']}, room=data['to'])
-        emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from'], 'match_type': data['match_type']}, room=data['from'])
-        m = models.Message(content=data['msg'],from_id=from_user.id,to_id=to_user.id,time_sent=datetime.datetime.now(), match_type=data['match_type'])
+        m = models.Message(content=data['msg'],from_id=from_user.id,to_id=to_user.id,time_sent=datetime.datetime.now(), match_type=data['match_type'], read= False)
         db.session.add(m)
         db.session.commit()
+        emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from'], 'match_type': data['match_type'], 'id':m.id}, room=data['to'])
+        emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from'], 'match_type': data['match_type'], 'id':m.id}, room=data['from'])
 
 @app.route('/privacy')
 def privacy():

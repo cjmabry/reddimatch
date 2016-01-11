@@ -49,8 +49,6 @@ class TestCase(unittest.TestCase):
         db.session.add(m)
         db.session.commit()
 
-        print u1.matches_sent.all()
-
         assert len(u1.get_pending_matches()) == 1
         assert u2.get_pending_matches() is None
 
@@ -68,8 +66,6 @@ class TestCase(unittest.TestCase):
         db.session.add(m)
         db.session.commit()
 
-        print u2.matches_sent.all()
-
         assert u1.get_pending_matches() is None
         assert u2.get_pending_matches() is None
 
@@ -84,7 +80,7 @@ class TestCase(unittest.TestCase):
         assert len(u1.get_matches()) == 1
         assert len(u2.get_matches()) == 1
 
-    def atest_unmatch(self):
+    def test_unmatch(self):
         # test unmatching, rejecting, and unrejecting
         u1 = User(username='bill')
         u2 = User(username='jimbo')
@@ -153,7 +149,7 @@ class TestCase(unittest.TestCase):
         db.session.add(m)
         db.session.commit()
 
-    def atest_avatar(self):
+    def test_avatar(self):
         u1 = User(username='billy_bob')
         u2 = User(username='jimmy', email='poop@butt.com')
 
@@ -162,7 +158,7 @@ class TestCase(unittest.TestCase):
         assert u2.avatar(300) is not None
         assert u2.avatar() is not None
 
-    def atest_favorites(self):
+    def test_favorites(self):
         u1 = User(username='billy_bob')
         u2 = User(username='cjmabry', email='poop@butt.com')
         sub = Subreddit(name='trees')
@@ -207,6 +203,50 @@ class TestCase(unittest.TestCase):
 
         assert sub is not None
         assert u1 is not None
+
+    def test_notifications(self):
+        u1 = User(username='bill')
+        u2 = User(username='jimbo')
+        u3 = User(username='ronald')
+
+        db.session.add(u1)
+        db.session.add(u2)
+        db.session.add(u3)
+        db.session.commit()
+
+        assert u1.get_notifications() is None
+        assert u2.get_notifications() is None
+        assert u1.get_unread_messages().count() == 0
+        assert u2.get_unread_messages().count() == 0
+
+        match = u1.send_match_request(u2, 'date')
+        db.session.add(match)
+        db.session.commit()
+
+        assert u1.get_match_requests() is None
+        assert u2.get_match_requests() is not None
+        assert len(u2.get_match_requests()) == 1
+
+        assert u1.get_notifications() is None
+        assert u2.get_notifications() is not None
+        assert u2.get_notifications()[0].id == 1
+
+        u2.unmatch(u1, 'date')
+
+        assert u1.get_notifications() is None
+        assert u2.get_notifications() is None
+        assert u1.get_match_requests() is None
+        assert u2.get_match_requests() is None
+
+        message = Message(content="This is a message.", to_id = u2.id, from_id = u1.id)
+
+        db.session.add(message)
+        db.session.commit()
+
+        assert u1.get_unread_messages().count() == 0
+        assert u2.get_unread_messages().count() == 1
+
+        assert u2.get_unread_messages().first() == message
 
     def test_index(self):
         r =  self.app.get('/')

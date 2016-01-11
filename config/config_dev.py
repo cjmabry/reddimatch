@@ -8,7 +8,7 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'app.db')
 SQLALCHEMY_MIGRATE_REPO = os.path.join(BASE_DIR, 'db_repository')
 DATABASE_CONNECT_OPTIONS = {}
 
-REDDIT_USER_AGENT = 'web:com.reddimatch:v0.9.0 (by /u/cjmabry)'
+REDDIT_USER_AGENT = 'web:com.reddimatch:v1.0.0 (by /u/cjmabry)'
 REDDIT_CLIENT_ID = 'Q9TKty4V9mQQlA'
 REDDIT_CLIENT_SECRET = '1O14gtnAlNy_0X6j5F8E3HDSp9Q'
 REDDIT_REDIRECT_URI = 'http://127.0.0.1:8000/authorize_callback'
@@ -17,8 +17,8 @@ CSRF_ENABLED = True
 CSRF_SESSION_KEY = os.urandom(24)
 THREADS_PER_PAGE = 2
 
-SECRET_KEY = 'secret'
-REDDIT_STATE = 'secret'
+SECRET_KEY = os.urandom(24)
+REDDIT_STATE = os.urandom(10).encode('base-64').lower().strip()
 
 # email server
 MAIL_SERVER = 'smtp.gmail.com'

@@ -146,6 +146,7 @@ var properties, Chat = {
         div.addClass('from');
         p.currentMessages.append(div);
         p.currentMessages.removeClass('empty');
+        self.mark_as_read(data['id']);
 
         if(scroll) {
 
@@ -409,6 +410,15 @@ var properties, Chat = {
 
     }
 
+  },
+
+  mark_as_read: function(id) {
+    var self = this;
+    $.ajax({
+      type:'GET',
+      url:'mark_as_read',
+      data: {'id': id}
+    });
   }
 
 };
