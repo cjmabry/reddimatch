@@ -159,20 +159,16 @@ def dashboard():
         return render_template('dashboard.html', title='Reddimatch - My Profile', form=form, page_class='dashboard_page')
 
     if user.gender_id:
-        print user.gender_id
         form.gender.default = user.gender_id
     else:
         form.gender.default = 1
 
     if user.desired_gender_id:
-        print user.desired_gender_id
         form.desired_gender.default = user.desired_gender_id
     else:
         form.desired_gender.default = 2
 
     if user.min_age:
-        print 'yo!'
-        print user.min_age
         form.min_age.default = user.min_age
     else:
         form.min_age.default = 18
@@ -282,9 +278,6 @@ def date():
         matches = []
         secondary_matches = []
 
-        print 1
-
-        print 2
         # get matches that also have a similiar favorite sub
         # for sub in current_user.favorited_subs().all():
         #     print 2.5
@@ -297,7 +290,6 @@ def date():
         #                 mutual_sub_matches.append(u)
 
 
-        print 3
         # get rid of dupes caused by multiple favorite subs
         # mutual_sub_matches = list(set(mutual_sub_matches))
         #
@@ -342,26 +334,20 @@ def date():
 
             matches = list(set(matches))
 
-        print 5
-
         if len(matches) > 3:
             matches = random.sample(matches, 3)
 
         if len(matches) == 0:
             matches = None
 
-        print 6
-
         return render_template('results.html',title='Reddimatch', page_class='results_page',matches=matches)
 
     if current_user.gender_id:
-        print current_user.gender_id
         form.gender.default = current_user.gender_id
     else:
         form.gender.default = 1
 
     if current_user.desired_gender_id:
-        print current_user.desired_gender_id
         form.desired_gender.default = current_user.desired_gender_id
     else:
         form.desired_gender.default = 2
@@ -399,26 +385,18 @@ def logout():
 @app.route('/accept', methods=['POST', 'GET'])
 @login_required
 def accept():
-    print -1
     user = current_user
     match_username = request.form['username']
     match_type = request.form['match_type']
 
-
-    print match_username
-    print 0
-
     if models.User.query.filter_by(username=match_username).first():
         match_user = models.User.query.filter_by(username=match_username).first()
-        print 1
 
         if not user.is_matched(match_user, match_type):
-            print 2
             m = user.send_match_request(match_user, match_type)
             db.session.add(m)
             db.session.commit()
 
-    print 3
     return 'success'
 
 @app.route('/reject', methods=['POST', 'GET'])
@@ -450,7 +428,6 @@ def get_username():
 def get_messages():
     username = request.args.get('username', None)
     match_type = request.args.get('match_type', None)
-    print match_type
     if username is None:
         return 'no_username'
 
@@ -616,7 +593,6 @@ def set_location():
 @login_required
 def mark_as_read():
     message_id = request.args.get('id', None)
-    print message_id
     m = models.Message.query.filter_by(id = message_id).first()
     m.read = True
     db.session.add(m)
