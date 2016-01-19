@@ -21,7 +21,6 @@ def index():
 def authorize():
     # session['state'] = REDDIT_STATE
     url = reddit_api.generate_url(REDDIT_STATE, ['identity', 'history'], True)
-
     return redirect(url)
 
 @app.route('/authorize_callback')
@@ -45,7 +44,7 @@ def login():
     code = request.args.get('code', None)
 
     if current_user is not None and current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('match'))
 
     if code:
         url = reddit_api.login_reddit_user(code)
