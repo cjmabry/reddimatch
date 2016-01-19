@@ -144,6 +144,16 @@
 
     <p class="criteria">{{render_field(form.searchable)}} I don't want to show up in other users' date searches.</p>
 
+    <div class="notification-settings">
+
+      <h3 class="text-left">Notification Settings</h3>
+
+      <div class="allow_reddit_notifications text-center">
+        {{ render_field(form.allow_reddit_notifications) }} Send me a message through reddit when I recieve a match or when one of my matches is accepted.
+      </div>
+      
+    </div>
+
     <input class="hidden" id="update-button" type=submit value=Update>
 
   </form>

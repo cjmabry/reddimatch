@@ -209,7 +209,7 @@ var properties, Chat = {
           "<div class='match_button'>" +
             "<span class='check glyphicon glyphicon-ok yes-match' role='button' data-username='"+ p.currentUser + "' data-match-type=" + p.currentUserMatchType + "'>" +
             "</span>" +
-            "<span class='text'>Match</span>" +
+            "<span class='text'></span>" +
             "<span class='cross glyphicon glyphicon-remove no-match' role='button' data-username='"+ p.currentUser +"' data-match-type=" + p.currentUserMatchType + "'>" +
             "</span>" +
           "</div>" +
@@ -225,8 +225,6 @@ var properties, Chat = {
     $("span.yes-match").on("click", function() {
       var match_username = $(this).attr("data-username");
       var match_type = p.currentUserMatchType;
-      console.log(match_username)
-      console.log(match_type)
       match(this, match_username, match_type);
     });
 
@@ -234,8 +232,8 @@ var properties, Chat = {
       var match_username = $(this).attr("data-username");
       var match_type = p.currentUserMatchType;
       no_match(this, match_username, match_type);
+      $(p.currentUserDiv).fadeOut(500, function() { $(p.currentUserDiv).remove(); });
       p.currentMessages.addClass('rejected');
-      p.currentUserDiv.addClass('rejected');
     });
 
   },

@@ -1,4 +1,4 @@
-import praw, operator, collections, time, random, sys, os
+import praw, operator, collections, time, random, sys, os, OAuth2Util
 from praw.handlers import MultiprocessHandler
 from flask import url_for, g
 from app import db, models
@@ -161,3 +161,11 @@ def get_offsite_users(favs):
     users = random.sample(users, 3)
     pprint(users)
     return users
+
+def send_message(to, subject, message, from_sr):
+    r = praw_instance()
+
+    o = OAuth2Util.OAuth2Util(r, configfile="oauth_config.ini")
+    o.refresh()
+
+    msg = r.send_message(to,subject,message,from_sr=from_sr)

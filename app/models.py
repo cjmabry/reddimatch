@@ -58,6 +58,7 @@ class User(db.Model):
     max_age = db.Column(db.Integer)
     search_radius = db.Column(db.Integer)
     oauth_denied = db.Column(db.Boolean)
+    allow_reddit_notifications = db.Column(db.Boolean)
 
     matches_sent = db.relationship('Match', backref='match_sender', primaryjoin=(id==Match.user_from_id),lazy='dynamic')
     matches_received = db.relationship('Match', primaryjoin=(id==Match.user_to_id), backref='match_recipient', lazy='dynamic')

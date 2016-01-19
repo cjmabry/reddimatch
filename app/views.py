@@ -67,6 +67,7 @@ def register():
     if request.method == 'POST' and form.validate():
         user = current_user
         user.username = form.username.data
+        user.allow_reddit_notifications = form.allow_reddit_notifications.data
         user.bio = form.bio.data
         user.newsletter = True
         user.registered = True
@@ -114,6 +115,7 @@ def dashboard():
 
     if request.method == 'POST' and form.validate():
         user.username = form.username.data
+        user.allow_reddit_notifications = form.allow_reddit_notifications.data
 
         if form.age.data:
             user.age = int(form.age.data)
@@ -187,6 +189,11 @@ def dashboard():
         form.searchable.default = not user.date_searchable
     else:
         form.searchable.default = False
+
+    if user.allow_reddit_notifications is not None:
+        form.allow_reddit_notifications.default = user.allow_reddit_notifications
+    else:
+        form.allow_reddit_notifications.default = False
 
     form.process()
 
@@ -396,6 +403,12 @@ def accept():
             m = user.send_match_request(match_user, match_type)
             db.session.add(m)
             db.session.commit()
+            if match_user.allow_reddit_notifications:
+                if not user.has_received_match(match_user, match_type):
+                    reddit_api.send_message(user.username, "You have a new request on reddimatch!",'Dear ' + match_user.username + ',\n\n **' + user.username + '** has requested to match with you on [reddimatch](http://reddimatch.com)!\n\n To accept or reject this match, click [here](http://reddimatch.com/chat).\n\n If you would like to stop receiving match notifications through reddit, you may disable it on your [reddimatch dashboard](http://reddimatch.com/dashboard).\n\n Good luck! \n\n *The Reddimatch Notifier Bot*', from_sr='reddimatch')
+
+                elif user.has_received_match(match_user, match_type):
+                    reddit_api.send_message(user.username, "A user has accepted your request on reddimatch!",'Dear ' + match_user.username + ',\n\n **' + user.username + '** has accepted your match on  [reddimatch](http://reddimatch.com) - [go say hello](http://reddimatch.com/chat)!\n\n If you would like to stop receiving match notifications through reddit, you may disable it on your [reddimatch dashboard](http://reddimatch.com/dashboard).\n\n Good luck! \n\n *The Reddimatch Notifier Bot*', from_sr='reddimatch')
 
     return 'success'
 

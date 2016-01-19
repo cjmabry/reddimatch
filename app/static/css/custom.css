@@ -1081,7 +1081,6 @@ input[type=range]:focus::-ms-fill-upper {
   height: 50px;
   line-height: 50px;
   font-weight: 300;
-  background: rgba(0,0,0,0.03);
   border-radius: 50px;
   text-align: center;
   color: #666;
@@ -1090,6 +1089,46 @@ input[type=range]:focus::-ms-fill-upper {
   margin: 0 20px 20px;
   cursor: default;
   transition: color 0.25s;
+}
+
+.match .match_button .check::after {
+  display: none;
+  content: "Accept";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  left: 60px;
+  height: 35px;
+  width: 90px;
+  background: #66CC66;
+  border-radius: 35px;
+  font-weight: bolder;
+  line-height: 35px;
+}
+
+.match .match_button .cross::after {
+  display: none;
+  content: "Reject";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  right: 60px;
+  height: 35px;
+  width: 90px;
+  background: #FF6D6D;
+  border-radius: 35px;
+  font-weight: bolder;
+  line-height: 35px;
+}
+
+.match .match_button .cross:hover::after, .match .match_button .check:hover::after {
+  display: block;
+}
+
+.match .match_button.accepted .cross:hover::after, .match .match_button.rejected .cross:hover::after, .match .match_button.accepted .check:hover::after, .match .match_button.rejected .check:hover::after {
+  display: none;
 }
 
 .match .match_button .check, .match .match_button .cross {
@@ -1581,6 +1620,8 @@ html.messages_page, .messages_page body {
 #current_messages.request .prompt {
   width: 280px;
   height: 360px;
+  background: #fafafa;
+  padding-top: 30px;
 }
 
 #current_messages.unconfirmed .prompt {

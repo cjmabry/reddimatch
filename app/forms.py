@@ -14,6 +14,7 @@ class RegistrationForm(Form):
     favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least on favorite sub to find matches.")])
     favorite_sub_2 = StringField('Favorite Sub 2', [validators.Optional()])
     favorite_sub_3 = StringField('Favorite Sub 3', [validators.Optional()])
+    allow_reddit_notifications = BooleanField()
 
     def validate(self):
         has_error = False
@@ -112,6 +113,7 @@ class DashboardForm(Form):
     min_age = IntegerField('Minimum Age', widget=HiddenInput(), validators = [validators.Optional(), validators.NumberRange(min=18, max=130)])
     max_age = IntegerField('Max Age', widget=HiddenInput(), validators = [validators.Optional(), validators.NumberRange(min=18, max=130)])
     searchable = BooleanField("Searchable")
+    allow_reddit_notifications = BooleanField()
 
     def validate(self):
         has_error = False
