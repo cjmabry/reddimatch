@@ -1,6 +1,6 @@
 import ConfigParser, os
 config = ConfigParser.ConfigParser()
-config.read('./oauth_config.ini')
+config.read('./oauth_template.ini')
 config.set('app','app_key',os.environ['REDDIT_NOTIFIER_ID'])
 config.set('app','app_secret',os.environ['REDDIT_NOTIFIER_SECRET'])
 
