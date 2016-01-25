@@ -27,6 +27,10 @@ body .navbar a {
   color: #51b2e8;
 }
 
+.ads {
+  margin-top: 40px;
+}
+
 #cover a.login {
   position: absolute;
   top:20px;
@@ -132,6 +136,14 @@ body .navbar a {
 }
 
 /*color: rgba(81, 178, 232, 1);*/
+
+.btn {
+  height: 50px;
+  line-height: 50px;
+  padding: 0 20px;
+  border-radius: 50px;
+  border: none;
+}
 
 .btn-primary, .btn-secondary {
   height: 50px;
@@ -342,7 +354,7 @@ footer {
 }
 
 /* Register and Dashboard */
-.register_form, .register_page, .dashboard_page, .dashboard_page .modal-open .modal, .register_page .modal-open .modal {
+.register_form, .register_page, .dashboard_page, .dashboard_page .modal-open .modal, .register_page .modal-open .modal, .messages_page .modal-open .modal {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1069,6 +1081,7 @@ input[type=range]:focus::-ms-fill-upper {
 .match .profile_photo {
   width: 100%;
   height: auto;
+  border-radius: 5px 5px 0 0;
 }
 
 .match .match_info {
@@ -1094,6 +1107,7 @@ input[type=range]:focus::-ms-fill-upper {
 .match .match_button .check::after {
   display: none;
   content: "Accept";
+  font-family: sans-serif;
   position: absolute;
   top: 0;
   bottom: 0;
@@ -1109,6 +1123,7 @@ input[type=range]:focus::-ms-fill-upper {
 
 .match .match_button .cross::after {
   display: none;
+  font-family: sans-serif;
   content: "Reject";
   position: absolute;
   top: 0;
@@ -1144,8 +1159,16 @@ input[type=range]:focus::-ms-fill-upper {
   background: #60BF60;
 }
 
+.match .match_button .check:active {
+  background: #55AB55;
+}
+
 .match .match_button .cross:hover {
   background: #F16969;
+}
+
+.match .match_button .cross:active {
+  background: #D65C5C;
 }
 
 .match .match_button.accepted .check, .match .match_button.rejected .cross {

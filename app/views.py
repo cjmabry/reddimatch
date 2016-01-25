@@ -8,8 +8,6 @@ from sqlalchemy import func, and_
 from haversine import haversine
 from math import cos, pi
 
-# TODO (secondary) refactor views.py
-
 @app.route('/')
 @app.route('/index')
 def index():
@@ -19,7 +17,6 @@ def index():
 
 @app.route('/authorize')
 def authorize():
-    # session['state'] = REDDIT_STATE
     url = reddit_api.generate_url(REDDIT_STATE, ['identity', 'history'], True)
     return redirect(url)
 
@@ -34,7 +31,6 @@ def authorize_callback():
         return redirect(url_for('index'))
 
     elif code:
-        # if state == session['state']:
         return redirect(url_for('login', title='Reddimatch', code=request.args.get('code')))
     else:
         return redirect(url_for('index'))
@@ -43,22 +39,24 @@ def authorize_callback():
 def login():
     code = request.args.get('code', None)
 
-    if current_user is not None and current_user.is_authenticated:
+    if current_user.is_authenticated and not current_user.deleted:
+        print current_user.is_authenticated
+        print current_user.deleted
         return redirect(url_for('match'))
 
-    if code:
-        url = reddit_api.login_reddit_user(code)
-        return redirect(request.args.get('next') or url)
-
     else:
-        flash('Invalid request.')
-        return redirect(url_for('index'))
+        if code:
+            url = reddit_api.login_reddit_user(code)
+            return redirect(request.args.get('next') or url)
+        else:
+            flash('Invalid request.')
+            return redirect(url_for('index'))
 
 @app.route('/register', methods=['GET', 'POST'])
 @login_required
 def register():
 
-    if current_user.registered:
+    if current_user.registered and not current_user.deleted:
         return redirect(url_for('match'))
 
     form = forms.RegistrationForm(request.form)
@@ -75,6 +73,8 @@ def register():
 
         if form.email.data:
             user.email = form.email.data
+        else:
+            user.email = None
 
         favorite_subs = []
         favorite_subs.append(form.favorite_sub_1.data.lower())
@@ -127,6 +127,8 @@ def dashboard():
 
         if form.email.data:
             user.email = form.email.data
+        else:
+            user.email = None
 
         user.bio = form.bio.data
         favorite_subs = []
@@ -402,12 +404,13 @@ def accept():
             m = user.send_match_request(match_user, match_type)
             db.session.add(m)
             db.session.commit()
-            if match_user.allow_reddit_notifications:
-                if not user.has_received_match(match_user, match_type):
-                    reddit_api.send_message(user.username, "You have a new request on reddimatch!",'Dear ' + match_user.username + ',\n\n **' + user.username + '** has requested to match with you on [reddimatch](http://reddimatch.com)!\n\n To accept or reject this match, click [here](http://reddimatch.com/chat).\n\n If you would like to stop receiving match notifications through reddit, you may disable it on your [reddimatch dashboard](http://reddimatch.com/dashboard).\n\n Good luck! \n\n *The Reddimatch Notifier Bot*', from_sr='reddimatch')
+            if app.config['NOTIFICATIONS_ENABLED']:
+                if match_user.allow_reddit_notifications:
+                    if not user.has_received_match(match_user, match_type):
+                        reddit_api.send_message(match.username, "You have a new request on reddimatch!",'Dear ' + match_user.username + ',\n\n **' + user.username + '** has requested to match with you on [reddimatch](http://reddimatch.com)!\n\n To accept or reject this match, click [here](http://reddimatch.com/chat).\n\n If you would like to stop receiving match notifications through reddit, you may disable it on your [reddimatch dashboard](http://reddimatch.com/dashboard).\n\n Good luck! \n\n *The Reddimatch Notifier Bot*', from_sr='reddimatch')
 
-                elif user.has_received_match(match_user, match_type):
-                    reddit_api.send_message(user.username, "A user has accepted your request on reddimatch!",'Dear ' + match_user.username + ',\n\n **' + user.username + '** has accepted your match on  [reddimatch](http://reddimatch.com) - [go say hello](http://reddimatch.com/chat)!\n\n If you would like to stop receiving match notifications through reddit, you may disable it on your [reddimatch dashboard](http://reddimatch.com/dashboard).\n\n Good luck! \n\n *The Reddimatch Notifier Bot*', from_sr='reddimatch')
+                    elif user.has_received_match(match_user, match_type):
+                        reddit_api.send_message(match.username, "A user has accepted your request on reddimatch!",'Dear ' + match_user.username + ',\n\n **' + user.username + '** has accepted your match on  [reddimatch](http://reddimatch.com) - [go say hello](http://reddimatch.com/chat)!\n\n If you would like to stop receiving match notifications through reddit, you may disable it on your [reddimatch dashboard](http://reddimatch.com/dashboard).\n\n Good luck! \n\n *The Reddimatch Notifier Bot*', from_sr='reddimatch')
 
     return 'success'
 
@@ -649,6 +652,66 @@ def message(data):
         db.session.commit()
         emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from'], 'match_type': data['match_type'], 'id':m.id}, room=data['to'])
         emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from'], 'match_type': data['match_type'], 'id':m.id}, room=data['from'])
+
+@app.route('/delete_profile', methods=['POST'])
+@login_required
+def delete_profile():
+
+    username = request.form['username']
+
+    if current_user.username == username:
+
+        current_user.deleted = True
+        current_user.email = None
+        current_user.refresh_token =  None
+        current_user.age = None
+        current_user.gender_id = None
+        current_user.desired_gender_id = None
+        current_user.orientation = None
+        current_user.location = None
+        current_user.postal_code = None
+        current_user.latitude = None
+        current_user.longitude = None
+        current_user.bio = None
+        current_user.profile_photo_url = None
+        current_user.registered = False
+        current_user.email_verified = False
+        current_user.created_on = None
+        current_user.newsletter = False
+        current_user.date_searchable = False
+        current_user.min_age = None
+        current_user.max_age = None
+        current_user.search_radius = None
+        current_user.oauth_denied = None
+        current_user.allow_reddit_notifications = None
+
+        for match in current_user.matches_sent:
+            match.deleted = True
+
+        for match in current_user.matches_received:
+            match.deleted =  True
+
+        for msg in current_user.received_messages:
+            msg.deleted = True
+
+        for msg in current_user.sent_messages:
+            msg.deleted = True
+
+        current_user.unfavorite_all()
+
+        logout_user()
+
+        db.session.commit()
+
+        return 'True'
+
+    else:
+        return 'False'
+
+@app.route('/remove_match', methods=['POST'])
+@login_required
+def remove_match():
+    return 'True'
 
 @app.route('/privacy')
 def privacy():

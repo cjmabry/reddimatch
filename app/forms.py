@@ -36,15 +36,17 @@ class RegistrationForm(Form):
 
                 return False
 
-        email_user = models.User.query.filter(func.lower(models.User.email) == func.lower(self.email.data)).first()
+        if self.email.data is not None:
 
-        # if email is taken by a user
-        if email_user is not None:
+            email_user = models.User.query.filter(func.lower(models.User.email) == func.lower(self.email.data)).first()
 
-            # if email isn't taken by current user
-            if current_user.email is not email_user.email:
-                self.email.errors.append('An account with that email already exists.')
-                return False
+            # if email is taken by a user
+            if email_user is not None:
+
+                # if email isn't taken by current user
+                if current_user.email is not email_user.email:
+                    self.email.errors.append('An account with that email already exists.')
+                    return False
 
         # check if subreddits exist
         favorite_subs = []
@@ -137,13 +139,17 @@ class DashboardForm(Form):
 
         email_user = models.User.query.filter(func.lower(models.User.email) == func.lower(self.email.data)).first()
 
-        # if email is taken by a user
-        if email_user is not None:
+        print self.email.data
 
-            # if email isn't taken by current user
-            if current_user.email is not email_user.email:
-                self.email.errors.append('An account with that email already exists.')
-                return False
+        if self.email.data != '':
+
+            # if email is taken by a user
+            if email_user is not None:
+
+                # if email isn't taken by current user
+                if current_user.email is not email_user.email:
+                    self.email.errors.append('An account with that email already exists.')
+                    return False
 
         # check if subreddits exist
         favorite_subs = []

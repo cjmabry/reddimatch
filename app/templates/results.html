@@ -93,16 +93,22 @@
         </div>
       </div>
 
-      <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-      <!-- Reddimatch Match Ads -->
-      <ins class="adsbygoogle"
-           style="display:block;"
-           data-ad-client="ca-pub-4667734870034269"
-           data-ad-slot="6596308233"
-           data-ad-format="auto"></ins>
-      <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
+      {% if config['ADS_ENABLED'] %}
+
+        <div class="ads">
+          <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+          <!-- Reddimatch Match Ads -->
+          <ins class="adsbygoogle"
+               style="display:block;"
+               data-ad-client="ca-pub-4667734870034269"
+               data-ad-slot="6596308233"
+               data-ad-format="auto"></ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+
+      {% endif %}
 
       </div>
 
@@ -117,16 +123,22 @@
           </div>
         </div>
 
-        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-        <!-- Reddimatch Match Ads -->
-        <ins class="adsbygoogle"
-             style="display:block;"
-             data-ad-client="ca-pub-4667734870034269"
-             data-ad-slot="6596308233"
-             data-ad-format="auto"></ins>
-        <script>
-          (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
+        {% if config['ADS_ENABLED'] %}
+
+          <div class="ads">
+            <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+            <!-- Reddimatch Match Ads -->
+            <ins class="adsbygoogle"
+                 style="display:block;"
+                 data-ad-client="ca-pub-4667734870034269"
+                 data-ad-slot="6596308233"
+                 data-ad-format="auto"></ins>
+            <script>
+              (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+          </div>
+
+        {% endif %}
 
       {% endif %}
 

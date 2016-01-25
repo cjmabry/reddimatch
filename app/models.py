@@ -20,6 +20,7 @@ class Match(db.Model):
     rejected = db.Column(db.Boolean)
     user_from = db.relationship("User", foreign_keys=[user_from_id])
     user_to = db.relationship("User", foreign_keys=[user_to_id])
+    deleted = db.Column(db.Boolean)
 
     def __repr__(self):
         return '<Match request to %s>' % self.user_to.username
@@ -59,6 +60,7 @@ class User(db.Model):
     search_radius = db.Column(db.Integer)
     oauth_denied = db.Column(db.Boolean)
     allow_reddit_notifications = db.Column(db.Boolean)
+    deleted = db.Column(db.Boolean)
 
     matches_sent = db.relationship('Match', backref='match_sender', primaryjoin=(id==Match.user_from_id),lazy='dynamic')
     matches_received = db.relationship('Match', primaryjoin=(id==Match.user_to_id), backref='match_recipient', lazy='dynamic')
@@ -326,6 +328,7 @@ class Message(db.Model):
     time_sent = db.Column(db.DateTime)
     match_type = db.Column(db.String(10))
     read = db.Column(db.Boolean)
+    deleted= db.Column(db.Boolean)
 
     def get_id(self):
         try:

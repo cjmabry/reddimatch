@@ -1,4 +1,5 @@
 DEBUG = True
+TESTING = True
 import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PROPAGATE_EXCEPTIONS = False
@@ -7,25 +8,16 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'app.db')
 SQLALCHEMY_MIGRATE_REPO = os.path.join(BASE_DIR, 'db_repository')
 DATABASE_CONNECT_OPTIONS = {}
 
-REDDIT_USER_AGENT = 'web:com.reddimatch:v1.0.0 (by /u/cjmabry)'
-REDDIT_CLIENT_ID = 'Q9TKty4V9mQQlA'
-REDDIT_CLIENT_SECRET = '1O14gtnAlNy_0X6j5F8E3HDSp9Q'
-REDDIT_REDIRECT_URI = 'http://127.0.0.1:8000/authorize_callback'
-
 CSRF_ENABLED = True
-CSRF_SESSION_KEY = os.urandom(24)
-THREADS_PER_PAGE = 2
 
-SECRET_KEY = os.urandom(24)
-REDDIT_STATE = os.urandom(10).encode('base-64').lower().strip()
+REDDIT_USER_AGENT = os.environ['REDDIMATCH_USER_AGENT']
+REDDIT_CLIENT_ID = os.environ['REDDIMATCH_CLIENT_ID']
+REDDIT_CLIENT_SECRET = os.environ['REDDIMATCH_CLIENT_SECRET']
+REDDIT_REDIRECT_URI = os.environ['REDDIMATCH_REDIRECT_URI']
 
-# email server
-MAIL_SERVER = 'smtp.gmail.com'
-MAIL_PORT = 465
-MAIL_USE_TLS = False
-MAIL_USE_SSL = True
-MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+CSRF_SESSION_KEY = os.environ['REDDIMATCH_CSRF_KEY']
+SECRET_KEY = os.environ['REDDIMATCH_SECRET_KEY']
+REDDIT_STATE = os.environ['REDDIMATCH_STATE']
 
-# administrator list
-ADMINS = ['cjmab28+reddimatch+error@gmail.com']
+ADS_ENABLED = False
+NOTIFICATIONS_ENABLED = False

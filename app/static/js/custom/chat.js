@@ -321,6 +321,9 @@ var properties, Chat = {
       bio_div.append(data.bio);
     }
 
+    remove_match = $("<div class='card'><button data-toggle='modal' data-target='#delete-modal' class='btn btn-block btn-danger'>Remove Match <span class='glyphicon glyphicon-remove'></span></button></div>")
+    $("#user_info").append(remove_match);
+
   },
 
   is_scrolled: function() {

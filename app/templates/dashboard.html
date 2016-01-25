@@ -53,7 +53,7 @@
           </div>
 
           <div class="field email col-sm-6">
-            {% if current_user.email is defined %}
+            {% if current_user.email is defined and current_user.email is not none %}
               {{ render_field(form.email, placeholder='you@example.com', value=current_user.email) }}
 
             {% else %}
@@ -102,8 +102,6 @@
 
           {% endwith %}
 
-          <!-- <span class="add_sub glyphicon glyphicon-plus"></span> -->
-
         </div>
 
   </div>
@@ -151,7 +149,7 @@
       <div class="allow_reddit_notifications text-center">
         {{ render_field(form.allow_reddit_notifications) }} Send me a message through reddit when I recieve a match or when one of my matches is accepted.
       </div>
-      
+
     </div>
 
     <input class="hidden" id="update-button" type=submit value=Update>
@@ -165,6 +163,27 @@
 <div class="row text-center">
 
   <label for="update-button" id="update-button-label" class="enabled btn btn-primary next-button">Update Profile <span class="glyphicon glyphicon-chevron-right"></span></label>
+
+  <button data-toggle="modal" data-target="#delete-modal" class="btn btn-danger">Delete Profile</button>
+
+  <!-- Modal -->
+  <div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-labelledby="gravatarLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="gravatarLabel">Are you sure?</h4>
+        </div>
+        <div class="modal-body">
+          <p>This will delete your reddimatch profile, and you will lose everything associated with your account, including matches and messages.
+        </div>
+        <div class="modal-footer">
+          <a href="javascript: submit_delete();" class="btn btn-danger">Yes, delete my profile.</a>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Nevermind</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </div>
 
@@ -185,6 +204,12 @@
   var max_age = document.getElementById('max_age');
   var max_age_preview = document.getElementById('max_age_preview');
 
+
+  function submit_delete() {
+    $.post("/delete_profile", {
+      username: '{{current_user.username}}'
+    });
+  }
 
   noUiSlider.create(radius_slider, {
     start: radius.value,
