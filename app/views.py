@@ -7,6 +7,15 @@ import praw, random, datetime, string, json, os
 from sqlalchemy import func, and_
 from haversine import haversine
 from math import cos, pi
+from functools import wraps
+
+def active_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if g.user.deleted:
+            return redirect(url_for('logout'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/')
 @app.route('/index')
@@ -55,7 +64,6 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 @login_required
 def register():
-
     if current_user.registered and not current_user.deleted:
         return redirect(url_for('match'))
 
@@ -108,6 +116,7 @@ def register():
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
+@active_required
 def dashboard():
     form = forms.DashboardForm(request.form)
     user = current_user
@@ -202,11 +211,13 @@ def dashboard():
 
 @app.route('/match')
 @login_required
+@active_required
 def match():
     return render_template('match.html', title='Reddimatch', page_class='match_page')
 
 @app.route('/quick_match')
 @login_required
+@active_required
 def quick_match():
     #TODO use counter or similar to get people who are favorites of multiples of your favorites
     user = current_user
@@ -239,6 +250,7 @@ def quick_match():
 
 @app.route('/date', methods = ['GET', 'POST'])
 @login_required
+@active_required
 def date():
     form = forms.DateRegistrationForm(request.form)
 
@@ -392,6 +404,7 @@ def logout():
 
 @app.route('/accept', methods=['POST', 'GET'])
 @login_required
+@active_required
 def accept():
     user = current_user
     match_username = request.form['username']
@@ -416,6 +429,7 @@ def accept():
 
 @app.route('/reject', methods=['POST', 'GET'])
 @login_required
+@active_required
 def reject():
     user = current_user
     unmatch_username = request.form['username']
@@ -430,6 +444,7 @@ def reject():
 
 @app.route('/get_username')
 @login_required
+@active_required
 def get_username():
     if current_user.is_authenticated and current_user.username is not None:
         return jsonify({
@@ -440,6 +455,7 @@ def get_username():
 
 @app.route('/get_messages')
 @login_required
+@active_required
 def get_messages():
     username = request.args.get('username', None)
     match_type = request.args.get('match_type', None)
@@ -510,6 +526,7 @@ def get_messages():
 
 @app.route('/get_avatar')
 @login_required
+@active_required
 def get_avatar():
     if current_user.is_authenticated:
         username = request.args.get('username', None)
@@ -528,6 +545,7 @@ def get_avatar():
 
 @app.route('/is_online', methods=['POST','GET'])
 @login_required
+@active_required
 def is_online():
     if current_user.is_authenticated:
         users = request.json
@@ -543,6 +561,7 @@ def is_online():
 @app.route('/chat')
 @app.route('/chat/<username>')
 @login_required
+@active_required
 def messages(username=None):
     if current_user.get_matches() or current_user.get_match_requests() > 0 or current_user.get_pending_matches():
         return render_template('messages.html',title='Reddimatch - Messages',page_class='messages_page')
@@ -552,6 +571,7 @@ def messages(username=None):
 
 @app.route('/get_user_info')
 @login_required
+@active_required
 def get_user_info():
     if current_user.is_authenticated:
 
@@ -592,6 +612,7 @@ def get_user_info():
 
 @app.route('/set_location')
 @login_required
+@active_required
 def set_location():
     latitude = float(request.args.get('latitude'))
     longitude = float(request.args.get('longitude'))
@@ -606,6 +627,7 @@ def set_location():
 
 @app.route('/mark_as_read')
 @login_required
+@active_required
 def mark_as_read():
     message_id = request.args.get('id', None)
     m = models.Message.query.filter_by(id = message_id).first()
@@ -710,6 +732,7 @@ def delete_profile():
 
 @app.route('/remove_match', methods=['POST'])
 @login_required
+@active_required
 def remove_match():
     return 'True'
 

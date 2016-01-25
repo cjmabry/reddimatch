@@ -36,20 +36,19 @@ def login_reddit_user(code):
 
     if models.User.query.filter_by(reddit_username=username).first():
         user = models.User.query.filter_by(reddit_username=username).first()
-
-        if user.deleted:
-            print 2
-            user.deleted = False
-            user.refresh_token = refresh_token
-            db.session.commit()
-            url = url_for('register')
-            return url
-        else:
-            print 1
+        if not user.deleted:
             login_user(user)
             user.refresh_token = refresh_token
             db.session.commit()
             url = url_for('match')
+            return url
+        else:
+            user.deleted = False
+            user.refresh_token = refresh_token
+            user.get_reddit_favorite_subs()
+            login_user(user)
+            db.session.commit()
+            url = url_for('register')
             return url
     else:
         create_user(username, refresh_token)
