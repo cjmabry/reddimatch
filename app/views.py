@@ -4,7 +4,7 @@ from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI, REDDIT_STATE
 from flask_socketio import emit, send, join_room, leave_room, rooms
 import praw, random, datetime, string, json, os
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, or_
 from haversine import haversine
 from math import cos, pi
 from functools import wraps
@@ -730,11 +730,22 @@ def delete_profile():
     else:
         return 'False'
 
-@app.route('/remove_match', methods=['POST'])
+@app.route('/delete_match', methods=['POST'])
 @login_required
 @active_required
-def remove_match():
-    return 'True'
+def delete_match():
+    match_type = request.form['match_type']
+    match_username = request.form['match_username']
+    username = request.form['username']
+
+    if current_user.username == username:
+        if models.User.query.filter_by(username=match_username).first():
+            reject_user = models.User.query.filter_by(username=match_username).first()
+
+            current_user.unmatch(reject_user, match_type)
+
+        return 'Match deleted.'
+
 
 @app.route('/privacy')
 def privacy():

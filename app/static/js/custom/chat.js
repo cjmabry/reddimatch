@@ -64,17 +64,36 @@ var properties, Chat = {
     // user selection
     p.userList.on("click touchstart", function(e) {
 
-      $('.selected').removeClass('selected');
+      if(e.type=='click') {
+        e.stopPropagation();
+        e.preventDefault();
+        $('.selected').removeClass('selected');
 
-      if ($(e.target).prop("tagName") == 'LI') {
-        $(e.target).toggleClass("selected");
-      } else {
-        $(e.target).parents("li").toggleClass("selected");
+        if ($(e.target).prop("tagName") == 'LI') {
+          $(e.target).toggleClass("selected");
+        } else {
+          $(e.target).parents("li").toggleClass("selected");
+        }
+
+        self.get_current_username();
+        self.get_avatar(300);
+        self.update_conversation();
+      } else if(e.type=='touchstart') {
+        e.stopPropagation();
+        e.preventDefault();
+
+        $('.selected').removeClass('selected');
+
+        if ($(e.target).prop("tagName") == 'LI') {
+          $(e.target).toggleClass("selected");
+        } else {
+          $(e.target).parents("li").toggleClass("selected");
+        }
+
+        self.get_current_username();
+        self.get_avatar(300);
+        self.update_conversation();
       }
-
-      self.get_current_username();
-      self.get_avatar(300);
-      self.update_conversation();
     });
 
 
@@ -414,11 +433,22 @@ var properties, Chat = {
   },
 
   mark_as_read: function(id) {
-    var self = this;
     $.ajax({
       type:'GET',
       url:'mark_as_read',
       data: {'id': id}
+    });
+  },
+
+  remove_match: function() {
+
+    $.post('/delete_match', {
+        'match_username': p.currentUser,
+        'match_type': p.currentUserMatchType,
+        'username': p.username
+      }).done(function () {
+      window.location.replace("http://reddimatch.com/chat");
+      console.log('Match deleted');
     });
   }
 

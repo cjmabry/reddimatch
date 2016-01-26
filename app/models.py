@@ -213,6 +213,13 @@ class User(db.Model):
         if len(matches) > 0:
             return matches
 
+    # def get_all_matches(self, match_type):
+    #     if match_type:
+    #         matches_received = self.matches_received.filter(Match.match_type == match_type).all()
+    #         mathces_sent = self.matches_received.filter()
+    #     else:
+    #         matches = self.matches_received.filter(Match.match_type == match_type).all()
+
     def get_unread_messages(self, match_type=None):
         '''Get unread messages'''
         messages = Message.query.filter(Message.read == False, Message.to_id == self.id)

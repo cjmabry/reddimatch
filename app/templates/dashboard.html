@@ -160,11 +160,11 @@
 
 </div>
 
-<div class="row text-center">
+<div class="row text-center dashboard-buttons">
 
   <label for="update-button" id="update-button-label" class="enabled btn btn-primary next-button">Update Profile <span class="glyphicon glyphicon-chevron-right"></span></label>
 
-  <button data-toggle="modal" data-target="#delete-modal" class="btn btn-danger">Delete Profile</button>
+  <button data-toggle="modal" data-target="#delete-modal" class="btn btn-danger">Delete Profile <span class="glyphicon glyphicon-remove"></span></button>
 
   <!-- Modal -->
   <div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-labelledby="gravatarLabel">
@@ -208,6 +208,8 @@
   function submit_delete() {
     $.post("/delete_profile", {
       username: '{{current_user.username}}'
+    }).done(function () {
+      window.location.replace("http://reddimatch.com");
     });
   }
 
