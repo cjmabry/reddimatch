@@ -50,7 +50,7 @@
             {% set age = '' %}
           {% endif %}
 
-          <p class="main_criteria">I am a {{render_field(form.age,value=age, placeholder='Age')}} year old {{render_field(form.gender)}} looking for a {{render_field(form.desired_gender)}}
+          <p class="main_criteria">I am a {{render_field(form.age,value=age, placeholder='Age')}} year old {{render_field(form.gender)}} looking for a {{render_field(form.desired_gender)}}</p>
 
           <p class="criteria">Between the ages of <span id="min_age_preview">18</span> and <span id="max_age_preview">35</span>.</p>
 
@@ -58,7 +58,7 @@
           {{render_field(form.min_age)}}
           {{render_field(form.max_age)}}
 
-          <p class="criteria">Search up to <span id="radius_preview">50 miles</span> away.</p>
+          <p class="criteria">Search up to <span id="radius_preview">50 miles</span> from <input id="pac-input" class="controls" type="text" placeholder="Enter a location" autocomplete="on" runat="server"></p>
           <div id="radius_slider" class="range_slider"></div>
           {{render_field(form.radius)}}
 
@@ -136,8 +136,10 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{url_for('static', filename='js/custom/geo.js')}}"></script>
 <script src="{{url_for('static', filename='js/vendor/nouislider.min.js')}}"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCupgTAgADH3eHtQpKsGCLX0kz97ZF55gE&libraries=places"></script>
+<script src="{{url_for('static', filename='js/custom/geo.js')}}"></script>
+
 
 <script>
   var radius_slider = document.getElementById('radius_slider');

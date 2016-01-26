@@ -1,14 +1,20 @@
-if ("geolocation" in navigator) {
-  navigator.geolocation.getCurrentPosition(function(position) {
-    console.log(position.coords.latitude + ' ' + position.coords.longitude);
-    $.ajax({
-      url: '/set_location',
-      data: {latitude: position.coords.latitude,
-      longitude: position.coords.longitude}
-    }).done(function() {
-      console.log('location set');
+function initialize() {
+    var input = document.getElementById('pac-input');
+    var autocomplete = new google.maps.places.Autocomplete(input);
+    google.maps.event.addListener(autocomplete, 'place_changed', function () {
+        var place = autocomplete.getPlace();
+        document.getElementById('pac-input').value = place.name;
+        var latitude = place.geometry.location.lat();
+        var longitude = place.geometry.location.lng();
+
+        $.ajax({
+          url: '/set_location',
+          data: {latitude: latitude,
+          longitude: longitude}
+        }).done(function() {
+          console.log('location set');
+        });
+
     });
-  });
-} else {
-  /* geolocation IS NOT available */
 }
+google.maps.event.addDomListener(window, 'load', initialize);

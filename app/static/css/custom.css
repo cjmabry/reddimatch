@@ -746,6 +746,10 @@ html.match_page {
   padding: 0 20px;
 }
 
+.date_page .controls input {
+  display: inline-block;
+}
+
 /*.filters ul li.coming-soon::after {
   display: none;
   content: "Coming Soon";
@@ -2001,6 +2005,16 @@ html.messages_page, .messages_page body {
 }
 
 @media only screen and (max-width: 460px) {
+  body a.navbar-brand {
+    background: url('/static/images/logo-beta-mobile.svg') center center no-repeat;
+    background-size: auto 60%;
+    width: 100px;
+  }
+
+  body a.navbar-brand img {
+    display: none;
+  }
+
   .message {
     max-width: 100%;
     min-width: 0;
