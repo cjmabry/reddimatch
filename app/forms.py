@@ -123,7 +123,6 @@ class DashboardForm(Form):
     favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least on favorite sub to find matches.")])
     favorite_sub_2 = StringField('Favorite Sub 2', [validators.Optional()])
     favorite_sub_3 = StringField('Favorite Sub 3', [validators.Optional()])
-
     age = IntegerField('Age', [validators.Optional(), validators.NumberRange(min=18, max=130, message="You must be 18 years or older.")])
     gender =  SelectField('Gender', coerce=int, validators = [validators.Optional()], choices=[(1,'Man'), (2,'Woman'), (3,'Transgender')])
     desired_gender =  SelectField('Desired Gender', coerce=int, validators = [validators.Optional()], choices=[(1,'Man'), (2,'Woman'), (3,'Transgender')])

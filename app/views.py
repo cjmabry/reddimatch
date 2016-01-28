@@ -140,10 +140,10 @@ def dashboard():
         user.search_radius = int(form.radius.data)
         current_user.disable_location = form.disable_location.data
 
-        if current_user.disable_location is True:
-                    current_user.latitude = None
-                    current_user.longitude = None
-                    current_user.location = None
+        if user.disable_location is True:
+            user.latitude = None
+            user.longitude = None
+            user.location = None
 
         if form.email.data:
             user.email = form.email.data
@@ -216,10 +216,10 @@ def dashboard():
     else:
         form.allow_reddit_notifications.default = False
 
-    if current_user.location:
-        form.location.default = current_user.location
+    if user.location:
+        form.location.default = user.location
 
-    if current_user.disable_location == True:
+    if user.disable_location == True:
         form.disable_location.default = True
     else:
         form.disable_location.default = False

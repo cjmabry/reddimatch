@@ -214,13 +214,6 @@ class User(db.Model):
         if len(matches) > 0:
             return matches
 
-    # def get_all_matches(self, match_type):
-    #     if match_type:
-    #         matches_received = self.matches_received.filter(Match.match_type == match_type).all()
-    #         mathces_sent = self.matches_received.filter()
-    #     else:
-    #         matches = self.matches_received.filter(Match.match_type == match_type).all()
-
     def get_unread_messages(self, match_type=None):
         '''Get unread messages'''
         messages = Message.query.filter(Message.read == False, Message.to_id == self.id)
@@ -229,6 +222,7 @@ class User(db.Model):
 
     def get_notifications(self):
         '''Get all of the users unread notifications'''
+        # TODO: Notify user when a match is accepted through on-site notifications
         notifications = []
 
         match_requests = self.get_match_requests()
@@ -250,11 +244,14 @@ class User(db.Model):
             return 'http://www.gravatar.com/avatar/?d=identicon&s=%s' % size
 
     def favorite(self, subreddit):
+        # TODO: make sure we check all instances where this is written to DB, because if a user has already favorited one, we'll try to add a nonetype object to the DB and it will fail
+
         if not self.has_favorite(subreddit):
             self.favorited.append(subreddit)
             return self
 
     def unfavorite(self, subreddit):
+        # TODO: see favorite()
         if self.has_favorite(subreddit):
             self.favorited.remove(subreddit)
             return self
@@ -356,17 +353,6 @@ class Gender(db.Model):
             return unicode(self.id)
         except NameError:
             return str(self.id)
-
-    def populate_genders():
-        male = models.Gender(name='male')
-        female = models.Gender(name='female')
-        trans = models.Gender(name='transgender')
-
-        db.session.add(male)
-        db.session.add(female)
-        db.session.add(trans)
-
-        db.session.commit()
 
     def __repr__(self):
         return self.name

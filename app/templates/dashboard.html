@@ -55,7 +55,6 @@
 
               {% else %}
                   {{ render_field(form.email, placeholder='you@example.com') }}
-
               {% endif %}
             </div>
 
@@ -173,6 +172,8 @@
     <div class="criteria searchable-criteria">
       {{render_field(form.searchable)}}<small> I don't want to show up in other users' date searches.</small>
     </div>
+
+     <input class="hidden" id="update-button" type=submit value=Update>
 
   </form>
 

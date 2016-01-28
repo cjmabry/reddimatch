@@ -91,4 +91,15 @@ def populate_subreddit_db(numSubreddits):
             sub = models.Subreddit.query.filter_by(name=subreddit_name).first()
             sub.reddit_id = subreddit_id
 
+def populate_genders():
+    male = models.Gender(name='male')
+    female = models.Gender(name='female')
+    trans = models.Gender(name='transgender')
+
+    db.session.add(male)
+    db.session.add(female)
+    db.session.add(trans)
+
+    db.session.commit()
+
 populate_users(1000)
