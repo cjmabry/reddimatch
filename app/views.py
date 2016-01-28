@@ -112,6 +112,11 @@ def register():
 
         db.session.commit()
         return redirect(url_for('match'))
+
+    form.allow_reddit_notifications.default = True
+
+    form.process()
+
     return render_template('register.html', title='Reddimatch - Register', form=form, page_class='register_page')
 
 @app.route('/dashboard', methods=['GET', 'POST'])
@@ -133,6 +138,12 @@ def dashboard():
         user.min_age = int(form.min_age.data)
         user.max_age = int(form.max_age.data)
         user.search_radius = int(form.radius.data)
+        current_user.disable_location = form.disable_location.data
+
+        if current_user.disable_location is True:
+                    current_user.latitude = None
+                    current_user.longitude = None
+                    current_user.location = None
 
         if form.email.data:
             user.email = form.email.data
@@ -205,6 +216,16 @@ def dashboard():
     else:
         form.allow_reddit_notifications.default = False
 
+    if current_user.location:
+        form.location.default = current_user.location
+
+    if current_user.disable_location == True:
+        form.disable_location.default = True
+    else:
+        form.disable_location.default = False
+
+        form.process()
+
     form.process()
 
     return render_template('dashboard.html', page_class='dashboard_page', title='Reddimatch - My Profile',form=form)
@@ -255,10 +276,6 @@ def date():
     form = forms.DateRegistrationForm(request.form)
 
     if request.method == 'POST' and form.validate():
-
-        # check for no lat and long
-
-        # get form data
         current_user.age = int(form.age.data)
         current_user.gender_id = int(form.gender.data)
         current_user.desired_gender_id = int(form.desired_gender.data)
@@ -266,16 +283,21 @@ def date():
         current_user.min_age = int(form.min_age.data)
         current_user.max_age = int(form.max_age.data)
         current_user.search_radius = int(form.radius.data)
+        current_user.disable_location = form.disable_location.data
         radius = int(form.radius.data)
+
+        if current_user.disable_location is True:
+            current_user.latitude = None
+            current_user.longitude = None
+            current_user.location = None
 
         db.session.add(current_user)
         db.session.commit()
 
-
-        if radius > 100:
+        if radius > 100 or current_user.disable_location is True:
             radius = None
 
-        if current_user.latitude and current_user.longitude:
+        if current_user.latitude and current_user.longitude and current_user.disable_location is False:
 
             # get matches, favorite subs disregarded
             if radius:
@@ -297,40 +319,6 @@ def date():
         mutual_sub_matches = []
         matches = []
         secondary_matches = []
-
-        # get matches that also have a similiar favorite sub
-        # for sub in current_user.favorited_subs().all():
-        #     print 2.5
-        #
-        #     for u in users:
-        #         favs = u.favorited_subs().all()
-        #
-        #         for f in favs:
-        #             if f in current_user.favorited_subs().all():
-        #                 mutual_sub_matches.append(u)
-
-
-        # get rid of dupes caused by multiple favorite subs
-        # mutual_sub_matches = list(set(mutual_sub_matches))
-        #
-        # if len(mutual_sub_matches) > 0:
-        #     for u in mutual_sub_matches:
-        #         if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not current_user.has_sent_match(u, 'date'):
-        #
-        #             if u.latitude and u.longitude:
-        #                 distance = abs(haversine((current_user.latitude, current_user.longitude),(u.latitude,u.longitude),miles=True))
-        #                 u.distance = int(distance)
-        #
-        #             u.status = 'onsite'
-        #             u.type = 'date'
-        #
-        #             if radius:
-        #                 if distance:
-        #                     if distance <= radius:
-        #                         matches.append(u)
-        #             else:
-        #                 matches.append(u)
-        # print 4
 
         if len(matches) > 0 and len(matches) < 3 or len(matches) == 0:
 
@@ -391,6 +379,12 @@ def date():
         form.searchable.default = not current_user.date_searchable
     else:
         form.searchable.default = False
+
+    if current_user.location:
+        form.location.default = current_user.location
+
+    if current_user.disable_location:
+        form.disable_location.default = current_user.disable_location
 
     form.process()
 
@@ -616,9 +610,15 @@ def get_user_info():
 def set_location():
     latitude = float(request.args.get('latitude'))
     longitude = float(request.args.get('longitude'))
+    location = str(request.args.get('location'))
 
     current_user.latitude = latitude
     current_user.longitude = longitude
+    current_user.location = location
+
+    print location
+    print longitude
+    print latitude
 
     db.session.add(current_user)
     db.session.commit()

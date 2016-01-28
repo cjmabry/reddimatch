@@ -98,6 +98,22 @@ class DateRegistrationForm(Form):
     min_age = IntegerField('Minimum Age', widget=HiddenInput(), validators = [validators.InputRequired(), validators.NumberRange(min=18, max=130)])
     max_age = IntegerField('Max Age', widget=HiddenInput(), validators = [validators.InputRequired(), validators.NumberRange(min=18, max=130)])
     searchable = BooleanField("Searchable")
+    location = StringField('Location', [validators.Optional()])
+    disable_location = BooleanField("Disable Location")
+
+    def validate(self):
+        has_error = False
+
+        rv = Form.validate(self)
+        if not rv:
+            return False
+
+        if self.disable_location.data is False:
+            if not self.location.data:
+                self.location.errors.append('Please provide a valid location.')
+                return False
+
+        return True
 
 class DashboardForm(Form):
     username = StringField('Display Name', [validators.InputRequired(message="You need a username."), validators.Length(min=3, max=20, message ="Usernames can be between 3 and 20 characters."), validators.Regexp(r'^[\w_-]+$', message='Usernames can only contain letters, numbers, "-" and "_".')])
@@ -115,6 +131,8 @@ class DashboardForm(Form):
     min_age = IntegerField('Minimum Age', widget=HiddenInput(), validators = [validators.Optional(), validators.NumberRange(min=18, max=130)])
     max_age = IntegerField('Max Age', widget=HiddenInput(), validators = [validators.Optional(), validators.NumberRange(min=18, max=130)])
     searchable = BooleanField("Searchable")
+    location = StringField('Location', [validators.Optional()])
+    disable_location = BooleanField("Disable Location")
     allow_reddit_notifications = BooleanField()
 
     def validate(self):
@@ -123,6 +141,11 @@ class DashboardForm(Form):
         rv = Form.validate(self)
         if not rv:
             return False
+
+        if self.disable_location.data is False:
+            if not self.location.data:
+                self.location.errors.append('Please provide a valid location.')
+                return False
 
         user = models.User.query.filter(func.lower(models.User.username) == func.lower(self.username.data)).first()
 

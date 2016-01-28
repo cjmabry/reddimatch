@@ -20,7 +20,6 @@ body .navbar {
 
 .navbar {
   border: 1px solid #f5f5f5;
-
 }
 
 body .navbar a {
@@ -372,6 +371,10 @@ footer {
           align-items: center;
 }
 
+.register-wrapper {
+  margin-top: 20px;
+}
+
 .register {
   margin: 40px auto;
 }
@@ -388,6 +391,7 @@ footer {
   width: 300px;
   float:left;
   position: relative;
+  border-radius: 5px 0 0 5px;
 }
 
 .avatar .choose {
@@ -412,10 +416,10 @@ footer {
 .register_form {
   min-height: 300px;
   height: auto;
-  background: #eee;
+  background: #f5f5f5;
   padding:10px 10px 10px 25px;
   width: 600px;
-  /*float: left;*/
+  border-radius: 0 5px 5px 0;
 }
 
 /*.register_form .row {
@@ -557,11 +561,11 @@ footer {
   margin: 20px;
 }
 
-.register_page .allow_reddit_notifications {
+.allow_reddit_notifications {
     margin: 40px 0 0;
 }
 
-.register_page .allow_reddit_notifications label {
+.allow_reddit_notifications label {
   display: none;
 }
 
@@ -575,11 +579,15 @@ footer {
 }
 
 .dashboard_page .dashboard-buttons {
-  margin: 40px;
+  /*margin: 40px;*/
 }
 
 .dashboard_page .dashboard-buttons .btn {
   margin: 10px;
+}
+
+.dashboard_page .date .criteria.searchable-criteria {
+  padding-bottom: 20px;
 }
 
 /* .privacy_page */
@@ -702,16 +710,17 @@ html.match_page {
 }
 
 .controls input, .controls select {
-  background: #f5f5f5;
+  background: white;
   border: 0;
   box-shadow: none;
   border-radius: 5px;
   padding: 5px 10px;
   text-align: center;
   height: 30px;
+  margin: 10px 0;
 }
 
-.controls input#searchable {
+.controls input#searchable, .controls input#disable_location {
   height: auto;
 }
 
@@ -726,11 +735,71 @@ html.match_page {
 }
 
 .controls .criteria {
-  padding: 20px 0 0;
+  margin: 0;
+  position: relative;
+}
+
+.date .location-status {
+  opacity: 0;
+  transition: 0.5s;
+  margin-left:10px;
+}
+
+.date .location-status.in-process {
+  color: #666;
+  opacity: 1;
+}
+
+.glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -ms-animation: spin .7s infinite linear;
+    -webkit-animation: spinw .7s infinite linear;
+    -moz-animation: spinm .7s infinite linear;
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+
+@-webkit-keyframes spinw {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
+@-moz-keyframes spinm {
+    from { -moz-transform: rotate(0deg);}
+    to { -moz-transform: rotate(360deg);}
+}
+
+.date .location-status.success {
+  opacity: 1;
+  color: #66CC66;
+}
+
+.date .location-status.failed {
+  opacity: 1;
+  color: #FF6D6D;
+}
+
+.date .main-settings, .date .location-settings {
+  padding: 20px 0;
+}
+
+.date .location-settings {
+  transition: 0.5s;
+}
+
+.date .location-settings.disabled {
+  opacity: 0.4;
 }
 
 .controls #next-button {
   margin: 20px 0;
+}
+
+.date .criteria.disable-location-criteria {
+  padding: 0;
 }
 
 .match_page .controls, .date_page .controls {
@@ -803,6 +872,27 @@ html.match_page {
   /*background: blue;*/
   text-align: center;
   padding: 20px 0;
+}
+
+.date.choice, .date.controls {
+  background: #f5f5f5;
+  border-radius: 5px;
+  padding: 0;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.date .criteria, .date .main_criteria {
+  padding: 20px 30px 0 30px;
+}
+
+.date.choice .location-settings, .date.controls .location-settings {
+  height: 100%;
+  background: #E8E8E8;
+}
+
+.date .slider-container {
+  padding: 0 20px;
 }
 
 .choices .choice.friend .icon {
@@ -1938,6 +2028,10 @@ html.messages_page, .messages_page body {
     width: 300px;
   }
 
+  .register_page .avatar, .dashboard_page .avatar, .register_page .avatar img, .dashboard_page .avatar img {
+    border-radius: 5px 5px 0 0;
+  }
+
   .avatar .choose {
     left: 0;
     right: 0;
@@ -1948,6 +2042,7 @@ html.messages_page, .messages_page body {
   .register_form {
     padding:25px 10px 10px;
     height: auto;
+    border-radius: 0 0 5px 5px;
   }
 
   .register_form .field {
