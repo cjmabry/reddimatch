@@ -514,7 +514,7 @@ class TestCase(unittest.TestCase):
     def test_active_required(self):
         pass
 
-    def test_authorize():
+    def test_authorize(self):
         pass
 
 if __name__ == '__main__':
