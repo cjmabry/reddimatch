@@ -37,39 +37,39 @@ gulp.task('watch', function() {
 gulp.task('uglify', function() {
   return gulp.src('app/static/js/**/*.js')
     .pipe(uglify())
-    .pipe(gulp.dest('dist/static/js'));
+    .pipe(gulp.dest('dist/app/static/js'));
 });
 
 // CSS
 gulp.task('minify-css', function() {
   return gulp.src('app/static/css/*.css')
     .pipe(minifyCss({compatibility: 'ie8'}))
-    .pipe(gulp.dest('dist/static/css'));
+    .pipe(gulp.dest('dist/app/static/css'));
 });
 
 // Images
 gulp.task('imagemin', function(){
   return gulp.src('app/static/images/**/*.+(png|jpg|gif|svg)')
   .pipe(cache(imagemin()))
-  .pipe(gulp.dest('dist/static/images'));
+  .pipe(gulp.dest('dist/app/static/images'));
 });
 
 // Copy HTML
 gulp.task('html', function() {
   return gulp.src('app/templates/*.html')
-  .pipe(gulp.dest('dist/templates'));
+  .pipe(gulp.dest('dist/app/templates'));
 });
 
 // Copy Python
 gulp.task('python', function() {
   return gulp.src('app/*.py')
-  .pipe(gulp.dest('dist'));
+  .pipe(gulp.dest('dist/app'));
 });
 
 // Copy Fonts
 gulp.task('fonts', function() {
   return gulp.src('app/static/fonts/**/*')
-  .pipe(gulp.dest('dist/static/fonts'));
+  .pipe(gulp.dest('dist/app/static/fonts'));
 });
 
 // Cleaning
