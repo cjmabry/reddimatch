@@ -10,7 +10,10 @@ from config import REDDIT_USER_AGENT, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, RE
 handler = MultiprocessHandler()
 
 def praw_instance():
-    r = praw.Reddit(user_agent=REDDIT_USER_AGENT, handler=handler)
+    if ENV['CI']:
+        r = praw.Reddit(user_agent=REDDIT_USER_AGENT)
+    else:
+        r = praw.Reddit(user_agent=REDDIT_USER_AGENT, handler=handler)
 
     r.set_oauth_app_info(client_id=REDDIT_CLIENT_ID, client_secret=REDDIT_CLIENT_SECRET, redirect_uri=REDDIT_REDIRECT_URI)
 

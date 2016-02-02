@@ -1,4 +1,4 @@
 machine:
   post:
-    - praw-multiprocess 8000:
+    - praw-multiprocess:
           background: true
