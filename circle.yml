@@ -1,0 +1,4 @@
+machine:
+  post:
+    - praw-multiprocess:
+          background: true
