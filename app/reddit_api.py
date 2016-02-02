@@ -10,7 +10,7 @@ from config import REDDIT_USER_AGENT, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, RE
 handler = MultiprocessHandler()
 
 def praw_instance():
-    if ENV['CI']:
+    if os.environ.get('CI'):
         r = praw.Reddit(user_agent=REDDIT_USER_AGENT)
     else:
         r = praw.Reddit(user_agent=REDDIT_USER_AGENT, handler=handler)
