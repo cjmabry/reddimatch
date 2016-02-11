@@ -1,5 +1,8 @@
 #!flask/bin/python
 from coverage import coverage
+from Naked.toolshed.shell import execute_js
+from flask.ext.testing import LiveServerTestCase
+import daemon
 cov = coverage(branch=True, omit=['venv/*', 'tests.py'])
 cov.start()
 
@@ -7,13 +10,12 @@ import os
 import unittest
 
 from config import BASE_DIR
-from app import app, db
+from app import app, db, socketio
 from app.models import User, Subreddit, Match, Message, Gender
 
 class TestCase(unittest.TestCase):
     def setUp(self):
         app.config['TESTING'] = True
-        app.config['WTF_CSRF_ENABLED'] = False
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, 'test.db')
         self.app = app.test_client()
         db.create_all()
@@ -517,6 +519,34 @@ class TestCase(unittest.TestCase):
     def test_authorize(self):
         pass
 
+    def test_ui(self):
+        if os.environ.get('CI'):
+            pass
+        else:
+            u1 = User(username="user1")
+            u2 = User(username="user2")
+            u3 = User(username="user3")
+            u4 = User(username="user4")
+
+            db.session.add(u1)
+            db.session.add(u2)
+            db.session.add(u3)
+            db.session.add(u4)
+
+            s1 = Subreddit(name='nfl')
+            s2 = Subreddit(name='askreddit')
+            s3 = Subreddit(name='pics')
+            s4 = Subreddit(name='funny')
+
+            u1.favorite(s1)
+            u2.favorite(s1)
+            u4.favorite(s1)
+
+            db.session.commit()
+
+            success = execute_js('./register-accept-chat.js')
+            assert success
+
 if __name__ == '__main__':
     try:
         unittest.main()
@@ -524,8 +554,8 @@ if __name__ == '__main__':
         pass
     cov.stop()
     cov.save()
-    # print("\n\nCoverage Report:\n")
-    # cov.report()
+    print("\n\nCoverage Report:\n")
+    cov.report()
     print("HTML version: " + os.path.join(BASE_DIR, "tmp/coverage/index.html"))
     cov.html_report(directory='tmp/coverage')
     cov.erase()
