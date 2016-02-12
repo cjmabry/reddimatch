@@ -4,10 +4,7 @@ import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PROPAGATE_EXCEPTIONS = False
 
-if os.environ.get('DATABASE_URL') is None:
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'app.db')
-else:
-    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
+SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
 
 SQLALCHEMY_MIGRATE_REPO = os.path.join(BASE_DIR, 'db_repository')
 DATABASE_CONNECT_OPTIONS = {}
