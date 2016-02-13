@@ -1,4 +1,6 @@
-machine:
-  post:
-    - praw-multiprocess:
-          background: true
+deployment:
+  staging:
+    branch: develop
+    codedeploy:
+      Reddimatch:
+        deployment_group: ReddimatchDeploy
