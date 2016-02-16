@@ -1,7 +1,17 @@
 #!/bin/bash
 # set up virtual env
 cd /home/www/reddimatch
-sudo cp /home/www/reddimatch/config/staging/config.py /home/www/reddimatch/config.py
+
+if [ "$DEPLOYMENT_GROUP_NAME" == "Staging" ]
+then
+  sudo cp /home/www/reddimatch/config/staging/config.py /home/www/reddimatch/config.py
+fi
+
+if [ "$DEPLOYMENT_GROUP_NAME" == "Production" ]
+then
+  sudo cp /home/www/reddimatch/config/production/config.py /home/www/reddimatch/config.py
+fi
+
 sudo pip install virtualenv
 sudo virtualenv venv
 sudo chown -R ubuntu:ubuntu venv/
