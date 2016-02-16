@@ -1,2 +1,2 @@
 #!/bin/bash
-killall 'gunicorn'
+killall 'gunicorn' || true
