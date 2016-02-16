@@ -3,8 +3,6 @@ os: linux
 files:
   - source: /
     destination: /home/www/reddimatch
-  - source: /config/staging/config.py
-    destination: /home/www/reddimatch/config.py
 hooks:
   BeforeInstall:
     - location: scripts/install_dependencies.sh

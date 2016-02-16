@@ -1,6 +1,7 @@
 #!/bin/bash
 # set up virtual env
 cd /home/www/reddimatch
+sudo cp /home/www/reddimatch/config/staging/config.py /home/www/reddimatch/config.py
 sudo pip install virtualenv
 sudo virtualenv venv
 sudo chown -R ubuntu:ubuntu venv/
