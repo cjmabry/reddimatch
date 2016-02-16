@@ -3,4 +3,4 @@ deployment:
     branch: develop
     codedeploy:
       Reddimatch:
-        deployment_group: ReddimatchDeploy
+        deployment_group: Staging
