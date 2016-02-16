@@ -14,7 +14,7 @@ sudo rm /etc/nginx/sites-enabled/default
 
 # tmp folder for logging
 sudo mkdir /home/www/reddimatch/tmp
-sudo chown -R ubuntu:ubuntu /home/reddimatch/tmp/
+sudo chown -R ubuntu:ubuntu /home/www/reddimatch/tmp/
 
 # set up monit
 sudo cp config/monitrc /etc/monit/monitrc
