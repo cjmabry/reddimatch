@@ -4,6 +4,7 @@ sudo service nginx start
 
 # db migration
 source ~/.profile
+echo env
 cd /home/www/reddimatch
 ./venv/bin/python db_upgrade.py
 
