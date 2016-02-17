@@ -11,6 +11,7 @@ source venv/bin/activate
 python db_upgrade.py
 
 # set environment variables
+export AWS_DEFAULT_REGION=us-west-2
 
 get_ami_tags () {
     instance_id=$(curl --silent http://169.254.169.254/latest/meta-data/instance-id)
