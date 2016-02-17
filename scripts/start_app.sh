@@ -8,6 +8,7 @@ sudo nginx -s reload
 # db migration
 cd /home/www/reddimatch
 source venv/bin/activate
+source ~/.profile
 python db_upgrade.py
 
 gunicorn --worker-class eventlet wsgi -b 0.0.0.0:8000 -D -p /home/www/reddimatch/tmp/gunicorn.pid
