@@ -5,9 +5,6 @@ sudo service nginx start
 # run app
 sudo nginx -s reload
 
-export AWS_DEFAULT_REGION=us-west-2
-source /home/www/reddimatch/scripts/set_env.sh
-
 # db migration
 cd /home/www/reddimatch
 source venv/bin/activate

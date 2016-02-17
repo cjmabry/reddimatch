@@ -17,7 +17,7 @@ tags_to_env () {
     for key in $(echo $tags | jq -r ".[][].Key"); do
         value=$(echo $tags | jq -r ".[][] | select(.Key==\"$key\") | .Value")
         key=$(echo $key | tr '-' '_' | /usr/bin/tr '[:lower:]' '[:upper:]')
-        export $key="$value"
+        echo "export $key='$value' >> ~/.profile"
     done
 }
 
