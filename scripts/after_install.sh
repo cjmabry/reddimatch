@@ -30,7 +30,3 @@ sudo chown -R ubuntu:ubuntu /home/www/reddimatch/tmp/
 # set up monit
 sudo cp config/monitrc /etc/monit/monitrc
 sudo monit
-
-# db migration
-cd /home/www/reddimatch
-python db_upgrade.py
