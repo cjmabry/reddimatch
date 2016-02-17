@@ -1,8 +1,6 @@
 #!/bin/bash
 # set environment variables
 
-export AWS_DEFAULT_REGION=us-west-2
-
 get_ami_tags () {
     instance_id=$(curl --silent http://169.254.169.254/latest/meta-data/instance-id)
     echo $(aws ec2 describe-tags --filters "Name=resource-id,Values=$instance_id")
