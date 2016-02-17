@@ -1,5 +1,6 @@
 #!/bin/bash
 # set environment variables
+export  AWS_DEFAULT_REGION='us-west-2'
 
 get_ami_tags () {
     instance_id=$(curl --silent http://169.254.169.254/latest/meta-data/instance-id)
@@ -17,7 +18,7 @@ tags_to_env () {
     for key in $(echo $tags | jq -r ".[][].Key"); do
         value=$(echo $tags | jq -r ".[][] | select(.Key==\"$key\") | .Value")
         key=$(echo $key | tr '-' '_' | /usr/bin/tr '[:lower:]' '[:upper:]')
-        echo "export $key='$value' >> ~/.profile"
+        echo "export $key='$value'" >> ~/.profile
     done
 }
 

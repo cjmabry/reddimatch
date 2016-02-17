@@ -10,5 +10,4 @@ cd /home/www/reddimatch
 source venv/bin/activate
 python db_upgrade.py
 
-source venv/bin/activate
 gunicorn --worker-class eventlet wsgi -b 0.0.0.0:8000 -D -p /home/www/reddimatch/tmp/gunicorn.pid
