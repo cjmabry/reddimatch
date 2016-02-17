@@ -15,8 +15,7 @@ fi
 sudo pip install virtualenv
 sudo virtualenv venv
 sudo chown -R ubuntu:ubuntu venv/
-source venv/bin/activate
-pip install -r requirements.txt
+./venv/bin/pip install -r requirements.txt
 
 # nginx config
 sudo cp config/sites-available /etc/nginx/sites-available/reddimatch
