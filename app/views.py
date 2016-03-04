@@ -306,7 +306,10 @@ def date():
                 lat_min = current_user.latitude - deltaLat
                 lat_max = current_user.latitude + deltaLat
 
+
+
                 users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
+
             else:
                 users = models.User.query.filter(and_(models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
         else:
@@ -326,13 +329,17 @@ def date():
 
                 if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not current_user.has_sent_match(u, 'date'):
                     if u.latitude and u.longitude and current_user.latitude and current_user.longitude:
-                        distance = abs(haversine((current_user.latitude, current_user.longitude),(u.latitude,u.longitude),miles=True))
+                        current_user.coords = (current_user.latitude, current_user.longitude)
+                        u.coords = (u.latitude,u.longitude)
+
+                        distance = abs(haversine(current_user.coords, u.coords, miles=True))
+
                         u.distance = int(distance)
                     u.status = 'onsite'
                     u.type = 'date'
 
                     if radius:
-                        if distance:
+                        if distance is not None:
                             if distance <= radius:
                                 secondary_matches.append(u)
                     else:
