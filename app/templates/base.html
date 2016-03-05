@@ -86,6 +86,7 @@
 
     <a href="mailto:reddimatch@gmail.com?subject=Feedback"><div id="feedback">Feedback <span class="glyphicon glyphicon-chevron-right"></span></div></a>
 
+    {% if config['PRODUCTION'] %}
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -94,8 +95,8 @@
 
       ga('create', 'UA-65241814-1', 'auto');
       ga('send', 'pageview');
-
     </script>
+    {% endif %}
 
   </body>
 </html>

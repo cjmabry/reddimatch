@@ -18,7 +18,7 @@
 ##
 ## Start Monit in the background (run as a daemon):
 #
-	set daemon 120            # check services at 2-minute intervals
+  set daemon 120            # check services at 2-minute intervals
 
   check process praw-multiprocess
         matching "praw-multiprocess"

@@ -1,5 +1,6 @@
 DEBUG = False
 TESTING = False
+PRODUCTION = True
 import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PROPAGATE_EXCEPTIONS = False
