@@ -4,3 +4,8 @@ deployment:
     codedeploy:
       Reddimatch:
         deployment_group: Staging
+  production:
+    branch: master
+    codedeploy:
+      Reddimatch:
+        deployment_group: Production
