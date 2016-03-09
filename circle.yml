@@ -5,7 +5,7 @@ deployment:
       Reddimatch:
         deployment_group: Staging
   production:
-    branch: master
+    branch: master-test
     codedeploy:
       Reddimatch:
         deployment_group: Production
