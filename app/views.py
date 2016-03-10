@@ -1,5 +1,7 @@
-from flask import render_template, redirect, request, flash, url_for, g, jsonify, session
+from flask import render_template, redirect, request, flash, url_for, g, jsonify, session, got_request_exception
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
+import rollbar
+import rollbar.contrib.flask
 from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI, REDDIT_STATE
 from flask_socketio import emit, send, join_room, leave_room, rooms
@@ -8,6 +10,23 @@ from sqlalchemy import func, and_, or_
 from haversine import haversine
 from math import cos, pi
 from functools import wraps
+
+@app.before_first_request
+def init_rollbar():
+    """init rollbar module"""
+    if app.config['ENVIRONMENT'] == 'Production' or app.config['ENVIRONMENT'] == 'Staging':
+        rollbar.init(
+            # access token for the demo app: https://rollbar.com/demo
+            '23e67e8b2a7944dca50bf2317046c75d',
+            # environment name
+            app.config['ENVIRONMENT'],
+            # server root directory, makes tracebacks prettier
+            root=os.path.dirname(os.path.realpath(__file__)),
+            # flask already sets up logging
+            allow_logging_basic_config=False)
+
+        # send exceptions from `app` to rollbar, using flask's signal system.
+        got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
 
 def active_required(f):
     @wraps(f)
