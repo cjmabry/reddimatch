@@ -2,12 +2,15 @@ from flask import Flask, flash
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager
 from flask_socketio import SocketIO
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 from werkzeug.contrib.fixers import ProxyFix
 import os, sys
 from flask.ext.mail import Mail
 
 
 app = Flask(__name__)
+admin = Admin(app, name='Reddimatch', template_mode='bootstrap3')
 app.config.from_object('config')
 app.wsgi_app = ProxyFix(app.wsgi_app)
 

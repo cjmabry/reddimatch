@@ -2,7 +2,7 @@ from flask import render_template, redirect, request, flash, url_for, g, jsonify
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
 import rollbar
 import rollbar.contrib.flask
-from app import app, db, lm, reddit_api, models, forms, socketio
+from app import app, db, lm, reddit_api, models, forms, socketio, admin
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI, REDDIT_STATE
 from flask_socketio import emit, send, join_room, leave_room, rooms
 import praw, random, datetime, string, json, os
@@ -10,6 +10,14 @@ from sqlalchemy import func, and_, or_
 from haversine import haversine
 from math import cos, pi
 from functools import wraps
+from flask.ext.admin import Admin, BaseView, expose
+from flask.ext.admin.contrib.sqla import ModelView
+
+admin.add_view(ModelView(models.User, db.session))
+admin.add_view(ModelView(models.Match, db.session))
+admin.add_view(ModelView(models.Subreddit, db.session))
+admin.add_view(ModelView(models.Message, db.session))
+admin.add_view(ModelView(models.Gender, db.session))
 
 @app.before_first_request
 def init_rollbar():
