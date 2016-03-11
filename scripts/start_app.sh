@@ -12,6 +12,6 @@ cd /home/www/reddimatch
 sudo nginx -s reload
 sudo monit reload
 
-./venv/bin/gunicorn --worker-class eventlet wsgi -b 0.0.0.0:8000 -p /home/www/reddimatch/tmp/gunicorn.pid
+./venv/bin/gunicorn --worker-class eventlet wsgi -b 0.0.0.0:8000 -D -p /home/www/reddimatch/tmp/gunicorn.pid
 
 sudo monit reload
