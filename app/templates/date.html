@@ -26,23 +26,13 @@
 
       <div class="choices">
 
-        <div class="col-md-12 choice date">
+        <h2 class="text-center">Find a Date</h2>
 
-          {% if current_user.age is defined and current_user.age != None and current_user.gender is defined and current_user.gender != None and current_user.location is defined and current_user.location != None %}
-
-            <h2>Find a Date</h2>
-
-            <a href="{{ url_for('date_match') }}">
-              <div class="icon"></div>
-            </a>
-
-            <p class="description">We'll find you a match based on age, gender, location, and interests!</p>
-
-        {% else %}
+        <div class="col-md-12 choice date clearfix">
 
           {% from "_formhelpers.html" import render_field %}
 
-          <form class="col-sm-12" id="registration" method=post action="/date" data-parsley-validate>
+          <form id="registration" method=post action="/date" data-parsley-validate>
 
           {% if current_user.age is defined and current_user.age != None %}
             {% set age = current_user.age %}
@@ -50,26 +40,50 @@
             {% set age = '' %}
           {% endif %}
 
-          <p class="main_criteria">I am a {{render_field(form.age,value=age, placeholder='Age')}} year old {{render_field(form.gender)}} looking for a {{render_field(form.desired_gender)}}
+          <div class="main-settings">
 
-          <p class="criteria">Between the ages of <span id="min_age_preview">18</span> and <span id="max_age_preview">35</span>.</p>
+            <div class="criteria date-criteria">
+              I am a {{render_field(form.age,value=age, placeholder='Age')}} year old {{render_field(form.gender)}} looking for a {{render_field(form.desired_gender)}}
+            </div>
 
-          <div id="age_slider" class="range_slider"></div>
-          {{render_field(form.min_age)}}
-          {{render_field(form.max_age)}}
+            <div class="criteria age-criteria">
+              Between the ages of <span id="min_age_preview">18</span> and <span id="max_age_preview">35</span>.
 
-          <p class="criteria">Search up to <span id="radius_preview">50 miles</span> away.</p>
-          <div id="radius_slider" class="range_slider"></div>
-          {{render_field(form.radius)}}
+              <div class="slider-container">
+                <div id="age_slider" class="range_slider"></div>
+                {{render_field(form.min_age)}}
+                {{render_field(form.max_age)}}
+              </div>
 
-          <p class="criteria">{{render_field(form.searchable)}}<small> I don't want to show up in other users' date searches.</small></p>
+            </div>
 
+          </div>
+
+          <div class="location-settings">
+
+            <div class="criteria location-criteria">
+              Search up to <span id="radius_preview">50 miles</span> from {{render_field(form.location, placeholder='Enter a location', autocomplete='on')}} <span class="location-status glyphicon"></span>
+
+              <div class="slider-container">
+                <div id="radius_slider" class="range_slider"></div>
+                {{render_field(form.radius)}}
+              </div>
+
+            </div>
+
+            <div class="criteria disable-location-criteria">
+              {{render_field(form.disable_location)}}<small>Disable location. </small>
+            </div>
+
+          </div>
+
+          <div class="criteria searchable-criteria">
+            {{render_field(form.searchable)}}<small> I don't want to show up in other users' date searches.</small>
+          </div>
 
           <button class="btn btn-primary" id="next-button" type=submit >Next <span class="glyphicon glyphicon-chevron-right"></span></button>
 
         </form>
-
-        {% endif %}
 
         </div>
 
@@ -136,8 +150,10 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{url_for('static', filename='js/custom/geo.js')}}"></script>
 <script src="{{url_for('static', filename='js/vendor/nouislider.min.js')}}"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCupgTAgADH3eHtQpKsGCLX0kz97ZF55gE&libraries=places"></script>
+<script src="{{url_for('static', filename='js/custom/geo.js')}}"></script>
+
 
 <script>
   var radius_slider = document.getElementById('radius_slider');
@@ -148,7 +164,6 @@
   var min_age_preview = document.getElementById('min_age_preview');
   var max_age = document.getElementById('max_age');
   var max_age_preview = document.getElementById('max_age_preview');
-
 
   noUiSlider.create(radius_slider, {
     start: radius.value,

@@ -14,6 +14,7 @@ class RegistrationForm(Form):
     favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least on favorite sub to find matches.")])
     favorite_sub_2 = StringField('Favorite Sub 2', [validators.Optional()])
     favorite_sub_3 = StringField('Favorite Sub 3', [validators.Optional()])
+    allow_reddit_notifications = BooleanField()
 
     def validate(self):
         has_error = False
@@ -35,15 +36,17 @@ class RegistrationForm(Form):
 
                 return False
 
-        email_user = models.User.query.filter(func.lower(models.User.email) == func.lower(self.email.data)).first()
+        if self.email.data is not None:
 
-        # if email is taken by a user
-        if email_user is not None:
+            email_user = models.User.query.filter(func.lower(models.User.email) == func.lower(self.email.data)).first()
 
-            # if email isn't taken by current user
-            if current_user.email is not email_user.email:
-                self.email.errors.append('An account with that email already exists.')
-                return False
+            # if email is taken by a user
+            if email_user is not None:
+
+                # if email isn't taken by current user
+                if current_user.email is not email_user.email:
+                    self.email.errors.append('An account with that email already exists.')
+                    return False
 
         # check if subreddits exist
         favorite_subs = []
@@ -95,6 +98,22 @@ class DateRegistrationForm(Form):
     min_age = IntegerField('Minimum Age', widget=HiddenInput(), validators = [validators.InputRequired(), validators.NumberRange(min=18, max=130)])
     max_age = IntegerField('Max Age', widget=HiddenInput(), validators = [validators.InputRequired(), validators.NumberRange(min=18, max=130)])
     searchable = BooleanField("Searchable")
+    location = StringField('Location', [validators.Optional()])
+    disable_location = BooleanField("Disable Location")
+
+    def validate(self):
+        has_error = False
+
+        rv = Form.validate(self)
+        if not rv:
+            return False
+
+        if self.disable_location.data is False:
+            if not self.location.data:
+                self.location.errors.append('Please provide a valid location.')
+                return False
+
+        return True
 
 class DashboardForm(Form):
     username = StringField('Display Name', [validators.InputRequired(message="You need a username."), validators.Length(min=3, max=20, message ="Usernames can be between 3 and 20 characters."), validators.Regexp(r'^[\w_-]+$', message='Usernames can only contain letters, numbers, "-" and "_".')])
@@ -104,7 +123,6 @@ class DashboardForm(Form):
     favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least on favorite sub to find matches.")])
     favorite_sub_2 = StringField('Favorite Sub 2', [validators.Optional()])
     favorite_sub_3 = StringField('Favorite Sub 3', [validators.Optional()])
-
     age = IntegerField('Age', [validators.Optional(), validators.NumberRange(min=18, max=130, message="You must be 18 years or older.")])
     gender =  SelectField('Gender', coerce=int, validators = [validators.Optional()], choices=[(1,'Man'), (2,'Woman'), (3,'Transgender')])
     desired_gender =  SelectField('Desired Gender', coerce=int, validators = [validators.Optional()], choices=[(1,'Man'), (2,'Woman'), (3,'Transgender')])
@@ -112,6 +130,9 @@ class DashboardForm(Form):
     min_age = IntegerField('Minimum Age', widget=HiddenInput(), validators = [validators.Optional(), validators.NumberRange(min=18, max=130)])
     max_age = IntegerField('Max Age', widget=HiddenInput(), validators = [validators.Optional(), validators.NumberRange(min=18, max=130)])
     searchable = BooleanField("Searchable")
+    location = StringField('Location', [validators.Optional()])
+    disable_location = BooleanField("Disable Location")
+    allow_reddit_notifications = BooleanField()
 
     def validate(self):
         has_error = False
@@ -119,6 +140,11 @@ class DashboardForm(Form):
         rv = Form.validate(self)
         if not rv:
             return False
+
+        if self.disable_location.data is False:
+            if not self.location.data:
+                self.location.errors.append('Please provide a valid location.')
+                return False
 
         user = models.User.query.filter(func.lower(models.User.username) == func.lower(self.username.data)).first()
 
@@ -135,13 +161,17 @@ class DashboardForm(Form):
 
         email_user = models.User.query.filter(func.lower(models.User.email) == func.lower(self.email.data)).first()
 
-        # if email is taken by a user
-        if email_user is not None:
+        print self.email.data
 
-            # if email isn't taken by current user
-            if current_user.email is not email_user.email:
-                self.email.errors.append('An account with that email already exists.')
-                return False
+        if self.email.data != '':
+
+            # if email is taken by a user
+            if email_user is not None:
+
+                # if email isn't taken by current user
+                if current_user.email is not email_user.email:
+                    self.email.errors.append('An account with that email already exists.')
+                    return False
 
         # check if subreddits exist
         favorite_subs = []

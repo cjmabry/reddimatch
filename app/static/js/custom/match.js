@@ -22,14 +22,27 @@ function no_match(element, match, match_type) {
 
 }
 
+var timeout;
+
 $("span.yes-match").on("click", function() {
   var match_username = $(this).attr("data-username");
   var match_type = $(this).attr("data-match-type");
+  var match_button = $(this).parent();
+
+  clearTimeout(timeout);
+  timeout = setTimeout(function() {
+      $(match_button).children(".text")[0].innerHTML="Accepted";
+  }, 250);
   match(this, match_username, match_type);
 });
 
 $("span.no-match").on("click", function() {
   var match_username = $(this).attr("data-username");
   var match_type = $(this).attr("data-match-type");
+  var match_button = $(this).parent();
+  clearTimeout(timeout);
+  timeout = setTimeout(function() {
+      $(match_button).children(".text")[0].innerHTML="Rejected";
+  }, 250);
   no_match(this, match_username, match_type);
 });

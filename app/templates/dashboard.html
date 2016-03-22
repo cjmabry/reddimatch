@@ -4,125 +4,127 @@
 
 {% if current_user.is_authenticated() %}
 
-<div class="row">
-
-  <h3>Your Public Profile</h3>
-
-</div>
-
-
 <div class="register row">
 
-  <div class="avatar">
+  <h2 class="text-center">Your Public Profile</h2>
 
-    <img src="{{ current_user.avatar(300) }}">
+  <div class="register-wrapper">
 
-    <span data-toggle="modal" data-target="#gravatar" class="choose glyphicon glyphicon-camera"></span>
+    <div class="avatar">
 
-    <!-- Modal -->
-    <div class="modal fade" id="gravatar" tabindex="-1" role="dialog" aria-labelledby="gravatarLabel">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="gravatarLabel">Your Avatar</h4>
-          </div>
-          <div class="modal-body">
-            <p>Reddimatch supports Gravatar, the Globally Recognized Avatar, and will use the Gravatar registered with your provided email address.</p>
+      <img src="{{ current_user.avatar(300) }}">
 
-            <p><strong>To learn more or to create your Gravatar, visit <a href="http://gravatar.com" target="_blank">Gravatar.com</a>.</strong></p>
-          </div>
-          <div class="modal-footer">
-            <a href="http://gravatar.com" target="_blank" class="btn btn-primary">Go to Gravatar.com <span class="glyphicon glyphicon-chevron-right"></span></a>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close <span class="glyphicon glyphicon-remove"></span></button>
+      <span data-toggle="modal" data-target="#gravatar" class="choose glyphicon glyphicon-camera"></span>
+
+      <!-- Modal -->
+      <div class="modal fade" id="gravatar" tabindex="-1" role="dialog" aria-labelledby="gravatarLabel">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title" id="gravatarLabel">Your Avatar</h4>
+            </div>
+            <div class="modal-body">
+              <p>Reddimatch supports Gravatar, the Globally Recognized Avatar, and will use the Gravatar registered with your provided email address.</p>
+
+              <p><strong>To learn more or to create your Gravatar, visit <a href="http://gravatar.com" target="_blank">Gravatar.com</a>.</strong></p>
+            </div>
+            <div class="modal-footer">
+              <a href="http://gravatar.com" target="_blank" class="btn btn-primary">Go to Gravatar.com <span class="glyphicon glyphicon-chevron-right"></span></a>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close <span class="glyphicon glyphicon-remove"></span></button>
+            </div>
           </div>
         </div>
       </div>
+
+    </div>
+
+    <div class="register_form">
+      {% from "_formhelpers.html" import render_field %}
+      <form class="col-sm-12" id="registration" method=post action="/dashboard" data-parsley-validate>
+        {{ form.csrf_token }}
+          <div class="row">
+
+            <div class="field username col-sm-6">
+              {{ render_field(form.username,placeholder='Username',value=current_user.username)}}
+            </div>
+
+            <div class="field email col-sm-6">
+              {% if current_user.email is defined and current_user.email is not none %}
+                {{ render_field(form.email, placeholder='you@example.com', value=current_user.email) }}
+
+              {% else %}
+                  {{ render_field(form.email, placeholder='you@example.com') }}
+              {% endif %}
+            </div>
+
+          </div>
+
+          <div class="row bio">
+
+            <div class="field bio col-sm-12">
+              {% if current_user.bio is defined %}
+                {% set f = form.bio.process_data(current_user.bio) %}
+
+              {{ render_field(form.bio, placeholder="Tell your matches a little bit about yourself. Don't be shy!") }}
+
+              {% endif %}
+            </div>
+          </div>
+
+
+          <div class="row favorite_subs">
+
+            <h4 class="col-sm-12">Favorite Subs</h4>
+
+
+            {% with favs = current_user.favorited_subs() %}
+
+              {% for idx in range(0, 3)%}
+
+              <div class="field sub col-sm-4">
+
+                {% if favs[idx] %}
+                  {{ render_field(form['favorite_sub_' + (idx+1)|string], value=favs[idx].name, placeholder='Favorite Sub ' + (idx+1)|string)}}
+
+                {% else %}
+                  {{ render_field(form['favorite_sub_' + (idx+1)|string], placeholder='Favorite Sub ' + (idx+1)|string)}}
+
+                {% endif %}
+
+              </div>
+
+              {% endfor %}
+
+            {% endwith %}
+
+          </div>
+
+    </div>
+
+
+  </div>
+
+  <div class="notification-settings">
+
+    <div class="allow_reddit_notifications text-center">
+      {{ render_field(form.allow_reddit_notifications) }} Send me a message through reddit when I recieve a match or when one of my matches is accepted.
     </div>
 
   </div>
 
-  <div class="register_form">
-    {% from "_formhelpers.html" import render_field %}
-    <form class="col-sm-12" id="registration" method=post action="/dashboard" data-parsley-validate>
-      {{ form.csrf_token }}
-        <div class="row">
-
-          <div class="field username col-sm-6">
-            {{ render_field(form.username,placeholder='Username',value=current_user.username)}}
-          </div>
-
-          <div class="field email col-sm-6">
-            {% if current_user.email is defined %}
-              {{ render_field(form.email, placeholder='you@example.com', value=current_user.email) }}
-
-            {% else %}
-                {{ render_field(form.email, placeholder='you@example.com') }}
-
-            {% endif %}
-          </div>
-
-        </div>
-
-        <div class="row bio">
-
-          <div class="field bio col-sm-12">
-            {% if current_user.bio is defined %}
-              {% set f = form.bio.process_data(current_user.bio) %}
-
-            {{ render_field(form.bio, placeholder="Tell your matches a little bit about yourself. Don't be shy!") }}
-
-            {% endif %}
-          </div>
-        </div>
-
-
-        <div class="row favorite_subs">
-
-          <h4 class="col-sm-12">Favorite Subs</h4>
-
-
-          {% with favs = current_user.favorited_subs() %}
-
-            {% for idx in range(0, 3)%}
-
-            <div class="field sub col-sm-4">
-
-              {% if favs[idx] %}
-                {{ render_field(form['favorite_sub_' + (idx+1)|string], value=favs[idx].name, placeholder='Favorite Sub ' + (idx+1)|string)}}
-
-              {% else %}
-                {{ render_field(form['favorite_sub_' + (idx+1)|string], placeholder='Favorite Sub ' + (idx+1)|string)}}
-
-              {% endif %}
-
-            </div>
-
-            {% endfor %}
-
-          {% endwith %}
-
-          <!-- <span class="add_sub glyphicon glyphicon-plus"></span> -->
-
-        </div>
-
-  </div>
-
 </div>
 
-<div>
 
-  <h3>Dating Settings</h3>
+<h2 class="text-center">Dating Settings</h2>
 
-</div>
+<div class="row">
 
-<div class="date controls text-center">
-
-  <div>
+  <div class="col-md-8 col-md-offset-2 date controls text-center ">
 
     {% from "_formhelpers.html" import render_field %}
 
-    <form class="col-sm-12" id="registration" method=post action="/date" data-parsley-validate>
+    <form id="registration" method=post action="/date" data-parsley-validate>
 
     {% if current_user.age is defined and current_user.age != None %}
       {% set age = current_user.age %}
@@ -130,21 +132,48 @@
       {% set age = '' %}
     {% endif %}
 
-    <p class="main_criteria">I am a <span class="field">{{render_field(form.age,value=age, placeholder='Age')}}</span> year old <span class="field">{{render_field(form.gender)}}</span> looking for a <span class="field">{{render_field(form.desired_gender, default=2)}}</span>
+    <div class="main-settings">
 
-    <p class="criteria">Between the ages of <span id="min_age_preview">18</span> and <span id="max_age_preview">35</span>.</p>
+      <div class="criteria date-criteria">
+        I am a {{render_field(form.age,value=age, placeholder='Age')}} year old {{render_field(form.gender)}} looking for a {{render_field(form.desired_gender)}}
+      </div>
 
-    <div id="age_slider" class="range_slider"></div>
-    <span class="field">{{render_field(form.min_age)}}</span>
-    <span class="field">{{render_field(form.max_age)}}</span>
+      <div class="criteria age-criteria">
+        Between the ages of <span id="min_age_preview">18</span> and <span id="max_age_preview">35</span>.
 
-    <p class="criteria">Search up to <span id="radius_preview">50 miles</span> away.</p>
-    <div id="radius_slider" class="range_slider"></div>
-    <span class="field">{{render_field(form.radius)}}</span>
+        <div class="slider-container">
+          <div id="age_slider" class="range_slider"></div>
+          {{render_field(form.min_age)}}
+          {{render_field(form.max_age)}}
+        </div>
 
-    <p class="criteria">{{render_field(form.searchable)}} I don't want to show up in other users' date searches.</p>
+      </div>
 
-    <input class="hidden" id="update-button" type=submit value=Update>
+    </div>
+
+    <div class="location-settings">
+
+      <div class="criteria location-criteria">
+        Search up to <span id="radius_preview">50 miles</span> from {{render_field(form.location, placeholder='Enter a location', autocomplete='on')}} <span class="location-status glyphicon"></span>
+
+        <div class="slider-container">
+          <div id="radius_slider" class="range_slider"></div>
+          {{render_field(form.radius)}}
+        </div>
+
+      </div>
+
+      <div class="criteria disable-location-criteria">
+        {{render_field(form.disable_location)}}<small>Disable location. </small>
+      </div>
+
+    </div>
+
+    <div class="criteria searchable-criteria">
+      {{render_field(form.searchable)}}<small> I don't want to show up in other users' date searches.</small>
+    </div>
+
+     <input class="hidden" id="update-button" type=submit value=Update>
 
   </form>
 
@@ -154,7 +183,32 @@
 
 <div class="row text-center">
 
-  <label for="update-button" id="update-button-label" class="enabled btn btn-primary next-button">Update Profile <span class="glyphicon glyphicon-chevron-right"></span></label>
+  <div class="dashboard-buttons col-md-12">
+
+    <label for="update-button" id="update-button-label" class="enabled btn btn-primary next-button">Update Profile <span class="glyphicon glyphicon-chevron-right"></span></label>
+
+    <button data-toggle="modal" data-target="#delete-modal" class="btn btn-danger">Delete Profile <span class="glyphicon glyphicon-remove"></span></button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-labelledby="gravatarLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="gravatarLabel">Are you sure?</h4>
+          </div>
+          <div class="modal-body">
+            <p>This will delete your reddimatch profile, and you will lose everything associated with your account, including matches and messages.
+          </div>
+          <div class="modal-footer">
+            <a href="javascript: submit_delete();" class="btn btn-danger">Yes, delete my profile.</a>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Nevermind</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 
 </div>
 
@@ -164,6 +218,8 @@
 
 {% block scripts %}
 <script src="{{url_for('static', filename='js/vendor/nouislider.min.js')}}"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCupgTAgADH3eHtQpKsGCLX0kz97ZF55gE&libraries=places"></script>
+<script src="{{url_for('static', filename='js/custom/geo.js')}}"></script>
 
 <script>
   var radius_slider = document.getElementById('radius_slider');
@@ -175,6 +231,14 @@
   var max_age = document.getElementById('max_age');
   var max_age_preview = document.getElementById('max_age_preview');
 
+
+  function submit_delete() {
+    $.post("/delete_profile", {
+      username: '{{current_user.username}}'
+    }).done(function () {
+      window.location.replace("http://reddimatch.com");
+    });
+  }
 
   noUiSlider.create(radius_slider, {
     start: radius.value,

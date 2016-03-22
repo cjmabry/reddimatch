@@ -1,4 +1,4 @@
-import praw, operator, collections, time, random, sys, os
+import praw, operator, collections, time, random, sys, os, OAuth2Util
 from praw.handlers import MultiprocessHandler
 from flask import url_for, g
 from app import db, models
@@ -10,7 +10,10 @@ from config import REDDIT_USER_AGENT, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, RE
 handler = MultiprocessHandler()
 
 def praw_instance():
-    r = praw.Reddit(user_agent=REDDIT_USER_AGENT, handler=handler)
+    if os.environ.get('CI'):
+        r = praw.Reddit(user_agent=REDDIT_USER_AGENT)
+    else:
+        r = praw.Reddit(user_agent=REDDIT_USER_AGENT, handler=handler)
 
     r.set_oauth_app_info(client_id=REDDIT_CLIENT_ID, client_secret=REDDIT_CLIENT_SECRET, redirect_uri=REDDIT_REDIRECT_URI)
 
@@ -36,11 +39,20 @@ def login_reddit_user(code):
 
     if models.User.query.filter_by(reddit_username=username).first():
         user = models.User.query.filter_by(reddit_username=username).first()
-        login_user(user)
-        user.refresh_token = refresh_token
-        db.session.commit()
-        url = url_for('match')
-        return url
+        if not user.deleted:
+            login_user(user)
+            user.refresh_token = refresh_token
+            db.session.commit()
+            url = url_for('match')
+            return url
+        else:
+            user.deleted = False
+            user.refresh_token = refresh_token
+            user.get_reddit_favorite_subs()
+            login_user(user)
+            db.session.commit()
+            url = url_for('register')
+            return url
     else:
         create_user(username, refresh_token)
         url = url_for('register')
@@ -161,3 +173,11 @@ def get_offsite_users(favs):
     users = random.sample(users, 3)
     pprint(users)
     return users
+
+def send_message(to, subject, message, from_sr):
+    r = praw_instance()
+
+    o = OAuth2Util.OAuth2Util(r, configfile="oauth_config.ini")
+    o.refresh()
+
+    msg = r.send_message(to,subject,message,from_sr=from_sr)

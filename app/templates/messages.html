@@ -15,6 +15,7 @@
 
             {% for request in requests %}
 
+              {% if not request.deleted %}
                 <li class="user request" data-username="{{ request.user_from.username }}" data-match-type="{{request.match_type}}">
 
                   <div class="profile_photo">
@@ -35,6 +36,7 @@
                   </div>
 
                 </li>
+              {% endif %}
 
             {% endfor %}
 
@@ -48,69 +50,11 @@
 
             {% for match in accepted_matches %}
 
-              {% if match.user_to.username != current_user.username %}
-
-                <li class="user accepted {{match.match_type}}" data-username="{{ match.user_to.username }}" data-match-type="{{match.match_type}}">
-
-                  <div class="profile_photo">
-
-                    <img src="{{ match.user_to.avatar(60) }}">
-
-                  </div>
-                  <div class="info">
-
-                    <span class="username">{{match.user_to.username}}<span class="glyphicon {% if match.match_type == 'date' %}glyphicon glyphicon-heart{% elif match.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
-
-
-                  </div>
-
-                  <div class="right_side">
-                    <div class="status"><span class="indicator"></span></div>
-
-                    <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
-                  </div>
-
-                </li>
-
-              {% elif match.user_from.username != current_user.username %}
-              <li class="user accepted {{match.match_type}}" data-username="{{ match.user_from.username }}" data-match-type="{{match.match_type}}">
-
-                <div class="profile_photo">
-
-                  <img src="{{ match.user_from.avatar(60) }}">
-
-                </div>
-                <div class="info">
-
-                  <span class="username">{{match.user_from.username}}<span class="glyphicon {% if match.match_type == 'date' %}glyphicon glyphicon-heart{% elif match.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
-
-
-                </div>
-
-                <div class="right_side">
-                  <div class="status"><span class="indicator"></span></div>
-
-                  <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
-                </div>
-
-              </li>
-
-              {% endif %}
-
-            {% endfor %}
-
-          {% endif %}
-
-        {% endwith %}
-
-          {% with pending_matches = current_user.get_pending_matches() %}
-
-            {% if pending_matches %}
-
-              {% for match in pending_matches %}
+              {% if not match.deleted %}
 
                 {% if match.user_to.username != current_user.username %}
-                  <li class="user unconfirmed" data-username="{{ match.user_to.username }}" data-match-type="{{match.match_type}}">
+
+                  <li class="user accepted {{match.match_type}}" data-username="{{ match.user_to.username }}" data-match-type="{{match.match_type}}">
 
                     <div class="profile_photo">
 
@@ -131,8 +75,9 @@
                     </div>
 
                   </li>
+
                 {% elif match.user_from.username != current_user.username %}
-                <li class="user unconfirmed" data-username="{{ match.user_from.username }}" data-match-type="{{match.match_type}}">
+                <li class="user accepted {{match.match_type}}" data-username="{{ match.user_from.username }}" data-match-type="{{match.match_type}}">
 
                   <div class="profile_photo">
 
@@ -153,6 +98,72 @@
                   </div>
 
                 </li>
+
+                {% endif %}
+
+              {% endif %}
+
+            {% endfor %}
+
+          {% endif %}
+
+        {% endwith %}
+
+          {% with pending_matches = current_user.get_pending_matches() %}
+
+            {% if pending_matches %}
+
+              {% for match in pending_matches %}
+
+                {% if not match.deleted %}
+
+
+                  {% if match.user_to.username != current_user.username %}
+                    <li class="user unconfirmed" data-username="{{ match.user_to.username }}" data-match-type="{{match.match_type}}">
+
+                      <div class="profile_photo">
+
+                        <img src="{{ match.user_to.avatar(60) }}">
+
+                      </div>
+                      <div class="info">
+
+                        <span class="username">{{match.user_to.username}}<span class="glyphicon {% if match.match_type == 'date' %}glyphicon glyphicon-heart{% elif match.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
+
+
+                      </div>
+
+                      <div class="right_side">
+                        <div class="status"><span class="indicator"></span></div>
+
+                        <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
+                      </div>
+
+                    </li>
+                  {% elif match.user_from.username != current_user.username %}
+                  <li class="user unconfirmed" data-username="{{ match.user_from.username }}" data-match-type="{{match.match_type}}">
+
+                    <div class="profile_photo">
+
+                      <img src="{{ match.user_from.avatar(60) }}">
+
+                    </div>
+                    <div class="info">
+
+                      <span class="username">{{match.user_from.username}}<span class="glyphicon {% if match.match_type == 'date' %}glyphicon glyphicon-heart{% elif match.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
+
+
+                    </div>
+
+                    <div class="right_side">
+                      <div class="status"><span class="indicator"></span></div>
+
+                      <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
+                    </div>
+
+                  </li>
+                  {% endif %}
+
                 {% endif %}
 
               {% endfor %}
@@ -186,9 +197,28 @@
 
     <div id="user_info">
 
-    </div>
-
   </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-labelledby="deleteLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="gravatarLabel">Are you sure?</h4>
+        </div>
+        <div class="modal-body">
+          <p>This will remove this user from your matches, and you will not be able to match with them again.
+        </div>
+        <div class="modal-footer">
+          <a href="javascript:Chat.remove_match();" target="_blank" class="btn btn-danger">Yes, remove this match.</a>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Nevermind</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 {% endblock %}
 

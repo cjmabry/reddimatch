@@ -64,17 +64,36 @@ var properties, Chat = {
     // user selection
     p.userList.on("click touchstart", function(e) {
 
-      $('.selected').removeClass('selected');
+      if(e.type=='click') {
+        e.stopPropagation();
+        e.preventDefault();
+        $('.selected').removeClass('selected');
 
-      if ($(e.target).prop("tagName") == 'LI') {
-        $(e.target).toggleClass("selected");
-      } else {
-        $(e.target).parents("li").toggleClass("selected");
+        if ($(e.target).prop("tagName") == 'LI') {
+          $(e.target).toggleClass("selected");
+        } else {
+          $(e.target).parents("li").toggleClass("selected");
+        }
+
+        self.get_current_username();
+        self.get_avatar(300);
+        self.update_conversation();
+      } else if(e.type=='touchstart') {
+        e.stopPropagation();
+        e.preventDefault();
+
+        $('.selected').removeClass('selected');
+
+        if ($(e.target).prop("tagName") == 'LI') {
+          $(e.target).toggleClass("selected");
+        } else {
+          $(e.target).parents("li").toggleClass("selected");
+        }
+
+        self.get_current_username();
+        self.get_avatar(300);
+        self.update_conversation();
       }
-
-      self.get_current_username();
-      self.get_avatar(300);
-      self.update_conversation();
     });
 
 
@@ -146,6 +165,7 @@ var properties, Chat = {
         div.addClass('from');
         p.currentMessages.append(div);
         p.currentMessages.removeClass('empty');
+        self.mark_as_read(data['id']);
 
         if(scroll) {
 
@@ -208,7 +228,7 @@ var properties, Chat = {
           "<div class='match_button'>" +
             "<span class='check glyphicon glyphicon-ok yes-match' role='button' data-username='"+ p.currentUser + "' data-match-type=" + p.currentUserMatchType + "'>" +
             "</span>" +
-            "<span class='text'>Match</span>" +
+            "<span class='text'></span>" +
             "<span class='cross glyphicon glyphicon-remove no-match' role='button' data-username='"+ p.currentUser +"' data-match-type=" + p.currentUserMatchType + "'>" +
             "</span>" +
           "</div>" +
@@ -224,8 +244,6 @@ var properties, Chat = {
     $("span.yes-match").on("click", function() {
       var match_username = $(this).attr("data-username");
       var match_type = p.currentUserMatchType;
-      console.log(match_username)
-      console.log(match_type)
       match(this, match_username, match_type);
     });
 
@@ -233,8 +251,8 @@ var properties, Chat = {
       var match_username = $(this).attr("data-username");
       var match_type = p.currentUserMatchType;
       no_match(this, match_username, match_type);
+      $(p.currentUserDiv).fadeOut(500, function() { $(p.currentUserDiv).remove(); });
       p.currentMessages.addClass('rejected');
-      p.currentUserDiv.addClass('rejected');
     });
 
   },
@@ -321,6 +339,9 @@ var properties, Chat = {
       $("#user_info").append(bio_div);
       bio_div.append(data.bio);
     }
+
+    remove_match = $("<div class='card'><button data-toggle='modal' data-target='#delete-modal' class='btn btn-block btn-danger'>Remove Match <span class='glyphicon glyphicon-remove'></span></button></div>")
+    $("#user_info").append(remove_match);
 
   },
 
@@ -409,6 +430,26 @@ var properties, Chat = {
 
     }
 
+  },
+
+  mark_as_read: function(id) {
+    $.ajax({
+      type:'GET',
+      url:'mark_as_read',
+      data: {'id': id}
+    });
+  },
+
+  remove_match: function() {
+
+    $.post('/delete_match', {
+        'match_username': p.currentUser,
+        'match_type': p.currentUserMatchType,
+        'username': p.username
+      }).done(function () {
+      window.location.replace("http://reddimatch.com/chat");
+      console.log('Match deleted');
+    });
   }
 
 };

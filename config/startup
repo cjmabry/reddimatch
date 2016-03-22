@@ -3,8 +3,8 @@ sudo apt-get update
 sudo apt-get install build-essential libssl-dev libffi-dev python-dev git monit python-pip nginx
 sudo mkdir /home/www
 cd /home/www
-sudo git clone https://github.com/cjmabry/reddimatch.git
-sudo cp config/config_stage.py config.py
+sudo git clone https://cjmabry@github.com/cjmabry/reddimatch.git
+sudo cp config/staging/config.py config.py
 sudo pip install virtualenv
 sudo virtualenv venv
 sudo chown -R ubuntu:ubuntu venv/
