@@ -17,9 +17,9 @@ REDDIT_CLIENT_ID = os.environ['REDDIMATCH_CLIENT_ID']
 REDDIT_CLIENT_SECRET = os.environ['REDDIMATCH_CLIENT_SECRET']
 REDDIT_REDIRECT_URI = os.environ['REDDIMATCH_REDIRECT_URI']
 
-CSRF_SESSION_KEY = os.environ['REDDIMATCH_CSRF_KEY']
-SECRET_KEY = os.environ['REDDIMATCH_SECRET_KEY']
-REDDIT_STATE = os.environ['REDDIMATCH_STATE']
+CSRF_SESSION_KEY = os.urandom(10).encode('base-64').lower().strip()
+SECRET_KEY = os.urandom(10).encode('base-64').lower().strip()
+REDDIT_STATE = os.urandom(10).encode('base-64').lower().strip()
 
 ADS_ENABLED = False
 NOTIFICATIONS_ENABLED = False
