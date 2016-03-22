@@ -21,8 +21,8 @@ CSRF_SESSION_KEY = os.urandom(10).encode('base-64').lower().strip()
 SECRET_KEY = os.urandom(10).encode('base-64').lower().strip()
 REDDIT_STATE = os.urandom(10).encode('base-64').lower().strip()
 
-REDDIT_NOTIFIER_ID = os.envron['REDDIT_NOTIFIER_ID']
-REDDIT_NOTIFIER_SECRET = os.envron['REDDIT_NOTIFIER_SECRET']
+REDDIT_NOTIFIER_ID = os.environ['REDDIT_NOTIFIER_ID']
+REDDIT_NOTIFIER_SECRET = os.environ['REDDIT_NOTIFIER_SECRET']
 
 ADS_ENABLED = True
 NOTIFICATIONS_ENABLED = True
