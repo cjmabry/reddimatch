@@ -356,7 +356,7 @@ footer {
 }
 
 /* Register and Dashboard */
-.register_form, .register_page, .dashboard_page, .dashboard_page .modal-open .modal, .register_page .modal-open .modal, .messages_page .modal-open .modal {
+.register_form, .register_page, .dashboard_page {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -370,6 +370,44 @@ footer {
       -ms-flex-align: center;
           align-items: center;
 }
+
+.modal {
+  text-align: center;
+  padding: 0!important;
+}
+
+.modal:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  margin-right: -4px;
+}
+
+.modal-dialog {
+  display: inline-block;
+  text-align: left;
+  vertical-align: middle;
+}
+
+/*.dashboard_page .modal-open .modal.in, .register_page .modal-open .modal.in, .messages_page .modal-open .modal.in {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.dashboard_page .modal, .register_page .modal.in, .messages_page .modal.in {
+  display: none;
+}*/
 
 .register-wrapper {
   margin-top: 20px;

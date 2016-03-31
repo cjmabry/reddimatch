@@ -16,27 +16,6 @@
 
       <span data-toggle="modal" data-target="#gravatar" class="choose glyphicon glyphicon-camera"></span>
 
-      <!-- Modal -->
-      <div class="modal fade" id="gravatar" tabindex="-1" role="dialog" aria-labelledby="gravatarLabel">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-              <h4 class="modal-title" id="gravatarLabel">Your Avatar</h4>
-            </div>
-            <div class="modal-body">
-              <p>Reddimatch supports Gravatar, the Globally Recognized Avatar, and will use the Gravatar registered with your provided email address.</p>
-
-              <p><strong>To learn more or to create your Gravatar, visit <a href="http://gravatar.com" target="_blank">Gravatar.com</a>.</strong></p>
-            </div>
-            <div class="modal-footer">
-              <a href="http://gravatar.com" target="_blank" class="btn btn-primary">Go to Gravatar.com <span class="glyphicon glyphicon-chevron-right"></span></a>
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close <span class="glyphicon glyphicon-remove"></span></button>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
 
     <div class="register_form">
@@ -189,27 +168,27 @@
 
     <button data-toggle="modal" data-target="#delete-modal" class="btn btn-danger">Delete Profile <span class="glyphicon glyphicon-remove"></span></button>
 
-    <!-- Modal -->
-    <div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-labelledby="gravatarLabel">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="gravatarLabel">Are you sure?</h4>
-          </div>
-          <div class="modal-body">
-            <p>This will delete your reddimatch profile, and you will lose everything associated with your account, including matches and messages.
-          </div>
-          <div class="modal-footer">
-            <a href="javascript: submit_delete();" class="btn btn-danger">Yes, delete my profile.</a>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Nevermind</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-labelledby="gravatarLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="gravatarLabel">Are you sure?</h4>
+      </div>
+      <div class="modal-body">
+        <p>This will delete your reddimatch profile, and you will lose everything associated with your account, including matches and messages.
+      </div>
+      <div class="modal-footer">
+        <a href="javascript: submit_delete();" class="btn btn-danger">Yes, delete my profile.</a>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Nevermind</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% endif %}
