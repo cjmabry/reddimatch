@@ -4,6 +4,7 @@ server {
         server_name _;
         access_log /var/log/nginx/access.log;
       	uwsgi_intercept_errors off;
+        client_max_body_size 2M;
 
         location / {
 
