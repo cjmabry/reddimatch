@@ -52,7 +52,7 @@ paramiko==1.16.0
 passlib==1.6.5
 pathspec==0.3.3
 pbr==1.8.1
-PIL==1.1.7
+Pillow==3.2.0
 pillowcase==2.0.0
 praw==3.4.0
 praw-oauth2util==0.3.3
