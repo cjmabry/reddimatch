@@ -24,6 +24,11 @@ REDDIT_STATE = os.urandom(10).encode('base-64').lower().strip()
 REDDIT_NOTIFIER_ID = os.environ['REDDIT_NOTIFIER_ID']
 REDDIT_NOTIFIER_SECRET = os.environ['REDDIT_NOTIFIER_SECRET']
 
+BUCKET_NAME = 'reddimatch'
+BUCKET_URL = 'https://s3-us-west-2.amazonaws.com/reddimatch/'
+
 ADS_ENABLED = True
 NOTIFICATIONS_ENABLED = True
 ENVIRONMENT = 'Production'
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+MAX_CONTENT_LENGTH = 2 * 1024 * 1024

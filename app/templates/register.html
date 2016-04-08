@@ -15,21 +15,30 @@
 
 <div class="register row">
 
-  {% from "_formhelpers.html" import render_field %}
-
-  <form id="registration" method=post action="/register" data-parsley-validate>
+  <div class="register-wrapper">
 
     <div class="avatar">
 
       <img src="{{ current_user.avatar(300) }}">
 
-      <span data-toggle="modal" data-target="#gravatar" class="choose glyphicon glyphicon-camera"></span>
+      <form method="post" enctype="multipart/form-data" id="upload_form">
+          <input type="file" name="file" id="file" class="inputfile"/>
+          <label for="file" class="choose glyphicon glyphicon-camera"></label>
+      </form>
+
+      <script>
+      document.getElementById("file").onchange = function() {
+        document.getElementById("upload_form").submit();
+      };
+      </script>
 
     </div>
 
     <div class="register_form">
 
-      <div class="col-sm-12">
+      {% from "_formhelpers.html" import render_field %}
+
+      <form class="col-sm-12" id="registration" method=post action="/register" data-parsley-validate>
 
         {{ form.csrf_token }}
 
@@ -81,15 +90,13 @@
 
         <input class="hidden" id="next-button" type=submit value=Next>
 
-      </div>
-
     </div>
 
     <div class="allow_reddit_notifications text-center">
       {{ render_field(form.allow_reddit_notifications) }} Send me a message through reddit when I recieve a match or when one of my matches is accepted.
     </div>
 
-  </form>
+    </form>
 
 </div>
 

@@ -1,0 +1,11 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+{% block container%}container{% endblock %}
+
+{% block content %}
+<div class="text text-center">
+  <h1>That image is too big.</h1>
+  <p>In this case, size <em>does</em> matter. Please keep your images under 2MB.</p>
+  <p><a href="{{ url_for('dashboard') }}">Back</a></p>
+</div>
+{% endblock %}

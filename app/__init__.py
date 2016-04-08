@@ -1,15 +1,18 @@
 from flask import Flask, flash
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager
+from flask.ext.images import Images
 from flask_socketio import SocketIO
 from werkzeug.contrib.fixers import ProxyFix
 import os, sys
 from flask.ext.mail import Mail
+import logging
 
 
 app = Flask(__name__)
 app.config.from_object('config')
 app.wsgi_app = ProxyFix(app.wsgi_app)
+images = Images(app)
 
 mail = Mail(app)
 
@@ -20,6 +23,9 @@ lm.login_view = 'login'
 socketio = SocketIO(app)
 
 db = SQLAlchemy(app)
+
+if app.debug:
+    app.logger.setLevel(logging.INFO)
 
 if not app.debug:
     import logging

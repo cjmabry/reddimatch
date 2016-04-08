@@ -14,7 +14,16 @@
 
       <img src="{{ current_user.avatar(300) }}">
 
-      <span data-toggle="modal" data-target="#gravatar" class="choose glyphicon glyphicon-camera"></span>
+      <form method="post" enctype="multipart/form-data" id="upload_form">
+          <input type="file" name="file" id="file" class="inputfile"/>
+          <label for="file" class="choose glyphicon glyphicon-camera"></label>
+      </form>
+
+      <script>
+        document.getElementById("file").onchange = function() {
+          document.getElementById("upload_form").submit();
+        };
+      </script>
 
     </div>
 
@@ -80,7 +89,6 @@
           </div>
 
     </div>
-
 
   </div>
 

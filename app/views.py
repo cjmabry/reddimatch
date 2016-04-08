@@ -1,4 +1,4 @@
-from flask import render_template, redirect, request, flash, url_for, g, jsonify, session, got_request_exception
+from flask import render_template, redirect, request, flash, url_for, g, jsonify, session, got_request_exception, send_file
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
 import rollbar
 import rollbar.contrib.flask
@@ -10,6 +10,9 @@ from sqlalchemy import func, and_, or_
 from haversine import haversine
 from math import cos, pi
 from functools import wraps
+import boto3
+import botocore
+from werkzeug import secure_filename
 
 @app.before_first_request
 def init_rollbar():
@@ -33,6 +36,14 @@ def active_required(f):
     def decorated_function(*args, **kwargs):
         if g.user.deleted:
             return redirect(url_for('logout'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def register_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not g.user.registered:
+            return redirect(url_for('register'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -88,49 +99,55 @@ def register():
 
     form = forms.RegistrationForm(request.form)
 
-    if request.method == 'POST' and form.validate():
-        user = current_user
-        user.username = form.username.data
-        user.allow_reddit_notifications = form.allow_reddit_notifications.data
-        user.bio = form.bio.data
-        user.newsletter = True
-        user.registered = True
-        user.created_on = datetime.datetime.now()
-        user.email_verified = False
+    if request.method == 'POST':
 
-        if form.email.data:
-            user.email = form.email.data
-        else:
-            user.email = None
+        if request.files.get('file'):
+            file = request.files['file']
+            upload_file(file)
 
-        favorite_subs = []
-        favorite_subs.append(form.favorite_sub_1.data.lower())
+        elif form.validate():
+            user = current_user
+            user.username = form.username.data
+            user.allow_reddit_notifications = form.allow_reddit_notifications.data
+            user.bio = form.bio.data
+            user.newsletter = True
+            user.registered = True
+            user.created_on = datetime.datetime.now()
+            user.email_verified = False
 
-        if form.favorite_sub_2.data:
-            favorite_subs.append(form.favorite_sub_2.data.lower())
-
-        if form.favorite_sub_3.data:
-            favorite_subs.append(form.favorite_sub_3.data.lower())
-
-        user.unfavorite_all()
-
-        for sub in favorite_subs:
-
-            # strip /r/ from name
-            if '/' in sub:
-                sub = sub.split('/')[-1]
-
-            if models.Subreddit.query.filter_by(name = sub).first() is None:
-                subreddit = models.Subreddit(name=sub)
-                db.session.add(subreddit)
-                db.session.commit()
-                user.favorite(subreddit)
+            if form.email.data:
+                user.email = form.email.data
             else:
-                subreddit = models.Subreddit.query.filter_by(name = sub).first()
-                user.favorite(subreddit)
+                user.email = None
 
-        db.session.commit()
-        return redirect(url_for('match'))
+            favorite_subs = []
+            favorite_subs.append(form.favorite_sub_1.data.lower())
+
+            if form.favorite_sub_2.data:
+                favorite_subs.append(form.favorite_sub_2.data.lower())
+
+            if form.favorite_sub_3.data:
+                favorite_subs.append(form.favorite_sub_3.data.lower())
+
+            user.unfavorite_all()
+
+            for sub in favorite_subs:
+
+                # strip /r/ from name
+                if '/' in sub:
+                    sub = sub.split('/')[-1]
+
+                if models.Subreddit.query.filter_by(name = sub).first() is None:
+                    subreddit = models.Subreddit(name=sub)
+                    db.session.add(subreddit)
+                    db.session.commit()
+                    user.favorite(subreddit)
+                else:
+                    subreddit = models.Subreddit.query.filter_by(name = sub).first()
+                    user.favorite(subreddit)
+
+            db.session.commit()
+            return redirect(url_for('match'))
 
     form.allow_reddit_notifications.default = True
 
@@ -138,67 +155,112 @@ def register():
 
     return render_template('register.html', title='Reddimatch - Register', form=form, page_class='register_page')
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
+
+def generate_filename(filename):
+    s = string.lowercase + string.digits
+    rand = ''.join(random.sample(s,10))
+    ext = filename.rsplit('.', 1)[1]
+    filename = rand + '.' + ext
+    return filename
+
+def upload_file(file):
+    s3 = boto3.resource('s3')
+    bucket_name = app.config['BUCKET_NAME']
+    bucket = s3.Bucket(bucket_name)
+    bucket_exists = True
+    try:
+        s3.meta.client.head_bucket(Bucket=bucket_name)
+    except botocore.exceptions.ClientError as e:
+        error_code = int(e.response['Error']['Code'])
+        if error_code == 404:
+            bucket_exists = False
+
+    if bucket_exists:
+
+        if file and allowed_file(file.filename):
+            # generate filename
+            filename = 'uploads/photos/' + secure_filename(generate_filename(file.filename))
+            contents = file.read()
+
+            app.logger.info( "Uploading some data to " + bucket_name + " with key: " + filename)
+
+            s3.Object(bucket_name, filename).put(Body=contents, ACL='public-read')
+
+            current_user.profile_photo_id = filename
+            db.session.commit()
+
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 @active_required
+@register_required
 def dashboard():
     form = forms.DashboardForm(request.form)
     user = current_user
 
-    if request.method == 'POST' and form.validate():
-        user.username = form.username.data
-        user.allow_reddit_notifications = form.allow_reddit_notifications.data
+    if request.method == 'POST':
 
-        if form.age.data:
-            user.age = int(form.age.data)
-        user.gender_id = int(form.gender.data)
-        user.desired_gender_id = int(form.desired_gender.data)
-        user.date_searchable = not form.searchable.data
-        user.min_age = int(form.min_age.data)
-        user.max_age = int(form.max_age.data)
-        user.search_radius = int(form.radius.data)
-        current_user.disable_location = form.disable_location.data
+        if request.files.get('file'):
+            file = request.files['file']
+            upload_file(file)
 
-        if user.disable_location is True:
-            user.latitude = None
-            user.longitude = None
-            user.location = None
+        elif form.validate():
 
-        if form.email.data:
-            user.email = form.email.data
-        else:
-            user.email = None
+            user.username = form.username.data
+            user.allow_reddit_notifications = form.allow_reddit_notifications.data
 
-        user.bio = form.bio.data
-        favorite_subs = []
-        favorite_subs.append(form.favorite_sub_1.data)
+            if form.age.data:
+                user.age = int(form.age.data)
+            user.gender_id = int(form.gender.data)
+            user.desired_gender_id = int(form.desired_gender.data)
+            user.date_searchable = not form.searchable.data
+            user.min_age = int(form.min_age.data)
+            user.max_age = int(form.max_age.data)
+            user.search_radius = int(form.radius.data)
+            current_user.disable_location = form.disable_location.data
 
-        if form.favorite_sub_2.data:
-            favorite_subs.append(form.favorite_sub_2.data)
+            if user.disable_location is True:
+                user.latitude = None
+                user.longitude = None
+                user.location = None
 
-        if form.favorite_sub_3.data:
-            favorite_subs.append(form.favorite_sub_3.data)
+            if form.email.data:
+                user.email = form.email.data
+            else:
+                user.email = None
 
-        user.unfavorite_all()
+            user.bio = form.bio.data
+            favorite_subs = []
+            favorite_subs.append(form.favorite_sub_1.data)
 
-        for sub in favorite_subs:
-            if models.Subreddit.query.filter_by(name=sub).first():
-                sub = models.Subreddit.query.filter_by(name=sub).first()
-                user.favorite(sub)
-            elif models.Subreddit.query.filter_by(name=sub).first() is None:
-                r = reddit_api.praw_instance()
-                try:
-                    r.get_subreddit(sub, fetch=True)
-                except Exception as e:
-                    flash(e)
-                    return render_template('dashboard.html', title='Reddimatch - My Profile', form=form, page_class='dashboard_page')
+            if form.favorite_sub_2.data:
+                favorite_subs.append(form.favorite_sub_2.data)
 
-                subreddit = models.Subreddit(name=sub)
-                db.session.add(subreddit)
+            if form.favorite_sub_3.data:
+                favorite_subs.append(form.favorite_sub_3.data)
 
-        db.session.commit()
+            user.unfavorite_all()
 
-        return render_template('dashboard.html', title='Reddimatch - My Profile', form=form, page_class='dashboard_page')
+            for sub in favorite_subs:
+                if models.Subreddit.query.filter_by(name=sub).first():
+                    sub = models.Subreddit.query.filter_by(name=sub).first()
+                    user.favorite(sub)
+                elif models.Subreddit.query.filter_by(name=sub).first() is None:
+                    r = reddit_api.praw_instance()
+                    try:
+                        r.get_subreddit(sub, fetch=True)
+                    except Exception as e:
+                        flash(e)
+                        return render_template('dashboard.html', title='Reddimatch - My Profile', form=form, page_class='dashboard_page')
+
+                    subreddit = models.Subreddit(name=sub)
+                    db.session.add(subreddit)
+
+            db.session.commit()
+
+            return render_template('dashboard.html', title='Reddimatch - My Profile', form=form, page_class='dashboard_page')
 
     if user.gender_id:
         form.gender.default = user.gender_id
@@ -252,12 +314,14 @@ def dashboard():
 @app.route('/match')
 @login_required
 @active_required
+@register_required
 def match():
     return render_template('match.html', title='Reddimatch', page_class='match_page')
 
 @app.route('/quick_match')
 @login_required
 @active_required
+@register_required
 def quick_match():
     #TODO use counter or similar to get people who are favorites of multiples of your favorites
     user = current_user
@@ -291,6 +355,7 @@ def quick_match():
 @app.route('/date', methods = ['GET', 'POST'])
 @login_required
 @active_required
+@register_required
 def date():
     form = forms.DateRegistrationForm(request.form)
 
@@ -425,6 +490,7 @@ def logout():
 @app.route('/accept', methods=['POST', 'GET'])
 @login_required
 @active_required
+@register_required
 def accept():
     user = current_user
     match_username = request.form['username']
@@ -450,6 +516,7 @@ def accept():
 @app.route('/reject', methods=['POST', 'GET'])
 @login_required
 @active_required
+@register_required
 def reject():
     user = current_user
     unmatch_username = request.form['username']
@@ -462,9 +529,60 @@ def reject():
 
     return 'success'
 
+# download image
+@app.route("/photos/<id>", methods=['GET'])
+@login_required
+@active_required
+def get_photo(id):
+    key = id
+    print 1
+    print key
+    # transfer = S3Transfer(boto3.client('s3'))
+    # transfer.download_file(AWS_BUCKET, key, key)
+
+    s3 = boto3.resource('s3')
+    bucket_name = app.config['BUCKET_NAME']
+    bucket = s3.Bucket(bucket_name)
+    bucket_exists = True
+    try:
+        s3.meta.client.head_bucket(Bucket=bucket_name)
+    except botocore.exceptions.ClientError as e:
+        error_code = int(e.response['Error']['Code'])
+        if error_code == 404:
+            bucket_exists = False
+
+    if bucket_exists:
+        # client = boto3.client('s3')
+        # url = client.generate_presigned_url('get_object', Params={'Bucket': bucket_name, 'Key':key}, ExpiresIn=0)
+        # TODO: check if key exists. If not, remove url from user
+        url = app.config['BUCKET_URL'] + id
+
+        return url
+
+
+# @app.route('/photos/<id>', methods=['POST', 'GET'])
+# @login_required
+# @active_required
+# def get_photo(id):
+#     return False
+    # filename = id
+    #
+    # s3 = boto.connect_s3()
+    # bucket_name = 'reddimatch-testing'
+    # bucket = s3.get_bucket(bucket_name)
+    #
+    # key = bucket.get_key(filename)
+    #
+    # if key is not None:
+    #     url = key.generate_url(360)
+    #     return url
+    # else:
+    #     return False
+
 @app.route('/get_username')
 @login_required
 @active_required
+@register_required
 def get_username():
     if current_user.is_authenticated and current_user.username is not None:
         return jsonify({
@@ -476,6 +594,7 @@ def get_username():
 @app.route('/get_messages')
 @login_required
 @active_required
+@register_required
 def get_messages():
     username = request.args.get('username', None)
     match_type = request.args.get('match_type', None)
@@ -547,6 +666,7 @@ def get_messages():
 @app.route('/get_avatar')
 @login_required
 @active_required
+@register_required
 def get_avatar():
     if current_user.is_authenticated:
         username = request.args.get('username', None)
@@ -566,6 +686,7 @@ def get_avatar():
 @app.route('/is_online', methods=['POST','GET'])
 @login_required
 @active_required
+@register_required
 def is_online():
     if current_user.is_authenticated:
         users = request.json
@@ -582,6 +703,7 @@ def is_online():
 @app.route('/chat/<username>')
 @login_required
 @active_required
+@register_required
 def messages(username=None):
     if current_user.get_matches() or current_user.get_match_requests() > 0 or current_user.get_pending_matches():
         return render_template('messages.html',title='Reddimatch - Messages',page_class='messages_page')
@@ -592,6 +714,7 @@ def messages(username=None):
 @app.route('/get_user_info')
 @login_required
 @active_required
+@register_required
 def get_user_info():
     if current_user.is_authenticated:
 
@@ -633,6 +756,7 @@ def get_user_info():
 @app.route('/set_location')
 @login_required
 @active_required
+@register_required
 def set_location():
     latitude = float(request.args.get('latitude'))
     longitude = float(request.args.get('longitude'))
@@ -654,6 +778,7 @@ def set_location():
 @app.route('/mark_as_read')
 @login_required
 @active_required
+@register_required
 def mark_as_read():
     message_id = request.args.get('id', None)
     m = models.Message.query.filter_by(id = message_id).first()
@@ -759,6 +884,7 @@ def delete_profile():
 @app.route('/delete_match', methods=['POST'])
 @login_required
 @active_required
+@register_required
 def delete_match():
     match_type = request.form['match_type']
     match_username = request.form['match_username']
@@ -787,9 +913,13 @@ def before_request():
 
 @app.errorhandler(404)
 def not_found_error(error):
-    return render_template('404.html',title='These are not the droids you\'re looking for.',page_class='404_page'), 404
+    return render_template('404.html',title='These are not the droids you\'re looking for. - Reddimatch',page_class='error 404_page'), 404
 
 @app.errorhandler(500)
 def internal_error(error):
     db.session.rollback()
-    return render_template('500.html',title='Something went wrong.',page_class='500_page'), 500
+    return render_template('500.html',title='Something went wrong. - Reddimatch',page_class='error 500_page'), 500
+
+@app.errorhandler(413)
+def entity_too_large(error):
+    return render_template('413.html',title='Sometimes, size does matter - that image is too big! - Reddimatch',page_class='error 413_page'), 413

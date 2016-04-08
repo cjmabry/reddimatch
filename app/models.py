@@ -3,6 +3,7 @@ from app import db
 from hashlib import md5
 from sqlalchemy import func, or_, and_
 from datetime import datetime
+from flask.ext.images import resized_img_src
 
 favorite_subs = db.Table('favorite_subs',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
@@ -43,6 +44,7 @@ class User(db.Model):
     longitude = db.Column(db.Float(10))
     bio = db.Column(db.String(140))
     profile_photo_url = db.Column(db.String(120))
+    profile_photo_id = db.Column(db.String(120))
     registered = db.Column(db.Boolean)
     is_active = db.Column(db.Boolean)
     favorited = db.relationship('Subreddit', secondary=favorite_subs,
@@ -238,10 +240,10 @@ class User(db.Model):
             return notifications
 
     def avatar(self, size=300):
-        if self.email is not None:
-            return 'http://www.gravatar.com/avatar/%s?d=identicon&s=%d' % (md5(self.email.encode('utf-8')).hexdigest(), size)
+        if self.profile_photo_id:
+            return resized_img_src(app.views.get_photo(self.profile_photo_id),width=size,height=size,mode='crop',enlarge=True, quality=80)
         else:
-            return 'http://www.gravatar.com/avatar/?d=identicon&s=%s' % size
+            return 'http://www.gravatar.com/avatar/' + (md5(self.username.encode('utf-8')).hexdigest()) + '?d=identicon&s=%s' % size
 
     def favorite(self, subreddit):
         # TODO: make sure we check all instances where this is written to DB, because if a user has already favorited one, we'll try to add a nonetype object to the DB and it will fail

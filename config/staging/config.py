@@ -24,6 +24,11 @@ CSRF_SESSION_KEY = os.environ['REDDIMATCH_CSRF_KEY']
 SECRET_KEY = os.environ['REDDIMATCH_SECRET_KEY']
 REDDIT_STATE = os.environ['REDDIMATCH_STATE']
 
+BUCKET_NAME = 'reddimatch-testing'
+BUCKET_URL = 'https://s3-us-west-2.amazonaws.com/reddimatch-testing/'
+
 ADS_ENABLED = False
 NOTIFICATIONS_ENABLED = False
 ENVIRONMENT = 'Staging'
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+MAX_CONTENT_LENGTH = 2 * 1024 * 1024

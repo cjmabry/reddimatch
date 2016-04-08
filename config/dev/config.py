@@ -21,6 +21,11 @@ CSRF_SESSION_KEY = os.urandom(10).encode('base-64').lower().strip()
 SECRET_KEY = os.urandom(10).encode('base-64').lower().strip()
 REDDIT_STATE = os.urandom(10).encode('base-64').lower().strip()
 
+BUCKET_NAME = 'reddimatch-testing'
+BUCKET_URL = 'https://s3-us-west-2.amazonaws.com/reddimatch-testing/'
+
 ADS_ENABLED = False
 NOTIFICATIONS_ENABLED = False
 ENVIRONMENT = 'Development'
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+MAX_CONTENT_LENGTH = 2 * 1024 * 1024
