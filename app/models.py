@@ -42,7 +42,7 @@ class User(db.Model):
     postal_code = db.Column(db.String(10))
     latitude = db.Column(db.Float(10))
     longitude = db.Column(db.Float(10))
-    bio = db.Column(db.String(140))
+    bio = db.Column(db.String(200))
     profile_photo_url = db.Column(db.String(120))
     profile_photo_id = db.Column(db.String(120))
     registered = db.Column(db.Boolean)

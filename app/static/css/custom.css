@@ -403,25 +403,6 @@ footer {
 	z-index: -1;
 }
 
-/*.dashboard_page .modal-open .modal.in, .register_page .modal-open .modal.in, .messages_page .modal-open .modal.in {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-      -ms-flex-pack: center;
-          justify-content: center;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-      -ms-flex-align: center;
-          align-items: center;
-}
-
-.dashboard_page .modal, .register_page .modal.in, .messages_page .modal.in {
-  display: none;
-}*/
-
 .register-wrapper {
   margin-top: 20px;
   max-width: 900px;
@@ -551,6 +532,16 @@ footer {
 .register_form .bio input {
   height:3em;
 
+}
+
+.register_form .char-count {
+  color: #999;
+  font-size: 0.8em;
+  margin: 0;
+  font-weight: 500;
+  position: absolute;
+  top: 5px;
+  right: 20px;
 }
 
 .register_form .favorite_subs input {

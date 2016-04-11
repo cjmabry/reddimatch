@@ -51,6 +51,7 @@
           <div class="row bio">
 
             <div class="field bio col-sm-12">
+              <div class="char-count">(<span id="current-count">0</span>/200)</div>
               {% if current_user.bio is defined %}
                 {% set f = form.bio.process_data(current_user.bio) %}
 
@@ -249,7 +250,22 @@
   var min_age_preview = document.getElementById('min_age_preview');
   var max_age = document.getElementById('max_age');
   var max_age_preview = document.getElementById('max_age_preview');
+  var bio = document.getElementById('bio');
 
+  $( document ).ready(function() {
+    var length = bio.value.length;
+    $('#current-count').html(length);
+  });
+
+  $('#bio').on('keyup', function(event) {
+    length = bio.value.length;
+    $('#current-count').html((length));
+    if (length > 200) {
+        $('.char-count').css('color','red');
+    } else {
+      $('.char-count').css('color','#999');
+    }
+  });
 
   function submit_delete() {
     $.post("/delete_profile", {
