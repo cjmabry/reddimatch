@@ -1,4 +1,4 @@
-import app
+import app, ast
 from app import db
 from hashlib import md5
 from sqlalchemy import func, or_, and_
@@ -65,6 +65,7 @@ class User(db.Model):
     deleted = db.Column(db.Boolean)
     disable_location = db.Column(db.Boolean)
     show_top_comment = db.Column(db.Boolean)
+    top_comment = db.Column(db.String)
 
     matches_sent = db.relationship('Match', backref='match_sender', primaryjoin=(id==Match.user_from_id),lazy='dynamic')
     matches_received = db.relationship('Match', primaryjoin=(id==Match.user_to_id), backref='match_recipient', lazy='dynamic')
@@ -267,8 +268,15 @@ class User(db.Model):
     def has_favorite(self, subreddit):
         return self.favorited.filter(favorite_subs.c.subreddit_id == subreddit.id).count() > 0
 
-    def top_comment(self):
-        return app.reddit_api.get_top_comment(self)
+    def get_top_comment(self, fetch=False):
+        if not fetch and self.top_comment:
+                return ast.literal_eval(self.top_comment)
+        else:
+            comment = app.reddit_api.get_top_comment(self)
+            self.top_comment = str(comment)
+            db.session.commit()
+            return comment
+
 
     def favorited_subs(self):
         return Subreddit.query.join(favorite_subs, (favorite_subs.c.subreddit_id == Subreddit.id)).filter(favorite_subs.c.user_id == self.id)

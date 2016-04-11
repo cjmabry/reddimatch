@@ -191,7 +191,15 @@ def get_top_comment(user):
 
     try:
         top_comment = comments.next()
-        return top_comment
+        comment = {
+        'body': str(top_comment.body),
+        'author': str(top_comment.author),
+        'created_utc':float(top_comment.created_utc),
+        'score': str(top_comment.score),
+        'subreddit': str(top_comment.subreddit),
+        'permalink': str(top_comment.permalink)
+        }
+        return comment
     except StopIteration as e:
         print "The user doesn't have any comments, or Reddit might be down."
 

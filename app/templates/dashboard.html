@@ -102,9 +102,9 @@
 
 </div>
 
-{% if current_user.top_comment() %}
+{% if current_user.get_top_comment() %}
 
-  {% set comment = current_user.top_comment() %}
+  {% set comment = current_user.get_top_comment() %}
   <div class="row">
     <div class="col-md-6 col-md-offset-3">
 

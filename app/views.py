@@ -754,7 +754,7 @@ def get_user_info():
                 user_dict['avatar'] = str(user.avatar(100))
                 user_dict['match_type'] = match_type
 
-                top_comment = user.top_comment()
+                top_comment = user.get_top_comment()
 
                 if user.show_top_comment and top_comment is not None:
                     user_dict['top_comment'] = {'body':top_comment.body, 'created':pretty_date(top_comment.created_utc),'subreddit':str(top_comment.subreddit),'score':top_comment.score, 'permalink':top_comment.permalink}
