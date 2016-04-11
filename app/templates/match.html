@@ -90,7 +90,7 @@
 
       {% endif %}
 
-      {% if current_user.top_comment() %}
+      {% if current_user.top_comment() and current_user.show_top_comment %}
 
         {% set comment = current_user.top_comment() %}
           <div class="card">
