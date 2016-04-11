@@ -9,7 +9,7 @@ from reddit_api import praw_instance
 class RegistrationForm(Form):
     username = StringField('Display Name', [validators.InputRequired(message="You need a username."), validators.Length(min=3, max=20, message ="Usernames can be between 3 and 20 characters."), validators.Regexp(r'^[\w_-]+$', message='Usernames can only contain letters, numbers, "-" and "_".')])
     email = StringField('Email (Private)', [validators.Optional(strip_whitespace=False), validators.Email()])
-    bio = StringField('Bio', [validators.Length(max=140)], widget=TextArea())
+    bio = StringField('Bio', [validators.Length(max=200)], widget=TextArea())
     avatar = IntegerField('Avatar')
     favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least on favorite sub to find matches.")])
     favorite_sub_2 = StringField('Favorite Sub 2', [validators.Optional()])
@@ -119,7 +119,7 @@ class DateRegistrationForm(Form):
 class DashboardForm(Form):
     username = StringField('Display Name', [validators.InputRequired(message="You need a username."), validators.Length(min=3, max=20, message ="Usernames can be between 3 and 20 characters."), validators.Regexp(r'^[\w_-]+$', message='Usernames can only contain letters, numbers, "-" and "_".')])
     email = StringField('Email (Private)', [validators.Optional(strip_whitespace=False), validators.Email()])
-    bio = StringField('Bio', [validators.Length(max=140)], widget=TextArea())
+    bio = StringField('Bio', [validators.Length(max=200)], widget=TextArea())
     avatar = IntegerField('Avatar')
     favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least on favorite sub to find matches.")])
     favorite_sub_2 = StringField('Favorite Sub 2', [validators.Optional()])
