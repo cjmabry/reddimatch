@@ -445,6 +445,10 @@ footer {
   padding: 20px;
 }
 
+.top-comment .refresh-button {
+  margin-top: 20px;
+}
+
 .match_page .top-comment .comment {
   padding: 0;
 }

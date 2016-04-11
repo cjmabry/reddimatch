@@ -791,6 +791,13 @@ def set_location():
 
     return 'true'
 
+@app.route('/get_top_comment')
+@login_required
+@active_required
+def get_top_comment():
+    comment = current_user.get_top_comment(fetch=True)
+    return redirect(url_for('dashboard'))
+
 @app.route('/mark_as_read')
 @login_required
 @active_required
