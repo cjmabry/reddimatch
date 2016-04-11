@@ -65,7 +65,7 @@ class User(db.Model):
     deleted = db.Column(db.Boolean)
     disable_location = db.Column(db.Boolean)
     show_top_comment = db.Column(db.Boolean)
-    top_comment = db.Column(db.String)
+    top_comment = db.Column(db.Text)
 
     matches_sent = db.relationship('Match', backref='match_sender', primaryjoin=(id==Match.user_from_id),lazy='dynamic')
     matches_received = db.relationship('Match', primaryjoin=(id==Match.user_to_id), backref='match_recipient', lazy='dynamic')
