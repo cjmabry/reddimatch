@@ -38,7 +38,7 @@ user = Table('user', pre_meta,
     Column('disable_location', BOOLEAN),
     Column('profile_photo_id', VARCHAR(length=120)),
     Column('show_top_comment', BOOLEAN),
-    Column('top_comment', VARCHAR),
+    Column('top_comment', VARCHAR(length=1000)),
 )
 
 

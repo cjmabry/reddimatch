@@ -38,7 +38,7 @@ user = Table('user', post_meta,
     Column('deleted', Boolean),
     Column('disable_location', Boolean),
     Column('show_top_comment', Boolean),
-    Column('top_comment', String),
+    Column('top_comment', String(length=1000)),
 )
 
 
