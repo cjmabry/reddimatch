@@ -55,7 +55,6 @@ def register_required(f):
 @app.route('/index')
 def index():
     if current_user.is_authenticated:
-        reddit_api.get_top_comment(current_user)
         return redirect(url_for('match'))
     return render_template('index.html', title='Reddimatch - Where redditors meet!', page_class='index_page')
 
@@ -114,10 +113,6 @@ def register():
             user = current_user
             user.username = form.username.data
             user.allow_reddit_notifications = form.allow_reddit_notifications.data
-
-            print form.allow_reddit_notifications.data
-            print form.show_top_comment.data
-
             user.show_top_comment = form.show_top_comment.data
             user.bio = form.bio.data
             user.newsletter = True
@@ -351,7 +346,6 @@ def quick_match():
         users = sub.favorited_users().all()
 
         for u in users:
-            print u
             if u.username is not user.username and not user.is_matched(u, 'friend') and not user.is_rejected(u, 'friend') and not user.has_sent_match(u, 'friend') and u not in matches:
 
                 u.status = 'onsite'
@@ -469,8 +463,6 @@ def date():
                     matches_dict[match] = match.last_online
 
             matches_sorted = dict(sorted(matches_dict.iteritems(), key=operator.itemgetter(1), reverse=True)[:3])
-
-            print matches_sorted
 
             matches = []
 
@@ -593,32 +585,10 @@ def get_photo(id):
             bucket_exists = False
 
     if bucket_exists:
-        # client = boto3.client('s3')
-        # url = client.generate_presigned_url('get_object', Params={'Bucket': bucket_name, 'Key':key}, ExpiresIn=0)
         # TODO: check if key exists. If not, remove url from user
         url = app.config['BUCKET_URL'] + id
 
         return url
-
-
-# @app.route('/photos/<id>', methods=['POST', 'GET'])
-# @login_required
-# @active_required
-# def get_photo(id):
-#     return False
-    # filename = id
-    #
-    # s3 = boto.connect_s3()
-    # bucket_name = 'reddimatch-testing'
-    # bucket = s3.get_bucket(bucket_name)
-    #
-    # key = bucket.get_key(filename)
-    #
-    # if key is not None:
-    #     url = key.generate_url(360)
-    #     return url
-    # else:
-    #     return False
 
 @app.route('/get_username')
 @login_required

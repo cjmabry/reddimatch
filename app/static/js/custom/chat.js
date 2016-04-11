@@ -64,8 +64,6 @@ var properties, Chat = {
     // user selection
     p.userList.on("click touchstart", function(e) {
 
-      console.log($(e.target).prop('className'));
-
       if(e.type=='click' && ($(e.target).prop('className') != 'card') && ($(e.target).prop('tagName') != 'H5')) {
         e.stopPropagation();
         e.preventDefault();
@@ -198,8 +196,6 @@ var properties, Chat = {
     // TODO implement timestamps
 
     var self = this;
-
-    console.log(p.currentUserMatchType)
 
     $.ajax({
       url: '/get_messages',
@@ -455,7 +451,6 @@ var properties, Chat = {
         'username': p.username
       }).done(function () {
       window.location.replace("http://reddimatch.com/chat");
-      console.log('Match deleted');
     });
   }
 
