@@ -64,6 +64,7 @@ class User(db.Model):
     allow_reddit_notifications = db.Column(db.Boolean)
     deleted = db.Column(db.Boolean)
     disable_location = db.Column(db.Boolean)
+    show_top_comment = db.Column(db.Boolean)
 
     matches_sent = db.relationship('Match', backref='match_sender', primaryjoin=(id==Match.user_from_id),lazy='dynamic')
     matches_received = db.relationship('Match', primaryjoin=(id==Match.user_to_id), backref='match_recipient', lazy='dynamic')
@@ -265,6 +266,9 @@ class User(db.Model):
 
     def has_favorite(self, subreddit):
         return self.favorited.filter(favorite_subs.c.subreddit_id == subreddit.id).count() > 0
+
+    def top_comment(self):
+        return app.reddit_api.get_top_comment(self)
 
     def favorited_subs(self):
         return Subreddit.query.join(favorite_subs, (favorite_subs.c.subreddit_id == Subreddit.id)).filter(favorite_subs.c.user_id == self.id)

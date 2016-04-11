@@ -96,9 +96,39 @@
       {{ render_field(form.allow_reddit_notifications) }} Send me a message through reddit when I recieve a match or when one of my matches is accepted.
     </div>
 
-    </form>
-
 </div>
+
+{% if current_user.top_comment() %}
+
+  {% set comment = current_user.top_comment() %}
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
+
+      <h2 class="text-center">Your Top Reddit Comment</h2>
+
+      <div class="text-left top-comment ">
+
+        <div class="comment">
+          <p class="comment-info"><small>{{comment.author}} &#0149; {{comment.created_utc | pretty_date}} &#0149; {{comment.score}} points</small></p>
+
+          <p>{{comment.body}}</p>
+
+          <p class="comment-info"><small><a href="{{comment.permalink}}">permalink</a> &#0149; <a href="http://reddit.com/r/{{ comment.subreddit }}">/r/{{ comment.subreddit }}</a></small></p>
+        </div>
+
+        <div class="show-top-comment text-center">
+          {{ render_field(form.show_top_comment) }}
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+{% endif %}
+
+</form>
+
 
 <div class="row text-center">
 

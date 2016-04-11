@@ -8,13 +8,14 @@ from reddit_api import praw_instance
 
 class RegistrationForm(Form):
     username = StringField('Display Name', [validators.InputRequired(message="You need a username."), validators.Length(min=3, max=20, message ="Usernames can be between 3 and 20 characters."), validators.Regexp(r'^[\w_-]+$', message='Usernames can only contain letters, numbers, "-" and "_".')])
-    email = StringField('Email', [validators.Optional(strip_whitespace=False), validators.Email()])
+    email = StringField('Email (Private)', [validators.Optional(strip_whitespace=False), validators.Email()])
     bio = StringField('Bio', [validators.Length(max=140)], widget=TextArea())
     avatar = IntegerField('Avatar')
     favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least on favorite sub to find matches.")])
     favorite_sub_2 = StringField('Favorite Sub 2', [validators.Optional()])
     favorite_sub_3 = StringField('Favorite Sub 3', [validators.Optional()])
     allow_reddit_notifications = BooleanField()
+    show_top_comment = BooleanField('Show Top Comment on Profile')
 
     def validate(self):
         has_error = False
@@ -117,7 +118,7 @@ class DateRegistrationForm(Form):
 
 class DashboardForm(Form):
     username = StringField('Display Name', [validators.InputRequired(message="You need a username."), validators.Length(min=3, max=20, message ="Usernames can be between 3 and 20 characters."), validators.Regexp(r'^[\w_-]+$', message='Usernames can only contain letters, numbers, "-" and "_".')])
-    email = StringField('Email', [validators.Optional(strip_whitespace=False), validators.Email()])
+    email = StringField('Email (Private)', [validators.Optional(strip_whitespace=False), validators.Email()])
     bio = StringField('Bio', [validators.Length(max=140)], widget=TextArea())
     avatar = IntegerField('Avatar')
     favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least on favorite sub to find matches.")])
@@ -133,6 +134,7 @@ class DashboardForm(Form):
     location = StringField('Location', [validators.Optional()])
     disable_location = BooleanField("Disable Location")
     allow_reddit_notifications = BooleanField()
+    show_top_comment = BooleanField('Show Top Comment on Profile')
 
     def validate(self):
         has_error = False

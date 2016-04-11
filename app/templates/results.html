@@ -89,7 +89,7 @@
       <div class="buttons text-center row">
         <div class="col-md-4 col-md-offset-4 col-xs-10 col-xs-offset-1">
           <a class="btn btn-primary btn-block" role="button" href="{{ url_for('messages')}}">Go to Messages <span class="chevron glyphicon glyphicon-chevron-right"></span></a>
-          <a class="btn btn-secondary btn-block" role="button" href="/match"><span class="chevron glyphicon glyphicon-chevron-left"></span> Search Again</a>
+          <a class="btn btn-secondary btn-block" role="button" href="{% if type == 'date'%}/date{% else %}/match{% endif %}"><span class="chevron glyphicon glyphicon-chevron-left"></span> Search Again</a>
         </div>
       </div>
 
@@ -119,7 +119,7 @@
         <div class="buttons text-center row">
           <div class="col-md-4 col-md-offset-4 col-xs-10 col-xs-offset-1">
             <a class="btn btn-primary btn-block" role="button" href="{{ url_for('messages')}}">Go to Messages <span class="chevron glyphicon glyphicon-chevron-right"></span></a>
-            <a class="btn btn-secondary btn-block" role="button" href="/match"><span class="chevron glyphicon glyphicon-chevron-left"></span> Search Again</a>
+            <a class="btn btn-secondary btn-block" role="button" href="{% if type == 'date'%}/date{% else %}/match{% endif %}"><span class="chevron glyphicon glyphicon-chevron-left"></span> Search Again</a>
           </div>
         </div>
 

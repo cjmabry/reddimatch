@@ -81,13 +81,35 @@
       </div>
       {% endwith %}
 
-      {% if current_user.bio is defined and current_user.bio != None %}
-
+      {% if current_user.bio %}
 
         <div class="card">
           <h5>Bio</h5>
           {{ current_user.bio }}
         </div>
+
+      {% endif %}
+
+      {% if current_user.top_comment() %}
+
+        {% set comment = current_user.top_comment() %}
+          <div class="card">
+
+            <h5>Your Top Reddit Comment</h5>
+
+            <div class="text-left top-comment ">
+
+              <div class="comment">
+                <p class="comment-info"><small>{{comment.created_utc | pretty_date}} &#0149; {{comment.score}} points</small></p>
+
+                <p class="comment-body">{{comment.body}}</p>
+
+                <p class="comment-info"><small><a href="{{comment.permalink}}">permalink</a> &#0149; <a href="http://reddit.com/r/{{ comment.subreddit }}">/r/{{ comment.subreddit }}</a></small></p>
+              </div>
+
+            </div>
+
+          </div>
 
       {% endif %}
 

@@ -16,7 +16,7 @@ var properties, Chat = {
 
   init: function() {
     p = this.properties;
-    p.userList.children(':first').addClass('selected');
+    p.userList.find("li").eq(0).addClass('selected');
     this.connect();
 
     if ($(p.userList).has("li").length > 0) {
@@ -64,7 +64,9 @@ var properties, Chat = {
     // user selection
     p.userList.on("click touchstart", function(e) {
 
-      if(e.type=='click') {
+      console.log($(e.target).prop('className'));
+
+      if(e.type=='click' && ($(e.target).prop('className') != 'card') && ($(e.target).prop('tagName') != 'H5')) {
         e.stopPropagation();
         e.preventDefault();
         $('.selected').removeClass('selected');
@@ -338,6 +340,11 @@ var properties, Chat = {
       bio_div = $("<div class='card'><h5>Bio</h5></div></div>");
       $("#user_info").append(bio_div);
       bio_div.append(data.bio);
+    }
+
+    if(data.top_comment) {
+      top_comment = $("<div class='card'><h5>Top Reddit Comment</h5><div class='text-left top-comment'><div class=comment'><p class='comment-info'><small>" + data.top_comment.created + " &#0149; " + data.top_comment.score + " points</small></p><p class='comment-body'>"+ data.top_comment.body + "</p><p class='comment-info'><small><a href='" + data.top_comment.permalink + "'>permalink</a> &#0149; <a href='http://reddit.com/r/"+ data.top_comment.subreddit + "'>/r/" + data.top_comment.subreddit + "</a></small></p></div></div></div>");
+      $("#user_info").append(top_comment);
     }
 
     remove_match = $("<div class='card'><button data-toggle='modal' data-target='#delete-modal' class='btn btn-block btn-danger'>Remove Match <span class='glyphicon glyphicon-remove'></span></button></div>")

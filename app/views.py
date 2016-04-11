@@ -1,7 +1,7 @@
 from flask import render_template, redirect, request, flash, url_for, g, jsonify, session, got_request_exception, send_file
 from flask.ext.login import LoginManager, current_user, login_user, login_required, logout_user
 import rollbar
-import rollbar.contrib.flask
+import rollbar.contrib.flask, operator
 from app import app, db, lm, reddit_api, models, forms, socketio
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_REDIRECT_URI, REDDIT_STATE
 from flask_socketio import emit, send, join_room, leave_room, rooms
@@ -10,9 +10,13 @@ from sqlalchemy import func, and_, or_
 from haversine import haversine
 from math import cos, pi
 from functools import wraps
-import boto3
+import boto3, ago
 import botocore
 from werkzeug import secure_filename
+
+@app.template_filter('pretty_date')
+def pretty_date(s):
+    return ago.human(datetime.datetime.fromtimestamp(s))
 
 @app.before_first_request
 def init_rollbar():
@@ -51,6 +55,7 @@ def register_required(f):
 @app.route('/index')
 def index():
     if current_user.is_authenticated:
+        reddit_api.get_top_comment(current_user)
         return redirect(url_for('match'))
     return render_template('index.html', title='Reddimatch - Where redditors meet!', page_class='index_page')
 
@@ -109,6 +114,11 @@ def register():
             user = current_user
             user.username = form.username.data
             user.allow_reddit_notifications = form.allow_reddit_notifications.data
+
+            print form.allow_reddit_notifications.data
+            print form.show_top_comment.data
+
+            user.show_top_comment = form.show_top_comment.data
             user.bio = form.bio.data
             user.newsletter = True
             user.registered = True
@@ -150,6 +160,7 @@ def register():
             return redirect(url_for('match'))
 
     form.allow_reddit_notifications.default = True
+    form.show_top_comment.default = True
 
     form.process()
 
@@ -210,6 +221,7 @@ def dashboard():
 
             user.username = form.username.data
             user.allow_reddit_notifications = form.allow_reddit_notifications.data
+            user.show_top_comment = form.show_top_comment.data
 
             if form.age.data:
                 user.age = int(form.age.data)
@@ -297,6 +309,11 @@ def dashboard():
     else:
         form.allow_reddit_notifications.default = False
 
+    if user.show_top_comment is not None:
+        form.show_top_comment.default = user.show_top_comment
+    else:
+        form.show_top_comment.default = False
+
     if user.location:
         form.location.default = user.location
 
@@ -334,15 +351,26 @@ def quick_match():
         users = sub.favorited_users().all()
 
         for u in users:
-            if u.username is not user.username and not user.is_matched(u, 'friend') and not user.is_rejected(u, 'friend') and not user.has_sent_match(u, 'friend'):
+            print u
+            if u.username is not user.username and not user.is_matched(u, 'friend') and not user.is_rejected(u, 'friend') and not user.has_sent_match(u, 'friend') and u not in matches:
 
                 u.status = 'onsite'
                 u.type = 'friend'
-
                 matches.append(u)
 
+    matches_dict = {}
+
     if len(matches) > 3:
-        matches = random.sample(matches, 3)
+        for match in matches:
+            if match.last_online:
+                matches_dict[match] = match.last_online
+
+        matches_sorted = dict(sorted(matches_dict.iteritems(), key=operator.itemgetter(1), reverse=True)[:3])
+
+        matches = []
+
+        for key,value in matches_sorted.iteritems():
+            matches.append(key)
 
     if len(matches) == 0:
         matches = reddit_api.get_offsite_users(favs)
@@ -350,7 +378,7 @@ def quick_match():
         if len(matches) == 0:
             matches = None
 
-    return render_template('results.html', title='Reddimatch', page_class='results_page', matches=matches)
+    return render_template('results.html', title='Reddimatch', page_class='results_page', matches=matches, type='quick_match')
 
 @app.route('/date', methods = ['GET', 'POST'])
 @login_required
@@ -433,13 +461,26 @@ def date():
 
             matches = list(set(matches))
 
+        matches_dict = {}
+
         if len(matches) > 3:
-            matches = random.sample(matches, 3)
+            for match in matches:
+                if match.last_online:
+                    matches_dict[match] = match.last_online
+
+            matches_sorted = dict(sorted(matches_dict.iteritems(), key=operator.itemgetter(1), reverse=True)[:3])
+
+            print matches_sorted
+
+            matches = []
+
+            for key,value in matches_sorted.iteritems():
+                matches.append(key)
 
         if len(matches) == 0:
             matches = None
 
-        return render_template('results.html',title='Reddimatch', page_class='results_page',matches=matches)
+        return render_template('results.html',title='Reddimatch', page_class='results_page',matches=matches, type='date')
 
     if current_user.gender_id:
         form.gender.default = current_user.gender_id
@@ -743,6 +784,11 @@ def get_user_info():
                 user_dict['avatar'] = str(user.avatar(100))
                 user_dict['match_type'] = match_type
 
+                top_comment = user.top_comment()
+
+                if user.show_top_comment and top_comment is not None:
+                    user_dict['top_comment'] = {'body':top_comment.body, 'created':pretty_date(top_comment.created_utc),'subreddit':str(top_comment.subreddit),'score':top_comment.score, 'permalink':top_comment.permalink}
+
                 fav_subs = user.favorited.all()
                 fav_subs_list = []
 
@@ -897,7 +943,6 @@ def delete_match():
             current_user.unmatch(reject_user, match_type)
 
         return 'Match deleted.'
-
 
 @app.route('/privacy')
 def privacy():

@@ -6,7 +6,7 @@
 
 <div class="register row">
 
-  <h2 class="text-center">Your Public Profile</h2>
+  <h2 class="text-center">Your Profile</h2>
 
   <div class="register-wrapper">
 
@@ -102,12 +102,41 @@
 
 </div>
 
+{% if current_user.top_comment() %}
 
-<h2 class="text-center">Dating Settings</h2>
+  {% set comment = current_user.top_comment() %}
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
 
-<div class="row">
+      <h2 class="text-center">Your Top Reddit Comment</h2>
 
-  <div class="col-md-8 col-md-offset-2 date controls text-center ">
+      <div class="text-left top-comment ">
+
+        <div class="comment">
+          <p class="comment-info"><small>{{comment.author}} &#0149; {{comment.created_utc | pretty_date}} &#0149; {{comment.score}} points</small></p>
+
+          <p>{{comment.body}}</p>
+
+          <p class="comment-info"><small><a href="{{comment.permalink}}">permalink</a> &#0149; <a href="http://reddit.com/r/{{ comment.subreddit }}">/r/{{ comment.subreddit }}</a></small></p>
+        </div>
+
+        <div class="show-top-comment text-center">
+          {{ render_field(form.show_top_comment) }}
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+{% endif %}
+
+
+  <div class="col-md-6 col-md-offset-3 text-center ">
+
+    <h2 class="text-center">Dating Settings</h2>
+
+    <div class="date controls">
 
     {% from "_formhelpers.html" import render_field %}
 
@@ -165,7 +194,6 @@
   </form>
 
   </div>
-
 </div>
 
 <div class="row text-center">

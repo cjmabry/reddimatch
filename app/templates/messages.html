@@ -13,6 +13,10 @@
 
           {% if requests %}
 
+            <div class="card">
+              <h5>Requests</h5>
+            </div>
+
             {% for request in requests %}
 
               {% if not request.deleted %}
@@ -47,6 +51,10 @@
         {% with accepted_matches = current_user.get_matches() %}
 
           {% if accepted_matches %}
+
+            <div class="card">
+              <h5>Matches</h5>
+            </div>
 
             {% for match in accepted_matches %}
 
@@ -113,22 +121,48 @@
 
             {% if pending_matches %}
 
-              {% for match in pending_matches %}
+              <div class="pending-matches">
 
-                {% if not match.deleted %}
+                <div class="card">
+                  <h5>Pending Matches</h5>
+                </div>
 
+                {% for match in pending_matches %}
 
-                  {% if match.user_to.username != current_user.username %}
-                    <li class="user unconfirmed" data-username="{{ match.user_to.username }}" data-match-type="{{match.match_type}}">
+                  {% if not match.deleted %}
+
+                    {% if match.user_to.username != current_user.username %}
+                      <li class="user unconfirmed" data-username="{{ match.user_to.username }}" data-match-type="{{match.match_type}}">
+
+                        <div class="profile_photo">
+
+                          <img src="{{ match.user_to.avatar(60) }}">
+
+                        </div>
+                        <div class="info">
+
+                          <span class="username">{{match.user_to.username}}<span class="glyphicon {% if match.match_type == 'date' %}glyphicon glyphicon-heart{% elif match.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
+
+                        </div>
+
+                        <div class="right_side">
+                          <div class="status"><span class="indicator"></span></div>
+
+                          <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
+                        </div>
+
+                      </li>
+                    {% elif match.user_from.username != current_user.username %}
+                    <li class="user unconfirmed" data-username="{{ match.user_from.username }}" data-match-type="{{match.match_type}}">
 
                       <div class="profile_photo">
 
-                        <img src="{{ match.user_to.avatar(60) }}">
+                        <img src="{{ match.user_from.avatar(60) }}">
 
                       </div>
                       <div class="info">
 
-                        <span class="username">{{match.user_to.username}}<span class="glyphicon {% if match.match_type == 'date' %}glyphicon glyphicon-heart{% elif match.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
+                        <span class="username">{{match.user_from.username}}<span class="glyphicon {% if match.match_type == 'date' %}glyphicon glyphicon-heart{% elif match.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
 
 
                       </div>
@@ -140,33 +174,12 @@
                       </div>
 
                     </li>
-                  {% elif match.user_from.username != current_user.username %}
-                  <li class="user unconfirmed" data-username="{{ match.user_from.username }}" data-match-type="{{match.match_type}}">
+                    {% endif %}
 
-                    <div class="profile_photo">
-
-                      <img src="{{ match.user_from.avatar(60) }}">
-
-                    </div>
-                    <div class="info">
-
-                      <span class="username">{{match.user_from.username}}<span class="glyphicon {% if match.match_type == 'date' %}glyphicon glyphicon-heart{% elif match.match_type == 'friend'%}glyphicon glyphicon-thumbs-up{% endif %}"></span></span>
-
-
-                    </div>
-
-                    <div class="right_side">
-                      <div class="status"><span class="indicator"></span></div>
-
-                      <div class="expand text-center glyphicon glyphicon-chevron-right"></div>
-                    </div>
-
-                  </li>
                   {% endif %}
 
-                {% endif %}
-
-              {% endfor %}
+                {% endfor %}
+              </div>
 
             {% endif %}
 

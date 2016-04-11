@@ -181,3 +181,18 @@ def send_message(to, subject, message, from_sr):
     o.refresh()
 
     msg = r.send_message(to,subject,message,from_sr=from_sr)
+
+def get_top_comment(user):
+    r = praw_instance()
+
+    reddit_user = r.get_redditor(user.username)
+
+    comments = reddit_user.get_comments(sort='top', time='all', limit=1)
+
+    try:
+        top_comment = comments.next()
+        return top_comment
+    except StopIteration as e:
+        print "The user doesn't have any comments, or Reddit might be down."
+
+    return None
