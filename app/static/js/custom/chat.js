@@ -165,7 +165,10 @@ var properties, Chat = {
         div.addClass('from');
         p.currentMessages.append(div);
         p.currentMessages.removeClass('empty');
-        self.mark_as_read(data['id']);
+
+        if (data['id'] !== 0) {
+          self.mark_as_read(data['id']);
+        }
 
         if(scroll) {
 
@@ -191,7 +194,6 @@ var properties, Chat = {
   },
 
   get_messages: function(){
-    // TODO make sure these requirements are fulfilled - ajax call with id of user to get messages from, check on server whether the user is a match with the id, then append to conversation
     // TODO implement pagination
     // TODO implement timestamps
 
@@ -201,8 +203,9 @@ var properties, Chat = {
       url: '/get_messages',
       data: {"username":p.currentUser,"match_type":p.currentUserMatchType},
       success: function(response) {
-        if(response == 'no_messages' || response == 'request' || response == 'unconfirmed') {
+        if(response.status == 'no_messages' || response.status == 'request' || response.status == 'unconfirmed') {
           self.display_prompt(response);
+          self.display_messages(response);
         } else {
           self.display_messages(response);
           self.scroll_to_bottom(false);
@@ -212,14 +215,16 @@ var properties, Chat = {
 
   },
 
-  display_prompt: function(type) {
+  display_prompt: function(response) {
     div = $("<div>", {class: "prompt"});
+
+    type = response.status;
+    var self = this;
 
     if(type == 'no_messages') {
       $(div).html('<div class="prompt_icon"></div><h2><small>Go ahead, say hello!</small></h2>');
       p.currentMessages.addClass('empty');
     } else if (type == 'request') {
-
       div.html(
         "<div class='prompt_icon'></div><h2><small>This user has requested to match with you! Accept their match if you'd like to chat.</small></h2>" +
         "<div class='match'>" +
@@ -231,9 +236,11 @@ var properties, Chat = {
             "</span>" +
           "</div>" +
       "</div>");
-
       p.currentMessages.addClass('request');
     } else if (type=='unconfirmed') {
+      $(div).html('<div class="prompt_icon"></div><h2><small>This user hasn\'t accepted your match yet - go ahead and introduce yourself. You only get one introduction, so take your time!</small></h2>');
+      p.currentMessages.addClass('unconfirmed');
+    } else if (type=='unconfirmed_sent') {
       $(div).html('<div class="prompt_icon"></div><h2><small>This user hasn\'t accepted your match yet. You\'ll be able to chat with them once they do.</small></h2>');
       p.currentMessages.addClass('unconfirmed');
     }
@@ -379,7 +386,7 @@ var properties, Chat = {
   set_online: function(users){
     for(var user in users){
       if(users.hasOwnProperty(user)){
-        if(users[user] == true) {
+        if(users[user] === true) {
           p.userList.find("[data-username='" + user + "']").addClass('online');
         } else {
           p.userList.find("[data-username='" + user + "']").addClass('offline');
@@ -404,8 +411,7 @@ var properties, Chat = {
 
   display_messages: function(data) {
     var div;
-
-    data = data.results;
+    data = data.messages;
     for (var k in data) {
 
       if (data.hasOwnProperty(k)) {
@@ -415,7 +421,7 @@ var properties, Chat = {
         for (var m in messages){
           if (messages.hasOwnProperty(m)) {
 
-            div = $("<div>", {class: "message "});
+            div = $("<div>", {class: "message"});
             $(div).text(messages[m].content);
 
             if (messages[m].from == p.username && messages[m].to == p.currentUser && messages[m].match_type == p.currentUserMatchType){

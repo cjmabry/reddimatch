@@ -23,13 +23,9 @@ def init_rollbar():
     """init rollbar module"""
     if app.config['ENVIRONMENT'] == 'Production' or app.config['ENVIRONMENT'] == 'Staging':
         rollbar.init(
-            # access token for the demo app: https://rollbar.com/demo
             '23e67e8b2a7944dca50bf2317046c75d',
-            # environment name
             app.config['ENVIRONMENT'],
-            # server root directory, makes tracebacks prettier
             root=os.path.dirname(os.path.realpath(__file__)),
-            # flask already sets up logging
             allow_logging_basic_config=False)
 
         # send exceptions from `app` to rollbar, using flask's signal system.
@@ -610,7 +606,7 @@ def get_messages():
     username = request.args.get('username', None)
     match_type = request.args.get('match_type', None)
     if username is None:
-        return 'no_username'
+        return jsonify({'status':'no_username'})
 
     else:
         if models.User.query.filter_by(username=username):
@@ -621,7 +617,7 @@ def get_messages():
             if current_user.is_matched(to_user, match_type):
                 messages_list = []
 
-                if models.Message.query.filter_by(from_id=current_user.id, to_id=to_id, match_type=match_type).count > 0:
+                if models.Message.query.filter_by(from_id=current_user.id, to_id=to_id, match_type=match_type).count() > 0:
 
                     messages = models.Message.query.filter_by(from_id=current_user.id, to_id=to_id, match_type=match_type).all()
 
@@ -665,14 +661,77 @@ def get_messages():
                 db.session.commit()
 
                 if not messages_list:
-                    return 'no_messages'
+                    return jsonify({'status':'no_messages'})
                 else:
-                    return jsonify(results = messages_list)
+                    return jsonify({'status': 'messages', 'messages':messages_list})
 
             elif current_user.has_received_match(to_user, match_type) and not current_user.is_rejected(to_user, match_type):
-                return "request"
+                if models.Message.query.filter_by(from_id=to_user.id, to_id=current_user.id, match_type=match_type).first():
+                    messages_list = []
+                    m = models.Message.query.filter_by(from_id=to_user.id, to_id=current_user.id, match_type=match_type).first()
+
+                    message = {}
+
+                    message_object = {
+                        'to':m.to.username,
+                        'from':m.author.username,
+                        'content':m.content,
+                        'match_type':m.match_type
+                    }
+
+                    message[str(m.time_sent)] = message_object
+
+                    messages_list.append(message)
+
+                    return jsonify({'status':'request','messages':messages_list})
+
+                return jsonify({'status':'request'})
             elif current_user.has_sent_match(to_user, match_type) and not current_user.is_rejected(to_user, match_type):
-                return "unconfirmed"
+
+                if models.Message.query.filter_by(from_id=current_user.id, to_id=to_user.id, match_type=match_type).count() < 1:
+                    return jsonify({'status':'unconfirmed'})
+                else:
+                    messages_list = []
+
+                    messages = models.Message.query.filter_by(from_id=current_user.id, to_id=to_id, match_type=match_type).all()
+
+                    for m in messages:
+                        message = {}
+
+                        message_object = {
+                            'to':m.to.username,
+                            'from':m.author.username,
+                            'content':m.content,
+                            'match_type':m.match_type
+                        }
+
+                        message[str(m.time_sent)] = message_object
+
+                        messages_list.append(message)
+
+                    if models.Message.query.filter_by(to_id=current_user.id, from_id=to_id, match_type=match_type):
+
+                        messages =  models.Message.query.filter_by(to_id=current_user.id,from_id=to_id, match_type=match_type).all()
+
+                        for m in messages:
+                            if m.read is not True:
+                                m.read = True
+                                db.session.add(m)
+                            message = {}
+
+                            message_object = {
+                                'to':m.to.username,
+                                'from':m.author.username,
+                                'content':m.content,
+                                'match_type':m.match_type
+                            }
+
+                            message[str(m.time_sent)] = message_object
+
+                            messages_list.append(message)
+
+                    messages_list.sort()
+                    return jsonify({'status': 'unconfirmed_sent', 'messages':messages_list})
 
 @app.route('/get_avatar')
 @login_required
@@ -756,7 +815,7 @@ def get_user_info():
 
                 top_comment = user.get_top_comment()
 
-                if user.show_top_comment and top_comment is not None:
+                if user.show_top_comment and top_comment is not None and hasattr(top_comment, 'body'):
                     user_dict['top_comment'] = {'body':top_comment.body, 'created':pretty_date(top_comment.created_utc),'subreddit':str(top_comment.subreddit),'score':top_comment.score, 'permalink':top_comment.permalink}
 
                 fav_subs = user.favorited.all()
@@ -848,6 +907,15 @@ def message(data):
         db.session.commit()
         emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from'], 'match_type': data['match_type'], 'id':m.id}, room=data['to'])
         emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from'], 'match_type': data['match_type'], 'id':m.id}, room=data['from'])
+    elif from_user.has_sent_match(to_user, data['match_type']) and not from_user.is_rejected(to_user, data['match_type']):
+        if models.Message.query.filter_by(from_id=from_user.id, to_id=to_user.id, match_type=data['match_type']).count() < 1:
+            m = models.Message(content=data['msg'],from_id=from_user.id,to_id=to_user.id,time_sent=datetime.datetime.now(), match_type=data['match_type'], read= False)
+            db.session.add(m)
+            db.session.commit()
+            emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from'], 'match_type': data['match_type'], 'id':m.id}, room=data['to'])
+            emit('message response', {'msg': data['msg'], 'to': data['to'], 'from':data['from'], 'match_type': data['match_type'], 'id':m.id}, room=data['from'])
+        else:
+            emit('message response', {'msg': "This user hasn't accepted your match yet. You'll be able to send more messages when they have.", 'to': data['from'], 'from':data['to'], 'match_type': data['match_type'], 'id':0}, room=data['from'])
 
 @app.route('/delete_profile', methods=['POST'])
 @login_required
