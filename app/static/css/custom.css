@@ -13,6 +13,10 @@ body {
   margin-top:50px;
 }
 
+body.app {
+  padding-bottom: 50px;
+}
+
 body .navbar {
   background-color: #ffffff;
   color:#51b2e8;
@@ -185,6 +189,19 @@ footer {
   text-align: center;
 }
 
+footer.app-footer {
+  position: fixed;
+  bottom:0;
+  width: 100%;
+  height:60px;
+  line-height:60px;
+  background-color: white;
+  color: #337ab7;
+  border: solid 1px #f5f5f5;
+  text-align: center;
+  z-index: 9;
+}
+
 .navbar-fixed-top {
   background:#f5f5f5;
 }
@@ -272,28 +289,15 @@ footer {
   color: #333;
   font-weight: bold;
 }
-
+/*
 #feedback {
-  display: block;
+  position: relative;
+  display: inline-block;;
   height: 30px;
   line-height: 20px;
-  background: #333;
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  font-size: 12px;
-  color: white;
-  text-align: center;
-  padding: 5px 20px;
-  border-radius: 50px;
-  cursor: pointer;
-  -webkit-transition: 0.25s;
-  transition: 0.25s;
-  opacity: 0.3;
-  width: 120px;
-}
+}*/
 
-#feedback::after {
+/*#feedback::after {
   content:"reddimatch@gmail.com";
   display: none;
   position: absolute;
@@ -327,15 +331,15 @@ footer {
   border-top: 5px solid transparent;
   border-bottom: 5px solid transparent;
   border-right: 0;
-}
+}*/
 
-#feedback:hover::after, #feedback:hover::before {
+/*#feedback:hover::after, #feedback:hover::before {
   display: block;
 }
 
 #feedback:hover {
   opacity: 1;
-}
+}*/
 
 .carousel {
   max-width: 700px;
@@ -2082,9 +2086,9 @@ html.messages_page, .messages_page body {
   width: 400px;
 }
 
-.messages_page #feedback, .match_page #feedback {
+/*.messages_page footer, .match_page footer {
   display: none;
-}
+}*/
 
 }
 

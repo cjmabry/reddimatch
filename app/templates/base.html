@@ -46,7 +46,7 @@
     <script src="{{url_for('static', filename='js/vendor/bootstrap.min.js')}}"></script>
   </head>
 
-  <body>
+  <body class="app">
 
     {% if current_user.is_authenticated %}
       <div class="navbar navbar-fixed-top">
@@ -83,8 +83,6 @@
 
     {% block scripts %}
     {% endblock %}
-
-    <a href="mailto:reddimatch@gmail.com?subject=Feedback"><div id="feedback">Feedback <span class="glyphicon glyphicon-chevron-right"></span></div></a>
 
     {% if config['PRODUCTION'] %}
     <script>
