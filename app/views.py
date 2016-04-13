@@ -326,15 +326,12 @@ def dashboard():
 def match():
     return render_template('match.html', title='Reddimatch', page_class='match_page')
 
-@app.route('/quick_match')
-@login_required
-@active_required
-@register_required
-def quick_match():
-    #TODO use counter or similar to get people who are favorites of multiples of your favorites
+def find_quick_matches(offset=0):
+    offset = 3 * int(offset)
+
     user = current_user
 
-    favs = user.favorited_subs().all()
+    favs = current_user.favorited_subs().all()
 
     matches = []
 
@@ -355,7 +352,7 @@ def quick_match():
             if match.last_online:
                 matches_dict[match] = match.last_online
 
-        matches_sorted = dict(sorted(matches_dict.iteritems(), key=operator.itemgetter(1), reverse=True)[:3])
+        matches_sorted = dict(sorted(matches_dict.iteritems(), key=operator.itemgetter(1), reverse=True)[offset:offset+3])
 
         matches = []
 
@@ -368,7 +365,129 @@ def quick_match():
         if len(matches) == 0:
             matches = None
 
+    return matches
+
+@app.route('/quick_match')
+@login_required
+@active_required
+@register_required
+def quick_match():
+    if request.method == 'GET' and request.args.get('offset'):
+        offset = request.args.get('offset')
+        matches = find_quick_matches(offset)
+
+        matches_list = []
+
+        if matches:
+            for match in matches:
+                fav_subs = []
+
+                for sub in match.favorited_subs():
+                    fav_subs.append(str(sub.name))
+
+                matches_list.append({
+                    'username': match.username,
+                    'favorite_subs': fav_subs,
+                    'bio': match.bio,
+                    'status': str(match.status),
+                    'type': str(match.type),
+                    'profile_photo_url': match.avatar()
+                })
+            return jsonify(data=matches_list)
+        else:
+            return 'none'
+
+        return jsonify(data=matches)
+    else:
+        offset = 0
+
+    matches = find_quick_matches(offset)
     return render_template('results.html', title='Reddimatch', page_class='results_page', matches=matches, type='quick_match')
+
+def find_date_matches(radius=None,offset=0):
+    offset = 3 * int(offset)
+
+    if current_user.disable_location is True:
+        current_user.latitude = None
+        current_user.longitude = None
+        current_user.location = None
+
+    db.session.add(current_user)
+    db.session.commit()
+
+    if radius > 100 or current_user.disable_location is True:
+        radius = None
+
+    if current_user.latitude and current_user.longitude and current_user.disable_location is False:
+
+        # get matches, favorite subs disregarded
+        if radius:
+            # distance stuff
+            deltaLat = float(radius/69.174 + 2)
+            lat_min = current_user.latitude - deltaLat
+            lat_max = current_user.latitude + deltaLat
+
+
+
+            users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
+
+        else:
+            users = models.User.query.filter(and_(models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
+    else:
+        distance = None
+        if not radius:
+            users = models.User.query.filter(and_(models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
+        else:
+            users = []
+
+    mutual_sub_matches = []
+    matches = []
+    secondary_matches = []
+
+    if len(matches) > 0 and len(matches) < 3 or len(matches) == 0:
+
+        for u in users:
+
+            if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not current_user.has_sent_match(u, 'date'):
+                if u.latitude and u.longitude and current_user.latitude and current_user.longitude:
+                    current_user.coords = (current_user.latitude, current_user.longitude)
+                    u.coords = (u.latitude,u.longitude)
+
+                    distance = abs(haversine(current_user.coords, u.coords, miles=True))
+
+                    u.distance = int(distance)
+                u.status = 'onsite'
+                u.type = 'date'
+
+                if radius:
+                    if distance is not None:
+                        if distance <= radius:
+                            secondary_matches.append(u)
+                else:
+                    secondary_matches.append(u)
+
+        matches.extend(secondary_matches)
+
+        matches = list(set(matches))
+
+    matches_dict = {}
+
+    if len(matches) > 3:
+        for match in matches:
+            if match.last_online:
+                matches_dict[match] = match.last_online
+
+        matches_sorted = dict(sorted(matches_dict.iteritems(), key=operator.itemgetter(1), reverse=True)[offset:offset+3])
+
+        matches = []
+
+        for key,value in matches_sorted.iteritems():
+            matches.append(key)
+
+    if len(matches) == 0:
+        matches = None
+
+    return matches
 
 @app.route('/date', methods = ['GET', 'POST'])
 @login_required
@@ -388,125 +507,87 @@ def date():
         current_user.disable_location = form.disable_location.data
         radius = int(form.radius.data)
 
-        if current_user.disable_location is True:
-            current_user.latitude = None
-            current_user.longitude = None
-            current_user.location = None
-
-        db.session.add(current_user)
-        db.session.commit()
-
-        if radius > 100 or current_user.disable_location is True:
-            radius = None
-
-        if current_user.latitude and current_user.longitude and current_user.disable_location is False:
-
-            # get matches, favorite subs disregarded
-            if radius:
-                # distance stuff
-                deltaLat = float(radius/69.174 + 2)
-                lat_min = current_user.latitude - deltaLat
-                lat_max = current_user.latitude + deltaLat
-
-
-
-                users = models.User.query.filter(and_(models.User.latitude >= lat_min,  models.User.latitude <= lat_max, models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
-
-            else:
-                users = models.User.query.filter(and_(models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
-        else:
-            distance = None
-            if not radius:
-                users = models.User.query.filter(and_(models.User.age >= current_user.min_age, models.User.age <= current_user.max_age, models.User.date_searchable, models.User.username != current_user.username, models.User.gender_id == current_user.desired_gender_id, models.User.desired_gender_id == current_user.gender_id))
-            else:
-                users = []
-
-        mutual_sub_matches = []
-        matches = []
-        secondary_matches = []
-
-        if len(matches) > 0 and len(matches) < 3 or len(matches) == 0:
-
-            for u in users:
-
-                if not current_user.is_matched(u, 'date') and not current_user.is_rejected(u, 'date') and not current_user.has_sent_match(u, 'date'):
-                    if u.latitude and u.longitude and current_user.latitude and current_user.longitude:
-                        current_user.coords = (current_user.latitude, current_user.longitude)
-                        u.coords = (u.latitude,u.longitude)
-
-                        distance = abs(haversine(current_user.coords, u.coords, miles=True))
-
-                        u.distance = int(distance)
-                    u.status = 'onsite'
-                    u.type = 'date'
-
-                    if radius:
-                        if distance is not None:
-                            if distance <= radius:
-                                secondary_matches.append(u)
-                    else:
-                        secondary_matches.append(u)
-
-            matches.extend(secondary_matches)
-
-            matches = list(set(matches))
-
-        matches_dict = {}
-
-        if len(matches) > 3:
-            for match in matches:
-                if match.last_online:
-                    matches_dict[match] = match.last_online
-
-            matches_sorted = dict(sorted(matches_dict.iteritems(), key=operator.itemgetter(1), reverse=True)[:3])
-
-            matches = []
-
-            for key,value in matches_sorted.iteritems():
-                matches.append(key)
-
-        if len(matches) == 0:
-            matches = None
+        matches = find_date_matches(radius, 0)
 
         return render_template('results.html',title='Reddimatch', page_class='results_page',matches=matches, type='date')
 
-    if current_user.gender_id:
-        form.gender.default = current_user.gender_id
+    elif request.method == 'GET' and request.args.get('offset'):
+        offset = request.args.get('offset')
+
+        if current_user.search_radius:
+            matches = find_date_matches(current_user.search_radius,offset)
+        else:
+            matches =  find_date_matches(None,offset)
+
+        matches_list = []
+
+        if matches:
+            for match in matches:
+                fav_subs = []
+
+                print match
+
+                for sub in match.favorited_subs():
+                    fav_subs.append(str(sub.name))
+
+                if hasattr(match, 'distance'):
+                    distance = match.distance
+                else:
+                    distance = None
+
+                matches_list.append({
+                    'username': match.username,
+                    'age': int(match.age),
+                    'gender': str(match.gender),
+                    'favorite_subs': fav_subs,
+                    'bio': match.bio,
+                    'distance': distance,
+                    'status': str(match.status),
+                    'type': str(match.type),
+                    'profile_photo_url': match.avatar()
+                })
+            return jsonify(data=matches_list)
+        else:
+            return 'none'
+
     else:
-        form.gender.default = 1
+        if current_user.gender_id:
+            form.gender.default = current_user.gender_id
+        else:
+            form.gender.default = 1
 
-    if current_user.desired_gender_id:
-        form.desired_gender.default = current_user.desired_gender_id
-    else:
-        form.desired_gender.default = 2
+        if current_user.desired_gender_id:
+            form.desired_gender.default = current_user.desired_gender_id
+        else:
+            form.desired_gender.default = 2
 
-    if current_user.min_age:
-        form.min_age.default = current_user.min_age
-    else:
-        form.min_age.default = 18
+        if current_user.min_age:
+            form.min_age.default = current_user.min_age
+        else:
+            form.min_age.default = 18
 
-    if current_user.max_age:
-        form.max_age.default = current_user.max_age
-    else:
-        form.max_age.default = 35
+        if current_user.max_age:
+            form.max_age.default = current_user.max_age
+        else:
+            form.max_age.default = 35
 
-    if current_user.search_radius:
-        form.radius.default = current_user.search_radius
-    else:
-        form.radius.default = 50
+        if current_user.search_radius:
+            form.radius.default = current_user.search_radius
+        else:
+            form.radius.default = 50
 
-    if current_user.date_searchable is not None:
-        form.searchable.default = not current_user.date_searchable
-    else:
-        form.searchable.default = False
+        if current_user.date_searchable is not None:
+            form.searchable.default = not current_user.date_searchable
+        else:
+            form.searchable.default = False
 
-    if current_user.location:
-        form.location.default = current_user.location
+        if current_user.location:
+            form.location.default = current_user.location
 
-    if current_user.disable_location:
-        form.disable_location.default = current_user.disable_location
+        if current_user.disable_location:
+            form.disable_location.default = current_user.disable_location
 
-    form.process()
+        form.process()
 
     return render_template('date.html', title='Reddimatch', page_class='match_page date_page',form=form);
 

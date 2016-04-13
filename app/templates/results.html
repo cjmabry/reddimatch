@@ -17,11 +17,11 @@
           <p>We couldn't find any users on reddimatch, but we did find some potential matches on reddit.</p>
         {% endif %}
 
-        <div class="row matches">
+        <div class="row">
+
+        <div class="col-md-12 text-left matches">
 
         {% for match in matches %}
-
-          <div class="col-md-4 col-sm-6 col-sm-offset-0 col-xs-10 col-xs-offset-1 text-left">
 
             <div class="match">
 
@@ -82,12 +82,16 @@
 
             </div>
 
-          </div>
-
         {% endfor %}
 
+      </div>
+
       <div class="buttons text-center row">
-        <div class="col-md-4 col-md-offset-4 col-xs-10 col-xs-offset-1">
+        <div class="col-md-4 col-md-offset-4 col-xs-10 col-xs-offset-1 buttons-div">
+          <a class="btn btn-match btn-block" role="button" id="load_more" data-type="{{ matches[0].type }}" href="#">Load More Matches <span class="chevron glyphicon glyphicon-chevron-down"></span></a>
+
+          <hr>
+
           <a class="btn btn-primary btn-block" role="button" href="{{ url_for('messages')}}">Go to Messages <span class="chevron glyphicon glyphicon-chevron-right"></span></a>
           <a class="btn btn-secondary btn-block" role="button" href="{% if type == 'date'%}/date{% else %}/match{% endif %}"><span class="chevron glyphicon glyphicon-chevron-left"></span> Search Again</a>
         </div>
@@ -146,7 +150,6 @@
 
   {% endif %}
 
-<footer class="app-footer"><a href="mailto:reddimatch@gmail.com?subject=Feedback">Contact Us</span></a> | <a href="{{url_for('privacy')}}">Privacy Policy</a></small></footer>
 {% endblock %}
 
 {% block scripts %}
