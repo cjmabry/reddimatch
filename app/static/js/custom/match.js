@@ -49,6 +49,7 @@ $(document).on("click", 'span.no-match', function() {
 
 var load_more = $('#load_more');
 var offset = 1;
+var custom_subs = null;
 var user;
 
 function display_more_results(response) {
@@ -103,17 +104,24 @@ $(document).on('click touch', '#load_more', function() {
 
   var type = $(this).attr("data-type");
   var url;
+  custom_subs = $(this).attr("data-custom-subs");
 
   if (type == 'date') {
     url = '/date';
   } else {
-    url = '/quick_match'
+    url = '/quick_match';
   }
+
 
   $.ajax({
     url:url,
-    data: {"offset" : offset}
+    data: {
+      "offset" : offset,
+      "subs": custom_subs
+    },
+  type: 'GET'
   }).done(function (response) {
+    console.log(response);
     offset++;
     display_more_results(response)
   });

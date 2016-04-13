@@ -11,7 +11,7 @@ class RegistrationForm(Form):
     email = StringField('Email (Private)', [validators.Optional(strip_whitespace=False), validators.Email()])
     bio = StringField('Bio', [validators.Length(max=200)], widget=TextArea())
     avatar = IntegerField('Avatar')
-    favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least on favorite sub to find matches.")])
+    favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least one favorite sub to find matches.")])
     favorite_sub_2 = StringField('Favorite Sub 2', [validators.Optional()])
     favorite_sub_3 = StringField('Favorite Sub 3', [validators.Optional()])
     allow_reddit_notifications = BooleanField()
@@ -121,7 +121,7 @@ class DashboardForm(Form):
     email = StringField('Email (Private)', [validators.Optional(strip_whitespace=False), validators.Email()])
     bio = StringField('Bio', [validators.Length(max=200)], widget=TextArea())
     avatar = IntegerField('Avatar')
-    favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least on favorite sub to find matches.")])
+    favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least one favorite sub to find matches.")])
     favorite_sub_2 = StringField('Favorite Sub 2', [validators.Optional()])
     favorite_sub_3 = StringField('Favorite Sub 3', [validators.Optional()])
     age = IntegerField('Age', [validators.Optional(), validators.NumberRange(min=18, max=130, message="You must be 18 years or older.")])
@@ -216,3 +216,54 @@ class DashboardForm(Form):
 
     def update_user(self):
         pass
+
+class QuickMatchForm(Form):
+    favorite_sub_1 = StringField('Favorite Sub 1', [validators.InputRequired(message="We need at least one subreddit to find matches.")])
+    favorite_sub_2 = StringField('Favorite Sub 2', [validators.Optional()])
+    favorite_sub_3 = StringField('Favorite Sub 3', [validators.Optional()])
+
+    def validate(self):
+        has_error = False
+
+        rv = Form.validate(self)
+        if not rv:
+            return False
+
+        # check if subreddits exist
+        favorite_subs = []
+        favorite_subs.append(self.favorite_sub_1.data)
+
+        if self.favorite_sub_2.data:
+            favorite_subs.append(self.favorite_sub_2.data)
+
+        if self.favorite_sub_3.data:
+            favorite_subs.append(self.favorite_sub_3.data)
+
+        for sub in favorite_subs:
+
+            # strip /r/ from name
+            if '/' in sub:
+                sub = sub.split('/')[-1]
+
+            # if subreddit isn't found in reddimatch db
+            if models.Subreddit.query.filter_by(name = sub).first() is None:
+                r = praw_instance()
+                try:
+                    r.get_subreddit(sub, fetch=True)
+                except Exception as e:
+                    index = favorite_subs.index(sub)
+
+                    if index is 0:
+                        favorite_sub = self.favorite_sub_1
+                    if index is 1:
+                        favorite_sub = self.favorite_sub_2
+                    if index is 2:
+                        favorite_sub = self.favorite_sub_3
+
+                    print favorite_sub
+
+                    favorite_sub.errors.append("We couldn't find that subreddit. Are you sure it's spelled correctly?")
+
+                    return False
+
+        return True

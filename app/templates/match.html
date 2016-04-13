@@ -30,13 +30,43 @@
 
           <h2>Quick Match</h2>
 
-          <a href="{{ url_for('quick_match') }}">
-            <div class="icon"></div>
-          </a>
+          <div class="icon"></div>
 
-          <p class="description">We'll find you a match <i>auto-magically</i> based on your reddit profile.</p>
+          <p class="description">We'll find you a match <i>auto-magically</i> based on these subreddits:
 
-          <a class="btn btn-primary" href="{{ url_for('quick_match') }}">Quick Match <span class="glyphicon glyphicon-chevron-right"></span></a>
+            <div class="row favorite_subs">
+
+              {% from "_formhelpers.html" import render_field %}
+              <form class="col-sm-12" id="quick-match" method=post action="/quick_match">
+                {{ form.csrf_token }}
+
+                {% with favs = current_user.favorited_subs() %}
+
+                  {% for idx in range(0, 3)%}
+
+                  <div class="field sub col-sm-4">
+
+                    {% if favs[idx] %}
+                      {{ render_field(form['favorite_sub_' + (idx+1)|string], value=favs[idx].name, placeholder='subreddit')}}
+
+                    {% else %}
+                      {{ render_field(form['favorite_sub_' + (idx+1)|string], placeholder='subreddit')}}
+
+                    {% endif %}
+
+                  </div>
+
+                  {% endfor %}
+
+                {% endwith %}
+
+                <button class="btn btn-primary" id="next-button" type=submit >Next <span class="glyphicon glyphicon-chevron-right"></span></button>
+
+              </form>
+
+            </div>
+
+          </p>
 
         </div>
 
@@ -121,4 +151,8 @@
 
   </div>
   {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{url_for('static',filename='js/custom/match.js')}}"></script>
 {% endblock %}

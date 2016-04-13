@@ -324,14 +324,18 @@ def dashboard():
 @active_required
 @register_required
 def match():
-    return render_template('match.html', title='Reddimatch', page_class='match_page')
+    form = forms.QuickMatchForm(request.form)
+    return render_template('match.html', title='Reddimatch', page_class='match_page',form=form)
 
-def find_quick_matches(offset=0):
+def find_quick_matches(offset=0,custom_subs=None):
     offset = 3 * int(offset)
 
     user = current_user
 
-    favs = current_user.favorited_subs().all()
+    if not custom_subs:
+        favs = current_user.favorited_subs().all()
+    else:
+        favs = custom_subs
 
     matches = []
 
@@ -367,14 +371,43 @@ def find_quick_matches(offset=0):
 
     return matches
 
-@app.route('/quick_match')
+@app.route('/quick_match', methods=['POST','GET'])
 @login_required
 @active_required
 @register_required
 def quick_match():
+
+    form = forms.QuickMatchForm(request.form)
+
+    subs = None
+
     if request.method == 'GET' and request.args.get('offset'):
         offset = request.args.get('offset')
-        matches = find_quick_matches(offset)
+
+        if request.args.get('subs'):
+            subs = request.args.get('subs').split(" ")
+        else:
+            subs = None
+
+        sub_objects = []
+
+        for sub in subs:
+            # strip /r/ from name
+            if '/' in sub:
+                sub = sub.split('/')[-1]
+
+            if models.Subreddit.query.filter_by(name = sub).first() is None:
+                subreddit = models.Subreddit(name=sub)
+                db.session.add(subreddit)
+                db.session.commit()
+                sub_objects.append(subreddit)
+            else:
+                subreddit = models.Subreddit.query.filter_by(name = sub).first()
+                sub_objects.append(subreddit)
+
+        subs = sub_objects
+
+        matches = find_quick_matches(offset, subs)
 
         matches_list = []
 
@@ -391,18 +424,55 @@ def quick_match():
                     'bio': match.bio,
                     'status': str(match.status),
                     'type': str(match.type),
-                    'profile_photo_url': match.avatar()
+                    'profile_photo_url': match.avatar(),
                 })
             return jsonify(data=matches_list)
         else:
             return 'none'
 
         return jsonify(data=matches)
+    elif request.method == 'POST':
+        if form.validate():
+            offset = 0
+            favorite_subs = []
+            favorite_subs.append(form.favorite_sub_1.data)
+
+            if form.favorite_sub_2.data:
+                favorite_subs.append(form.favorite_sub_2.data)
+
+            if form.favorite_sub_3.data:
+                favorite_subs.append(form.favorite_sub_3.data)
+
+            subs = []
+
+            for sub in favorite_subs:
+
+                # strip /r/ from name
+                if '/' in sub:
+                    sub = sub.split('/')[-1]
+
+                if models.Subreddit.query.filter_by(name = sub).first() is None:
+                    subreddit = models.Subreddit(name=sub)
+                    db.session.add(subreddit)
+                    db.session.commit()
+                    subs.append(subreddit)
+                else:
+                    subreddit = models.Subreddit.query.filter_by(name = sub).first()
+                    subs.append(subreddit)
+
+        else:
+            form.process()
+            return render_template('match.html', title='Reddimatch', page_class='match_page',form=form);
     else:
         offset = 0
 
-    matches = find_quick_matches(offset)
-    return render_template('results.html', title='Reddimatch', page_class='results_page', matches=matches, type='quick_match')
+    matches = find_quick_matches(offset, subs)
+
+    sub_strings = []
+
+    for sub in subs:
+        sub_strings.append(str(sub.name))
+    return render_template('results.html', title='Reddimatch', page_class='results_page', matches=matches, subs=sub_strings, type='quick_match')
 
 def find_date_matches(radius=None,offset=0):
     offset = 3 * int(offset)
