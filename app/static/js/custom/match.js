@@ -67,7 +67,7 @@ function display_more_results(response) {
       $(match_div).html("<img src='" + user.profile_photo_url +"' class='profile_photo'><div class='match_info'><h4><span class='username'>" + user.username + "</span></h4><p class='secondary-info'></p><p class='bio'></p><strong>Favorite Subs</strong><p class='sub-badges'></p></div><div class='match_button'><span class='check glyphicon glyphicon-ok yes-match' role='button' data-username='" + user.username + "' data-match-type='" + user.type + "'></span><span class='text'></span><span class='cross glyphicon glyphicon-remove no-match' role='button' data-username='" + user.username + "' data-match-type='" + user.type + "'></span></div>");
 
       if (user.bio) {
-        var bio_div = $(String(user.bio));
+        var bio_div = $("<span>" + user.bio + "</span>");
         bio_div.appendTo(match_div.find('.bio'));
       }
 
