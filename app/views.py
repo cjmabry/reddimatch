@@ -327,10 +327,12 @@ def match():
     form = forms.QuickMatchForm(request.form)
     return render_template('match.html', title='Reddimatch', page_class='match_page',form=form)
 
-def find_quick_matches(offset=0,custom_subs=None):
+def find_quick_matches(offset=0,custom_subs=None, offsite=False):
     offset = 3 * int(offset)
 
     user = current_user
+
+    print custom_subs
 
     if not custom_subs:
         favs = current_user.favorited_subs().all()
@@ -364,9 +366,10 @@ def find_quick_matches(offset=0,custom_subs=None):
             matches.append(key)
 
     if len(matches) == 0:
-        matches = reddit_api.get_offsite_users(favs)
 
-        if len(matches) == 0:
+        if offsite:
+            matches = reddit_api.get_offsite_users(favs)
+        else:
             matches = None
 
     return matches
@@ -382,6 +385,7 @@ def quick_match():
     subs = None
 
     if request.method == 'GET' and request.args.get('offset'):
+        print 74589345798
         offset = request.args.get('offset')
 
         if request.args.get('subs'):
@@ -391,21 +395,22 @@ def quick_match():
 
         sub_objects = []
 
-        for sub in subs:
-            # strip /r/ from name
-            if '/' in sub:
-                sub = sub.split('/')[-1]
+        if subs:
+            for sub in subs:
+                # strip /r/ from name
+                if '/' in sub:
+                    sub = sub.split('/')[-1]
 
-            if models.Subreddit.query.filter_by(name = sub).first() is None:
-                subreddit = models.Subreddit(name=sub)
-                db.session.add(subreddit)
-                db.session.commit()
-                sub_objects.append(subreddit)
-            else:
-                subreddit = models.Subreddit.query.filter_by(name = sub).first()
-                sub_objects.append(subreddit)
+                if models.Subreddit.query.filter_by(name = sub).first() is None:
+                    subreddit = models.Subreddit(name=sub)
+                    db.session.add(subreddit)
+                    db.session.commit()
+                    sub_objects.append(subreddit)
+                else:
+                    subreddit = models.Subreddit.query.filter_by(name = sub).first()
+                    sub_objects.append(subreddit)
 
-        subs = sub_objects
+            subs = sub_objects
 
         matches = find_quick_matches(offset, subs)
 
@@ -470,8 +475,9 @@ def quick_match():
 
     sub_strings = []
 
-    for sub in subs:
-        sub_strings.append(str(sub.name))
+    if subs:
+        for sub in subs:
+            sub_strings.append(str(sub.name))
     return render_template('results.html', title='Reddimatch', page_class='results_page', matches=matches, subs=sub_strings, type='quick_match')
 
 def find_date_matches(radius=None,offset=0):
