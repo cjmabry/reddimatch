@@ -59,8 +59,6 @@ function display_more_results(response) {
     for (var i in data) {
       user = data[i];
 
-      console.log(user);
-
       var matches_div = $('.matches');
 
       match_div = $("<div>", {class: "match"});
@@ -112,6 +110,7 @@ $(document).on('click touch', '#load_more', function() {
     url = '/quick_match';
   }
 
+  load_more.find('.glyphicon-chevron-down').removeClass('glyphicon-chevron-down').addClass('glyphicon-refresh glyphicon-refresh-animate');
 
   $.ajax({
     url:url,
@@ -121,7 +120,7 @@ $(document).on('click touch', '#load_more', function() {
     },
   type: 'GET'
   }).done(function (response) {
-    console.log(response);
+    load_more.find('.glyphicon-refresh').removeClass('glyphicon-refresh glyphicon-refresh-animate').addClass('glyphicon-chevron-down');
     offset++;
     display_more_results(response)
   });
